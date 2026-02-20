@@ -9,8 +9,10 @@
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
         input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
         button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #ccc; }
         .hidden { display: none; }
-        #anteprima img { max-width: 150px; margin-top: 10px; }
+        #anteprima img { max-width: 150px; margin-top: 10px; display: block; margin-left: auto; margin-right: auto; }
+        .loader { color: #1a73e8; font-size: 0.9em; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -24,14 +26,19 @@
 
     <div id="generator-section" class="hidden">
         <h2>Ciao <span id="nome-utente"></span>!</h2>
-        <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui">
-        <button onclick="analizzaLink()">VERIFICA PRODOTTO</button>
+        <p style="font-size: 0.8em; color: #666;">Incolla il link Amazon e clicca verifica</p>
+        <input type="text" id="amazon-link" placeholder="https://www.amazon.it/...">
+        <button id="btn-verifica" onclick="analizzaLink()">VERIFICA PRODOTTO</button>
+        <div id="loading" class="hidden" class="loader">🔍 Analisi prodotto in corso... attendi...</div>
         
         <div id="anteprima" class="hidden">
-            <img id="p-img" src="">
-            <p id="p-titolo" style="font-weight:bold;"></p>
+            <hr>
+            <p>Controlla i dati e correggi se necessario:</p>
+            <input type="text" id="p-titolo" placeholder="Titolo Prodotto">
+            <input type="text" id="p-img-url" placeholder="URL Immagine">
+            <img id="p-img-preview" src="">
             <input type="text" id="p-prezzo" placeholder="Prezzo (es: € 29.00)">
-            <button style="background: #28a745;" onclick="pubblica()">PUBBLICA ORA</button>
+            <button style="background: #28a745;" onclick="pubblica()">CONFERMA E PUBBLICA ORA</button>
         </div>
     </div>
 </div>
@@ -52,7 +59,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // --- LISTA UTENTI DI PROVA ---
     const utenti = {
         "ADMIN00": { nome: "Amministratore", tag: "shopygo-21" },
         "ROSSI01": { nome: "Mario Rossi", tag: "mariorossi-21" }
@@ -60,17 +66,15 @@
 
     let utenteAttivo = null;
 
-    // Rendiamo le funzioni globali per farle leggere dall'HTML
     window.login = function() {
         const cod = document.getElementById('codice-accesso').value.trim().toUpperCase();
-        console.log("Tentativo login con:", cod); // Log di controllo
         if(utenti[cod]) {
             utenteAttivo = utenti[cod];
             document.getElementById('nome-utente').innerText = utenteAttivo.nome;
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('generator-section').classList.remove('hidden');
         } else {
-            alert("Codice errato! Prova con ADMIN00");
+            alert("Codice errato!");
         }
     }
 
@@ -78,40 +82,58 @@
         const link = document.getElementById('amazon-link').value;
         if(!link.includes("amazon")) return alert("Link non valido");
         
+        const btn = document.getElementById('btn-verifica');
+        const load = document.getElementById('loading');
+        btn.disabled = true;
+        load.classList.remove('hidden');
+
         try {
             const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(link)}`);
             const data = await res.json();
             const doc = new DOMParser().parseFromString(data.contents, 'text/html');
-            const titolo = doc.querySelector('meta[property="og:title"]')?.content || "Prodotto Amazon";
+            
+            // Estraiamo Titolo e Immagine
+            const titolo = doc.querySelector('meta[property="og:title"]')?.content || "";
             const img = doc.querySelector('meta[property="og:image"]')?.content || "";
 
-            document.getElementById('p-titolo').innerText = titolo;
-            document.getElementById('p-img').src = img;
+            document.getElementById('p-titolo').value = titolo;
+            document.getElementById('p-img-url').value = img;
+            document.getElementById('p-img-preview').src = img;
+            
             document.getElementById('anteprima').classList.remove('hidden');
         } catch (e) {
-            alert("Errore nel caricamento dei dati Amazon.");
+            alert("Non sono riuscito a leggere Amazon automaticamente. Inserisci i dati a mano qui sotto.");
+            document.getElementById('anteprima').classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            load.classList.add('hidden');
         }
     }
 
     window.pubblica = async function() {
-        const prezzo = document.getElementById('p-prezzo').value;
+        const t = document.getElementById('p-titolo').value;
+        const img = document.getElementById('p-img-url').value;
+        const p = document.getElementById('p-prezzo').value;
         const linkOriginale = document.getElementById('amazon-link').value;
+
+        if(!t || !p) return alert("Inserisci almeno Titolo e Prezzo!");
+
         const linkFinale = linkOriginale.split("?")[0] + "?tag=" + utenteAttivo.tag;
 
         try {
             await addDoc(collection(db, "prodotti"), {
-                titolo: document.getElementById('p-titolo').innerText,
-                prezzo: prezzo,
-                immagine: document.getElementById('p-img').src,
+                titolo: t,
+                prezzo: p,
+                immagine: img,
                 link_amazon: linkFinale,
                 autore: utenteAttivo.nome,
                 id_affiliato: utenteAttivo.tag,
                 data: new Date()
             });
-            alert("✅ Prodotto caricato!");
+            alert("✅ Prodotto inviato allo Shop!");
             location.reload();
         } catch (e) {
-            alert("Errore Firebase: " + e.message);
+            alert("Errore: " + e.message);
         }
     }
 </script>
