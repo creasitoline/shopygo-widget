@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopyGO - Generatore Professionale</title>
+    <title>ShopyGO - Dashboard Collaboratore</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
-        h2 { color: #1a73e8; margin-bottom: 20px; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 1em; }
-        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #1557b0; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; text-align: center; }
+        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
         .hidden { display: none; }
-        #anteprima { border: 1px solid #e0e0e0; padding: 15px; border-radius: 12px; margin-top: 20px; background: #fafafa; }
-        #anteprima img { max-width: 100%; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .status { font-size: 0.85em; color: #666; margin-top: 5px; }
+        .product-card { background: #fff; border: 1px solid #eee; padding: 10px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; text-align: left; position: relative; }
+        .product-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 15px; }
+        .product-card h4 { margin: 0; font-size: 0.9em; width: 60%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .del-btn { background: #ff4d4d; color: white; padding: 5px 10px; font-size: 0.7em; width: auto; position: absolute; right: 10px; }
+        h3 { margin-top: 30px; color: #333; }
     </style>
 </head>
 <body>
@@ -23,29 +22,35 @@
 <div class="container">
     <div id="login-section">
         <h2>Area Collaboratori</h2>
-        <p>Inserisci il tuo codice personale (es: 1971)</p>
-        <input type="text" id="codice-accesso" placeholder="Codice ID">
+        <input type="text" id="codice-accesso" placeholder="Inserisci il tuo codice ID">
         <button id="btn-login">ACCEDI</button>
     </div>
 
     <div id="generator-section" class="hidden">
         <h2>Ciao, <span id="nome-utente" style="color:#28a745;"></span>!</h2>
-        <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui">
-        <button id="btn-verifica">VERIFICA PRODOTTO</button>
-        <div id="loading" class="hidden status">🔄 Recupero anteprima...</div>
         
-        <div id="anteprima" class="hidden">
-            <img id="p-img-preview" src="" alt="Anteprima">
-            <input type="text" id="p-titolo" placeholder="Titolo del prodotto">
-            <input type="text" id="p-prezzo" placeholder="Prezzo (es: 29.90)">
-            <button style="background: #28a745;" id="btn-pubblica">PUBBLICA SULLO SHOP</button>
+        <div style="background: #eef5ff; padding: 15px; border-radius: 10px;">
+            <p style="margin-top:0">🔍 Incolla Link Amazon:</p>
+            <input type="text" id="amazon-link" placeholder="https://www.amazon.it/...">
+            <button id="btn-verifica">VERIFICA PRODOTTO</button>
         </div>
+
+        <div id="anteprima" class="hidden" style="margin-top:20px; border: 1px solid #ccc; padding: 10px; border-radius: 10px;">
+            <img id="p-img-preview" src="" style="width:100px; border-radius: 5px;">
+            <input type="text" id="p-titolo" placeholder="Titolo Prodotto">
+            <textarea id="p-desc" placeholder="Breve descrizione (opzionale)"></textarea>
+            <input type="text" id="p-prezzo" placeholder="Prezzo (es: 49.99)">
+            <button style="background: #28a745;" id="btn-pubblica">PUBBLICA ORA</button>
+        </div>
+
+        <h3>📦 I Miei Prodotti Pubblicati</h3>
+        <div id="miei-prodotti"></div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
@@ -61,31 +66,47 @@
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
     let utenteAttivo = null;
 
-    // --- LOGICA LOGIN ---
+    // LOGIN E CARICAMENTO PRODOTTI PERSONALI
     document.getElementById('btn-login').onclick = async () => {
         const cod = document.getElementById('codice-accesso').value.trim();
-        if(!cod) return alert("Inserisci un codice!");
-
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", cod));
-        const querySnapshot = await getDocs(q);
+        const snap = await getDocs(q);
         
-        if (!querySnapshot.empty) {
-            utenteAttivo = querySnapshot.docs[0].data();
+        if (!snap.empty) {
+            utenteAttivo = snap.docs[0].data();
             document.getElementById('nome-utente').innerText = utenteAttivo.nome;
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('generator-section').classList.remove('hidden');
-        } else {
-            alert("Codice " + cod + " non trovato nel database!");
-        }
+            caricaMieiProdotti();
+        } else { alert("ID non trovato!"); }
     };
 
-    // --- ANALISI LINK ---
+    async function caricaMieiProdotti() {
+        const div = document.getElementById('miei-prodotti');
+        div.innerHTML = "Caricamento...";
+        const q = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
+        const snap = await getDocs(q);
+        div.innerHTML = "";
+        snap.forEach((res) => {
+            const p = res.data();
+            div.innerHTML += `
+                <div class="product-card">
+                    <img src="${p.immagine}">
+                    <h4>${p.titolo}</h4>
+                    <button class="del-btn" onclick="eliminaProdotto('${res.id}')">Elimina</button>
+                </div>`;
+        });
+    }
+
+    window.eliminaProdotto = async (id) => {
+        if(confirm("Vuoi davvero rimuovere questo prodotto dallo shop?")) {
+            await deleteDoc(doc(db, "prodotti", id));
+            caricaMieiProdotti();
+        }
+    }
+
     document.getElementById('btn-verifica').onclick = () => {
         const url = document.getElementById('amazon-link').value.trim();
-        if(!url.includes("amazon")) return alert("Inserisci un link Amazon valido!");
-
-        document.getElementById('loading').classList.remove('hidden');
-        
         fetch('https://api.linkpreview.net', {
             method: 'POST',
             mode: 'cors',
@@ -96,26 +117,21 @@
             document.getElementById('p-titolo').value = response.title;
             document.getElementById('p-img-preview').src = response.image;
             document.getElementById('anteprima').classList.remove('hidden');
-        })
-        .catch(() => alert("Errore anteprima. Inserisci i dati manualmente."))
-        .finally(() => document.getElementById('loading').classList.add('hidden'));
+        });
     };
 
-    // --- PUBBLICAZIONE ---
     document.getElementById('btn-pubblica').onclick = async () => {
-        const t = document.getElementById('p-titolo').value;
-        const p = document.getElementById('p-prezzo').value;
-        const img = document.getElementById('p-img-preview').src;
-        const linkOri = document.getElementById('amazon-link').value;
-
-        let linkFinale = linkOri.split("?")[0] + "?tag=" + utenteAttivo.tag;
-
         await addDoc(collection(db, "prodotti"), {
-            titolo: t, prezzo: p, immagine: img, link_amazon: linkFinale,
-            autore: utenteAttivo.nome, tag: utenteAttivo.tag, data: new Date()
+            titolo: document.getElementById('p-titolo').value,
+            prezzo: document.getElementById('p-prezzo').value,
+            descrizione: document.getElementById('p-desc').value,
+            immagine: document.getElementById('p-img-preview').src,
+            link_amazon: document.getElementById('amazon-link').value.split("?")[0] + "?tag=" + utenteAttivo.tag,
+            autore: utenteAttivo.nome,
+            tag: utenteAttivo.tag,
+            data: new Date()
         });
-
-        alert("✅ Caricato con successo!");
+        alert("Pubblicato!");
         location.reload();
     };
 </script>
