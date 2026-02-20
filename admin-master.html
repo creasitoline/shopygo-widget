@@ -1,1 +1,114 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Master Admin - ShopyGO</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a2e; color: white; padding: 20px; text-align: center; }
+        .box { background: #16213e; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; border: 1px solid #e94560; }
+        input { width: 80%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { background: #e94560; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        table { width: 100%; margin-top: 20px; color: white; border-collapse: collapse; }
+        th, td { border: 1px solid #444; padding: 10px; }
+        #loading-msg { color: #e94560; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
 
+    <h1>ShopyGO Admin Dashboard</h1>
+    
+    <div class="box">
+        <h3>Aggiungi Nuovo Collaboratore</h3>
+        <input type="text" id="nome" placeholder="Nome (es. Marco)">
+        <input type="text" id="id_login" placeholder="ID numerico (es. 101)">
+        <input type="text" id="tag_amazon" placeholder="Tag Amazon (es. marco-21)">
+        <br>
+        <button id="btn-salva">ABILITA UTENTE</button>
+    </div>
+
+    <div id="loading-msg">Caricamento database...</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>ID</th>
+                <th>Tag</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody id="lista"></tbody>
+    </table>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
+        authDomain: "shopygo-database.firebaseapp.com",
+        projectId: "shopygo-database",
+        storageBucket: "shopygo-database.firebasestorage.app",
+        messagingSenderId: "336849306481",
+        appId: "1:336849306481:web:aef142b389ef778ba3ecd0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // FUNZIONE CARICAMENTO
+    async function caricaUtenti() {
+        const lista = document.getElementById('lista');
+        const loader = document.getElementById('loading-msg');
+        lista.innerHTML = "";
+        
+        try {
+            const snap = await getDocs(collection(db, "utenti_abilitati"));
+            loader.style.display = "none";
+            snap.forEach((d) => {
+                const u = d.data();
+                const riga = `<tr>
+                    <td>${u.nome}</td>
+                    <td>${u.codice}</td>
+                    <td>${u.tag}</td>
+                    <td><button onclick="eliminaUtente('${d.id}')" style="background:red; font-size:10px;">X</button></td>
+                </tr>`;
+                lista.innerHTML += riga;
+            });
+        } catch (e) {
+            loader.innerText = "Errore: " + e.message;
+        }
+    }
+
+    // SALVATAGGIO
+    document.getElementById('btn-salva').onclick = async () => {
+        const n = document.getElementById('nome').value;
+        const c = document.getElementById('id_login').value;
+        const t = document.getElementById('tag_amazon').value;
+
+        if(!n || !c || !t) return alert("Riempi tutti i campi!");
+
+        await addDoc(collection(db, "utenti_abilitati"), {
+            nome: n,
+            codice: c,
+            tag: t,
+            vendite: 0
+        });
+        alert("Utente registrato!");
+        caricaUtenti();
+    };
+
+    // ELIMINAZIONE
+    window.eliminaUtente = async (id) => {
+        if(confirm("Eliminare?")) {
+            await deleteDoc(doc(db, "utenti_abilitati", id));
+            caricaUtenti();
+        }
+    };
+
+    // Avvio
+    caricaUtenti();
+</script>
+
+</body>
+</html>
