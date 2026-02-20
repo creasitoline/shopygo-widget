@@ -3,33 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generatore ShopyGO</title>
+    <title>ShopyGO - Generatore</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
-        .card { background: white; padding: 30px; border-radius: 10px; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input { padding: 10px; width: 80%; margin-bottom: 10px; }
-        button { padding: 10px 20px; background: #1a73e8; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .hidden { display: none; }
+        #anteprima img { max-width: 150px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Area Collaboratori</h2>
-        <p>Inserisci il codice per accedere</p>
-        <input type="text" id="codice" placeholder="Esempio: ADMIN00">
-        <br>
-        <button onclick="check()">ENTRA</button>
+
+<div class="container">
+    <div id="login-section">
+        <h2>ShopyGO Login</h2>
+        <input type="text" id="codice-accesso" placeholder="Inserisci il codice (es: ADMIN00)">
+        <button onclick="login()">ENTRA</button>
     </div>
 
-    <script>
-        function check() {
-            const c = document.getElementById('codice').value.toUpperCase();
-            if(c === "ADMIN00" || c === "ROSSI01") {
-                alert("Codice Corretto! Ora puoi inserire i link.");
-                // Qui poi metteremo la logica del generatore vera e propria
-            } else {
-                alert("Codice errato!");
-            }
+    <div id="generator-section" class="hidden">
+        <h2>Ciao <span id="nome-utente"></span>!</h2>
+        <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui">
+        <button onclick="analizzaLink()">VERIFICA PRODOTTO</button>
+        
+        <div id="anteprima" class="hidden">
+            <img id="p-img" src="">
+            <p id="p-titolo" style="font-weight:bold;"></p>
+            <input type="text" id="p-prezzo" placeholder="Prezzo (es: € 29.00)">
+            <button style="background: #28a745;" onclick="pubblica()">PUBBLICA ORA</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
+        authDomain: "shopygo-database.firebaseapp.com",
+        projectId: "shopygo-database",
+        storageBucket: "shopygo-database.firebasestorage.app",
+        messagingSenderId: "336849306481",
+        appId: "1:336849306481:web:aef142b389ef778ba3ecd0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // --- LISTA UTENTI DI PROVA ---
+    const utenti = {
+        "ADMIN00": { nome: "Amministratore", tag: "shopygo-21" },
+        "ROSSI01": { nome: "Mario Rossi", tag: "mariorossi-21" }
+    };
+
+    let utenteAttivo = null;
+
+    // Rendiamo le funzioni globali per farle leggere dall'HTML
+    window.login = function() {
+        const cod = document.getElementById('codice-accesso').value.trim().toUpperCase();
+        console.log("Tentativo login con:", cod); // Log di controllo
+        if(utenti[cod]) {
+            utenteAttivo = utenti[cod];
+            document.getElementById('nome-utente').innerText = utenteAttivo.nome;
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('generator-section').classList.remove('hidden');
+        } else {
+            alert("Codice errato! Prova con ADMIN00");
         }
-    </script>
+    }
+
+    window.analizzaLink = async function() {
+        const link = document.getElementById('amazon-link').value;
+        if(!link.includes("amazon")) return alert("Link non valido");
+        
+        try {
+            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(link)}`);
+            const data = await res.json();
+            const doc = new DOMParser().parseFromString(data.contents, 'text/html');
+            const titolo = doc.querySelector('meta[property="og:title"]')?.content || "Prodotto Amazon";
+            const img = doc.querySelector('meta[property="og:image"]')?.content || "";
+
+            document.getElementById('p-titolo').innerText = titolo;
+            document.getElementById('p-img').src = img;
+            document.getElementById('anteprima').classList.remove('hidden');
+        } catch (e) {
+            alert("Errore nel caricamento dei dati Amazon.");
+        }
+    }
+
+    window.pubblica = async function() {
+        const prezzo = document.getElementById('p-prezzo').value;
+        const linkOriginale = document.getElementById('amazon-link').value;
+        const linkFinale = linkOriginale.split("?")[0] + "?tag=" + utenteAttivo.tag;
+
+        try {
+            await addDoc(collection(db, "prodotti"), {
+                titolo: document.getElementById('p-titolo').innerText,
+                prezzo: prezzo,
+                immagine: document.getElementById('p-img').src,
+                link_amazon: linkFinale,
+                autore: utenteAttivo.nome,
+                id_affiliato: utenteAttivo.tag,
+                data: new Date()
+            });
+            alert("✅ Prodotto caricato!");
+            location.reload();
+        } catch (e) {
+            alert("Errore Firebase: " + e.message);
+        }
+    }
+</script>
 </body>
 </html>
