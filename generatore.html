@@ -3,94 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopyGO - Console Collaboratore</title>
+    <title>Console ShopyGO</title>
     <style>
-        :root { --primary: #1a73e8; --danger: #d93025; --bg: #f8f9fa; --sidebar: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        :root { --primary: #1a73e8; --bg: #f0f2f5; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; }
         
-        /* Layout Mobile/PC */
+        /* LOGIN CENTRALE */
+        #login-section { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
+        
+        /* LAYOUT DOPO LOGIN */
+        #main-container { display: flex; flex-direction: column; min-height: 100vh; }
         @media (min-width: 768px) {
-            body { flex-direction: row; }
-            .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid #ddd; padding: 20px; height: 100vh; position: sticky; top: 0; }
-            .main-content { flex: 1; padding: 40px; }
+            #main-container { flex-direction: row; }
+            .sidebar { width: 260px; background: white; border-right: 1px solid #ddd; height: 100vh; position: sticky; top: 0; padding: 25px; }
+            .content { flex: 1; padding: 40px; }
         }
         @media (max-width: 767px) {
-            .sidebar { padding: 15px; border-bottom: 1px solid #ddd; background: white; }
-            .main-content { padding: 15px; }
+            .sidebar { background: white; padding: 15px; border-bottom: 1px solid #ddd; }
+            .content { padding: 20px; }
         }
 
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-secondary { background: #5f6368; }
+        /* ELEMENTI COMUNI */
+        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
         .hidden { display: none !important; }
+        
+        /* GRIGLIA PRODOTTI */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+        .card-p { background: white; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; border: 1px solid #eee; position: relative; }
+        .card-p img { width: 100%; height: 120px; object-fit: contain; }
+        .delete-btn { position: absolute; top: 8px; right: 8px; background: #ff4757; color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: none; }
 
-        /* Lista Prodotti */
-        .grid-prodotti { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-        .item-prodotto { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; position: relative; }
-        .item-prodotto img { width: 100%; height: 100px; object-fit: contain; }
-        .delete-icon { position: absolute; top: 5px; right: 5px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; z-index: 10; }
-
-        /* MODALE DI MODIFICA (Sistemata) */
-        .modal { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); display: flex; justify-content: center; 
-            align-items: center; z-index: 9999; 
-        }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        /* MODALE */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2 style="color: var(--primary);">ShopyGO</h2>
-        
-        <div id="login-section">
-            <p>Inserisci il tuo ID per gestire i prodotti</p>
-            <input type="text" id="codice-accesso" placeholder="Codice ID (es. 1971)">
-            <button id="btn-login">ACCEDI ALLA CONSOLE</button>
-        </div>
-
-        <div id="user-info" class="hidden">
-            <p>Collaboratore: <br><strong id="nome-utente"></strong></p>
-            <p style="font-size: 0.8em; color: #666;">ID: <span id="id-display"></span></p>
-            <button class="btn-secondary" onclick="location.reload()">LOGOUT</button>
+    <div id="login-section">
+        <div class="login-card">
+            <h1 style="color: var(--primary); margin-bottom: 10px;">ShopyGO</h1>
+            <p style="color: #666;">Accesso Collaboratori</p>
+            <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID">
+            <button id="btn-login">ACCEDI</button>
         </div>
     </div>
 
-    <div class="main-content">
-        <div id="dashboard" class="hidden">
-            <div class="card">
-                <h3>➕ Carica Prodotto Amazon</h3>
-                <input type="text" id="amazon-link" placeholder="Incolla link prodotto">
+    <div id="main-container" class="hidden">
+        <div class="sidebar">
+            <h2 style="color: var(--primary); margin-top: 0;">Dashboard</h2>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 0.8em; color: #666;">Collaboratore</p>
+                <strong id="nome-utente" style="font-size: 1.1em;"></strong>
+                <p style="margin: 10px 0 0; font-size: 0.8em; color: #666;">ID Affiliato</p>
+                <code id="id-display" style="background: #eee; padding: 2px 5px;"></code>
+            </div>
+            <button style="background: #5f6368;" onclick="location.reload()">Esci</button>
+        </div>
+
+        <div class="content">
+            <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px;">
+                <h3 style="margin-top: 0;">➕ Carica Prodotto</h3>
+                <input type="text" id="amazon-link" placeholder="Incolla il link Amazon qui">
                 <button id="btn-verifica">VERIFICA LINK</button>
                 
-                <div id="preview-area" class="hidden">
-                    <img id="p-img" src="" style="width: 60px;">
-                    <input type="text" id="p-titolo" placeholder="Titolo">
+                <div id="preview-area" class="hidden" style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
+                    <img id="p-img" src="" style="width: 80px; display: block; margin: auto;">
+                    <input type="text" id="p-titolo" placeholder="Titolo Prodotto">
                     <input type="text" id="p-prezzo" placeholder="Prezzo (€)">
-                    <textarea id="p-desc" placeholder="Tua descrizione..."></textarea>
+                    <textarea id="p-desc" placeholder="Aggiungi una descrizione o note interne..."></textarea>
                     <button id="btn-pubblica" style="background: #28a745;">PUBBLICA SULLO SHOP</button>
                 </div>
             </div>
 
             <h3>📦 I Tuoi Prodotti Online</h3>
-            <div id="grid-miei-prodotti" class="grid-prodotti"></div>
+            <div id="grid-prodotti" class="grid"></div>
         </div>
     </div>
 
     <div id="modal-edit" class="modal hidden">
-        <div class="modal-content">
-            <h3>📝 Modifica Prodotto</h3>
-            <label style="font-size: 12px; color: #666;">Titolo</label>
-            <input type="text" id="edit-titolo">
-            <label style="font-size: 12px; color: #666;">Prezzo (€)</label>
-            <input type="text" id="edit-prezzo">
-            <label style="font-size: 12px; color: #666;">Descrizione</label>
-            <textarea id="edit-desc" rows="4"></textarea>
+        <div class="modal-box">
+            <h3>Modifica Prodotto</h3>
+            <input type="text" id="edit-titolo" placeholder="Titolo">
+            <input type="text" id="edit-prezzo" placeholder="Prezzo (€)">
+            <textarea id="edit-desc" rows="4" placeholder="Descrizione"></textarea>
             <input type="hidden" id="edit-id">
             <button id="btn-save-edit">SALVA MODIFICHE</button>
-            <button class="btn-secondary" onclick="closeModal()" style="margin-top: 5px;">ANNULLA</button>
+            <button style="background: #ccc; color: #333;" onclick="closeModal()">ANNULLA</button>
         </div>
     </div>
 
@@ -123,15 +125,14 @@
             document.getElementById('nome-utente').innerText = utenteAttivo.nome;
             document.getElementById('id-display').innerText = utenteAttivo.codice;
             document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('user-info').classList.remove('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('main-container').classList.remove('hidden');
             caricaProdotti();
-        } else { alert("ID non trovato!"); }
+        } else { alert("Accesso negato: ID non valido."); }
     };
 
-    // CARICAMENTO PRODOTTI
+    // CARICA LISTA
     async function caricaProdotti() {
-        const container = document.getElementById('grid-miei-prodotti');
+        const container = document.getElementById('grid-prodotti');
         container.innerHTML = "Caricamento...";
         const q = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
         const snap = await getDocs(q);
@@ -140,14 +141,20 @@
         snap.forEach((res) => {
             const p = res.data();
             const div = document.createElement('div');
-            div.className = 'item-prodotto';
+            div.className = 'card-p';
             div.innerHTML = `
-                <button class="delete-icon" onclick="event.stopPropagation(); eliminaProdotto('${res.id}')">✕</button>
+                <button class="delete-btn" onclick="event.stopPropagation(); elimina('${res.id}')">✕</button>
                 <img src="${p.immagine}">
-                <h4>${p.titolo}</h4>
-                <p><strong>€ ${p.prezzo}</strong></p>
+                <p style="font-size: 13px; margin: 10px 0; font-weight: bold;">${p.titolo.substring(0, 40)}...</p>
+                <p style="color: var(--primary);">€ ${p.prezzo}</p>
             `;
-            div.onclick = () => openEditModal(res.id, p);
+            div.onclick = () => {
+                document.getElementById('edit-id').value = res.id;
+                document.getElementById('edit-titolo').value = p.titolo;
+                document.getElementById('edit-prezzo').value = p.prezzo;
+                document.getElementById('edit-desc').value = p.descrizione || "";
+                document.getElementById('modal-edit').classList.remove('hidden');
+            };
             container.appendChild(div);
         });
     }
@@ -155,8 +162,6 @@
     // VERIFICA LINK
     document.getElementById('btn-verifica').onclick = () => {
         const url = document.getElementById('amazon-link').value;
-        if(!url.includes("amazon")) return alert("Link non valido!");
-        
         fetch('https://api.linkpreview.net', {
             method: 'POST', body: JSON.stringify({key: LP_KEY, q: url})
         }).then(r => r.json()).then(res => {
@@ -166,7 +171,7 @@
         });
     };
 
-    // PUBBLICAZIONE
+    // PUBBLICA
     document.getElementById('btn-pubblica').onclick = async () => {
         await addDoc(collection(db, "prodotti"), {
             titolo: document.getElementById('p-titolo').value,
@@ -175,33 +180,25 @@
             immagine: document.getElementById('p-img').src,
             tag: utenteAttivo.tag,
             link_amazon: document.getElementById('amazon-link').value.split("?")[0] + "?tag=" + utenteAttivo.tag,
-            data_creazione: new Date()
+            creato_da: utenteAttivo.nome,
+            data: new Date()
         });
-        alert("Pubblicato!");
+        alert("Prodotto pubblicato!");
         location.reload();
     };
 
-    // ELIMINAZIONE
-    window.eliminaProdotto = async (id) => {
-        if(confirm("⚠️ Vuoi davvero cancellare questo prodotto?")) {
+    // ELIMINA
+    window.elimina = async (id) => {
+        if(confirm("Vuoi davvero cancellare questo prodotto dallo shop?")) {
             await deleteDoc(doc(db, "prodotti", id));
             caricaProdotti();
         }
     };
 
-    // MODIFICA (MOSTRA MODALE)
-    window.openEditModal = (id, data) => {
-        document.getElementById('edit-id').value = id;
-        document.getElementById('edit-titolo').value = data.titolo;
-        document.getElementById('edit-prezzo').value = data.prezzo;
-        document.getElementById('edit-desc').value = data.descrizione || "";
-        document.getElementById('modal-edit').classList.remove('hidden');
-    };
+    // CHIUDI MODALE
+    window.closeModal = () => document.getElementById('modal-edit').classList.add('hidden');
 
-    window.closeModal = () => {
-        document.getElementById('modal-edit').classList.add('hidden');
-    };
-
+    // SALVA MODIFICA
     document.getElementById('btn-save-edit').onclick = async () => {
         const id = document.getElementById('edit-id').value;
         await updateDoc(doc(db, "prodotti", id), {
@@ -209,7 +206,7 @@
             prezzo: document.getElementById('edit-prezzo').value,
             descrizione: document.getElementById('edit-desc').value
         });
-        alert("Aggiornato!");
+        alert("Modificato con successo!");
         closeModal();
         caricaProdotti();
     };
