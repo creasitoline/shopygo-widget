@@ -23,24 +23,22 @@
 <div class="container">
     <div id="login-section">
         <h2>Area Collaboratori</h2>
-        <p>Inserisci il tuo codice personale per accedere al generatore.</p>
-        <input type="text" id="codice-accesso" placeholder="Esempio: MARCO01">
-        <button onclick="login()">ACCEDI</button>
+        <p>Inserisci il tuo codice personale (es: 1971)</p>
+        <input type="text" id="codice-accesso" placeholder="Codice ID">
+        <button id="btn-login">ACCEDI</button>
     </div>
 
     <div id="generator-section" class="hidden">
         <h2>Ciao, <span id="nome-utente" style="color:#28a745;"></span>!</h2>
-        <p>Incolla il link Amazon del prodotto:</p>
-        <input type="text" id="amazon-link" placeholder="https://www.amazon.it/dp/...">
-        <button id="btn-verifica" onclick="analizzaLink()">VERIFICA PRODOTTO</button>
-        <div id="loading" class="hidden status">🔄 Recupero anteprima in corso...</div>
+        <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui">
+        <button id="btn-verifica">VERIFICA PRODOTTO</button>
+        <div id="loading" class="hidden status">🔄 Recupero anteprima...</div>
         
         <div id="anteprima" class="hidden">
             <img id="p-img-preview" src="" alt="Anteprima">
             <input type="text" id="p-titolo" placeholder="Titolo del prodotto">
-            <input type="text" id="p-prezzo" placeholder="Prezzo (es: € 49.90)">
-            <p class="status">Il tuo ID Affiliato verrà applicato automaticamente.</p>
-            <button style="background: #28a745;" onclick="pubblica()">PUBBLICA SULLO SHOP</button>
+            <input type="text" id="p-prezzo" placeholder="Prezzo (es: 29.90)">
+            <button style="background: #28a745;" id="btn-pubblica">PUBBLICA SULLO SHOP</button>
         </div>
     </div>
 </div>
@@ -49,11 +47,77 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Tua configurazione Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
         authDomain: "shopygo-database.firebaseapp.com",
         projectId: "shopygo-database",
         storageBucket: "shopygo-database.firebasestorage.app",
         messagingSenderId: "336849306481",
-        appId: "1:336849306481:web:aef14
+        appId: "1:336849306481:web:aef142b389ef778ba3ecd0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
+    let utenteAttivo = null;
+
+    // --- LOGICA LOGIN ---
+    document.getElementById('btn-login').onclick = async () => {
+        const cod = document.getElementById('codice-accesso').value.trim();
+        if(!cod) return alert("Inserisci un codice!");
+
+        const q = query(collection(db, "utenti_abilitati"), where("codice", "==", cod));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+            utenteAttivo = querySnapshot.docs[0].data();
+            document.getElementById('nome-utente').innerText = utenteAttivo.nome;
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('generator-section').classList.remove('hidden');
+        } else {
+            alert("Codice " + cod + " non trovato nel database!");
+        }
+    };
+
+    // --- ANALISI LINK ---
+    document.getElementById('btn-verifica').onclick = () => {
+        const url = document.getElementById('amazon-link').value.trim();
+        if(!url.includes("amazon")) return alert("Inserisci un link Amazon valido!");
+
+        document.getElementById('loading').classList.remove('hidden');
+        
+        fetch('https://api.linkpreview.net', {
+            method: 'POST',
+            mode: 'cors',
+            body: JSON.stringify({key: LP_KEY, q: url}),
+        })
+        .then(res => res.json())
+        .then(response => {
+            document.getElementById('p-titolo').value = response.title;
+            document.getElementById('p-img-preview').src = response.image;
+            document.getElementById('anteprima').classList.remove('hidden');
+        })
+        .catch(() => alert("Errore anteprima. Inserisci i dati manualmente."))
+        .finally(() => document.getElementById('loading').classList.add('hidden'));
+    };
+
+    // --- PUBBLICAZIONE ---
+    document.getElementById('btn-pubblica').onclick = async () => {
+        const t = document.getElementById('p-titolo').value;
+        const p = document.getElementById('p-prezzo').value;
+        const img = document.getElementById('p-img-preview').src;
+        const linkOri = document.getElementById('amazon-link').value;
+
+        let linkFinale = linkOri.split("?")[0] + "?tag=" + utenteAttivo.tag;
+
+        await addDoc(collection(db, "prodotti"), {
+            titolo: t, prezzo: p, immagine: img, link_amazon: linkFinale,
+            autore: utenteAttivo.nome, tag: utenteAttivo.tag, data: new Date()
+        });
+
+        alert("✅ Caricato con successo!");
+        location.reload();
+    };
+</script>
+</body>
+</html>
