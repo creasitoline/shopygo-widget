@@ -2,47 +2,64 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Master Admin - ShopyGO</title>
+    <title>Master Control - ShopyGO</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a2e; color: white; padding: 20px; text-align: center; }
-        .box { background: #16213e; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; border: 1px solid #e94560; }
-        input { width: 80%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
-        button { background: #e94560; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        table { width: 100%; margin-top: 20px; color: white; border-collapse: collapse; }
-        th, td { border: 1px solid #444; padding: 10px; }
-        #loading-msg { color: #e94560; margin-bottom: 10px; }
+        :root { --primary: #e94560; --bg: #1a1a2e; --card: #16213e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .card { background: var(--card); padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        input { background: #0f3460; border: 1px solid #1a73e8; color: white; padding: 12px; margin: 10px 5px; border-radius: 5px; width: calc(28% - 20px); }
+        button { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { opacity: 0.8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #0f3460; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #16213e; }
+        th { background: var(--primary); font-size: 0.9em; text-transform: uppercase; }
+        .del-btn { background: #ff4d4d; padding: 5px 10px; font-size: 0.8em; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <h1>ShopyGO Admin Dashboard</h1>
-    
-    <div class="box">
-        <h3>Aggiungi Nuovo Collaboratore</h3>
-        <input type="text" id="nome" placeholder="Nome (es. Marco)">
-        <input type="text" id="id_login" placeholder="ID numerico (es. 101)">
-        <input type="text" id="tag_amazon" placeholder="Tag Amazon (es. marco-21)">
-        <br>
-        <button id="btn-salva">ABILITA UTENTE</button>
+<div id="admin-auth" class="login-overlay">
+    <div class="card" style="text-align: center; width: 300px;">
+        <h2>🔐 Admin Access</h2>
+        <input type="password" id="master-pass" placeholder="Password Master" style="width: 90%;">
+        <button onclick="checkMasterPass()" style="width: 100%; margin-top: 10px;">ACCEDI AL SISTEMA</button>
+    </div>
+</div>
+
+<div id="dashboard" class="container hidden">
+    <div class="card">
+        <h1>🚀 ShopyGO Control Center</h1>
+        <p>Aggiungi un nuovo collaboratore al sistema:</p>
+        <div style="display: flex; justify-content: space-between;">
+            <input type="text" id="n-nome" placeholder="Nome">
+            <input type="text" id="n-id" placeholder="ID (es. 101)">
+            <input type="text" id="n-tag" placeholder="Tag Amazon">
+            <button onclick="aggiungiUtente()">ABILITA</button>
+        </div>
     </div>
 
-    <div id="loading-msg">Caricamento database...</div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>ID</th>
-                <th>Tag</th>
-                <th>Azioni</th>
-            </tr>
-        </thead>
-        <tbody id="lista"></tbody>
-    </table>
+    <div class="card">
+        <h3>Lista Collaboratori Attivi</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>ID Accesso</th>
+                    <th>Tag Amazon</th>
+                    <th>Azioni</th>
+                </tr>
+            </thead>
+            <tbody id="tabella-corpo"></tbody>
+        </table>
+    </div>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
@@ -56,59 +73,66 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // FUNZIONE CARICAMENTO
-    async function caricaUtenti() {
-        const lista = document.getElementById('lista');
-        const loader = document.getElementById('loading-msg');
-        lista.innerHTML = "";
-        
-        try {
-            const snap = await getDocs(collection(db, "utenti_abilitati"));
-            loader.style.display = "none";
-            snap.forEach((d) => {
-                const u = d.data();
-                const riga = `<tr>
-                    <td>${u.nome}</td>
-                    <td>${u.codice}</td>
-                    <td>${u.tag}</td>
-                    <td><button onclick="eliminaUtente('${d.id}')" style="background:red; font-size:10px;">X</button></td>
-                </tr>`;
-                lista.innerHTML += riga;
-            });
-        } catch (e) {
-            loader.innerText = "Errore: " + e.message;
+    // 1. GESTIONE PASSWORD MASTER
+    window.checkMasterPass = function() {
+        const pass = document.getElementById('master-pass').value;
+        if(pass === "MASTER2026") { // CAMBIA QUESTA PASSWORD SE VUOI
+            document.getElementById('admin-auth').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            caricaLista();
+        } else {
+            alert("Password Errata!");
         }
     }
 
-    // SALVATAGGIO
-    document.getElementById('btn-salva').onclick = async () => {
-        const n = document.getElementById('nome').value;
-        const c = document.getElementById('id_login').value;
-        const t = document.getElementById('tag_amazon').value;
+    // 2. CARICA LISTA SENZA DUPLICATI VISIVI
+    async function caricaLista() {
+        const corpo = document.getElementById('tabella-corpo');
+        corpo.innerHTML = "<tr><td colspan='4'>Caricamento...</td></tr>";
+        
+        const snap = await getDocs(collection(db, "utenti_abilitati"));
+        corpo.innerHTML = "";
+        
+        snap.forEach((res) => {
+            const u = res.data();
+            corpo.innerHTML += `
+                <tr>
+                    <td>${u.nome}</td>
+                    <td><strong>${u.codice}</strong></td>
+                    <td>${u.tag}</td>
+                    <td><button class="del-btn" onclick="eliminaUtente('${res.id}')">Elimina</button></td>
+                </tr>`;
+        });
+    }
 
-        if(!n || !c || !t) return alert("Riempi tutti i campi!");
+    // 3. AGGIUNGI UTENTE CON CONTROLLO
+    window.aggiungiUtente = async function() {
+        const n = document.getElementById('n-nome').value.trim();
+        const i = document.getElementById('n-id').value.trim();
+        const t = document.getElementById('n-tag').value.trim();
+
+        if(!n || !i || !t) return alert("Tutti i campi sono obbligatori!");
+
+        // Verifica se l'ID esiste già nel DB
+        const q = query(collection(db, "utenti_abilitati"), where("codice", "==", i));
+        const check = await getDocs(q);
+        if(!check.empty) return alert("Errore: Questo ID è già assegnato a un altro utente!");
 
         await addDoc(collection(db, "utenti_abilitati"), {
-            nome: n,
-            codice: c,
-            tag: t,
-            vendite: 0
+            nome: n, codice: i, tag: t, vendite: 0
         });
-        alert("Utente registrato!");
-        caricaUtenti();
-    };
 
-    // ELIMINAZIONE
-    window.eliminaUtente = async (id) => {
-        if(confirm("Eliminare?")) {
-            await deleteDoc(doc(db, "utenti_abilitati", id));
-            caricaUtenti();
+        alert("Utente abilitato con successo!");
+        location.reload();
+    }
+
+    // 4. ELIMINA UTENTE
+    window.eliminaUtente = async function(docId) {
+        if(confirm("Vuoi revocare l'accesso a questo collaboratore?")) {
+            await deleteDoc(doc(db, "utenti_abilitati", docId));
+            location.reload();
         }
-    };
-
-    // Avvio
-    caricaUtenti();
+    }
 </script>
-
 </body>
 </html>
