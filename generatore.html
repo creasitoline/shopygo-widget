@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Console ShopyGO</title>
+    <title>ShopyGO - Console Collaboratore</title>
     <style>
-        :root { --primary: #1a73e8; --bg: #f0f2f5; --white: #ffffff; }
+        :root { --primary: #1a73e8; --bg: #f0f2f5; --white: #ffffff; --danger: #ff4757; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; }
         
-        /* LOGIN CENTRALE */
         #login-section { display: flex; justify-content: center; align-items: center; height: 100vh; }
         .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
         
-        /* LAYOUT DOPO LOGIN */
         #main-container { display: flex; flex-direction: column; min-height: 100vh; }
         @media (min-width: 768px) {
             #main-container { flex-direction: row; }
@@ -24,29 +22,26 @@
             .content { padding: 20px; }
         }
 
-        /* ELEMENTI COMUNI */
-        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; }
+        input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
+        .btn-market { background: #6c5ce7; }
         .hidden { display: none !important; }
         
-        /* GRIGLIA PRODOTTI */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-        .card-p { background: white; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; border: 1px solid #eee; position: relative; }
+        .card-p { background: white; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #eee; position: relative; }
         .card-p img { width: 100%; height: 120px; object-fit: contain; }
-        .delete-btn { position: absolute; top: 8px; right: 8px; background: #ff4757; color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: none; }
+        .delete-btn { position: absolute; top: 8px; right: 8px; background: var(--danger); color: white; width: 25px; height: 25px; border-radius: 50%; border: none; cursor: pointer; }
 
-        /* MODALE */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
+        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; background: #28a745; margin-bottom: 5px; display: inline-block; }
     </style>
 </head>
 <body>
 
     <div id="login-section">
         <div class="login-card">
-            <h1 style="color: var(--primary); margin-bottom: 10px;">ShopyGO</h1>
-            <p style="color: #666;">Accesso Collaboratori</p>
+            <h1>ShopyGO</h1>
             <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID">
             <button id="btn-login">ACCEDI</button>
         </div>
@@ -54,44 +49,44 @@
 
     <div id="main-container" class="hidden">
         <div class="sidebar">
-            <h2 style="color: var(--primary); margin-top: 0;">Dashboard</h2>
+            <h2 style="color: var(--primary);">Dashboard</h2>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                <p style="margin: 0; font-size: 0.8em; color: #666;">Collaboratore</p>
-                <strong id="nome-utente" style="font-size: 1.1em;"></strong>
-                <p style="margin: 10px 0 0; font-size: 0.8em; color: #666;">ID Affiliato</p>
-                <code id="id-display" style="background: #eee; padding: 2px 5px;"></code>
+                <p id="nome-utente" style="font-weight: bold; margin: 0;"></p>
+                <code id="id-display"></code>
             </div>
-            <button style="background: #5f6368;" onclick="location.reload()">Esci</button>
+            <button class="btn-market" onclick="openMarketplace()">➕ NUOVO ANNUNCIO</button>
+            <button style="background: #5f6368; margin-top: 10px;" id="btn-logout">Esci</button>
         </div>
 
         <div class="content">
-            <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px;">
-                <h3 style="margin-top: 0;">➕ Carica Prodotto</h3>
-                <input type="text" id="amazon-link" placeholder="Incolla il link Amazon qui">
+            <div class="card-p" style="margin-bottom: 30px; text-align: left;">
+                <h3>🔗 Carica da Amazon</h3>
+                <input type="text" id="amazon-link" placeholder="Incolla link Amazon">
                 <button id="btn-verifica">VERIFICA LINK</button>
-                
-                <div id="preview-area" class="hidden" style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
-                    <img id="p-img" src="" style="width: 80px; display: block; margin: auto;">
-                    <input type="text" id="p-titolo" placeholder="Titolo Prodotto">
-                    <input type="text" id="p-prezzo" placeholder="Prezzo (€)">
-                    <textarea id="p-desc" placeholder="Aggiungi una descrizione o note interne..."></textarea>
-                    <button id="btn-pubblica" style="background: #28a745;">PUBBLICA SULLO SHOP</button>
-                </div>
             </div>
 
-            <h3>📦 I Tuoi Prodotti Online</h3>
+            <h3>📦 I Tuoi Prodotti</h3>
             <div id="grid-prodotti" class="grid"></div>
         </div>
     </div>
 
-    <div id="modal-edit" class="modal hidden">
+    <div id="modal-form" class="modal hidden">
         <div class="modal-box">
-            <h3>Modifica Prodotto</h3>
-            <input type="text" id="edit-titolo" placeholder="Titolo">
-            <input type="text" id="edit-prezzo" placeholder="Prezzo (€)">
-            <textarea id="edit-desc" rows="4" placeholder="Descrizione"></textarea>
-            <input type="hidden" id="edit-id">
-            <button id="btn-save-edit">SALVA MODIFICHE</button>
+            <h3 id="modal-title">Nuovo Prodotto</h3>
+            <label>Tipo Prodotto</label>
+            <select id="f-tipo">
+                <option value="amazon">Amazon (Affiliazione)</option>
+                <option value="nuovo">Marketplace - Nuovo</option>
+                <option value="usato">Marketplace - Usato</option>
+            </select>
+            <input type="text" id="f-titolo" placeholder="Titolo Prodotto">
+            <input type="text" id="f-prezzo" placeholder="Prezzo (€)">
+            <input type="text" id="f-img" placeholder="URL Immagine">
+            <textarea id="f-desc" rows="3" placeholder="Descrizione prodotto (per marketplace)"></textarea>
+            <input type="text" id="f-link" placeholder="Link (Amazon o contatti)">
+            
+            <input type="hidden" id="f-id">
+            <button id="btn-salva-prodotto" style="background: #28a745;">SALVA E PUBBLICA</button>
             <button style="background: #ccc; color: #333;" onclick="closeModal()">ANNULLA</button>
         </div>
     </div>
@@ -112,23 +107,34 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
-    let utenteAttivo = null;
+    let utenteAttivo = JSON.parse(localStorage.getItem('shopygo_user'));
 
-    // LOGIN
+    // GESTIONE LOGIN PERSISTENTE
+    if(utenteAttivo) mostraDashboard();
+
     document.getElementById('btn-login').onclick = async () => {
         const cod = document.getElementById('codice-accesso').value.trim();
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", cod));
         const snap = await getDocs(q);
-        
         if (!snap.empty) {
             utenteAttivo = snap.docs[0].data();
-            document.getElementById('nome-utente').innerText = utenteAttivo.nome;
-            document.getElementById('id-display').innerText = utenteAttivo.codice;
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('main-container').classList.remove('hidden');
-            caricaProdotti();
-        } else { alert("Accesso negato: ID non valido."); }
+            localStorage.setItem('shopygo_user', JSON.stringify(utenteAttivo));
+            mostraDashboard();
+        } else { alert("ID non valido"); }
     };
+
+    document.getElementById('btn-logout').onclick = () => {
+        localStorage.removeItem('shopygo_user');
+        location.reload();
+    };
+
+    function mostraDashboard() {
+        document.getElementById('nome-utente').innerText = utenteAttivo.nome;
+        document.getElementById('id-display').innerText = "ID: " + utenteAttivo.codice;
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('main-container').classList.remove('hidden');
+        caricaProdotti();
+    }
 
     // CARICA LISTA
     async function caricaProdotti() {
@@ -143,72 +149,93 @@
             const div = document.createElement('div');
             div.className = 'card-p';
             div.innerHTML = `
-                <button class="delete-btn" onclick="event.stopPropagation(); elimina('${res.id}')">✕</button>
+                <button class="delete-btn" onclick="eliminaProdotto(event, '${res.id}')">✕</button>
+                <span class="badge" style="background:${p.tipo === 'amazon' ? '#1a73e8' : '#6c5ce7'}">${p.tipo || 'amazon'}</span>
                 <img src="${p.immagine}">
-                <p style="font-size: 13px; margin: 10px 0; font-weight: bold;">${p.titolo.substring(0, 40)}...</p>
-                <p style="color: var(--primary);">€ ${p.prezzo}</p>
+                <p style="font-size: 12px; margin: 5px 0;">${p.titolo.substring(0, 30)}...</p>
+                <strong>€ ${p.prezzo}</strong>
             `;
-            div.onclick = () => {
-                document.getElementById('edit-id').value = res.id;
-                document.getElementById('edit-titolo').value = p.titolo;
-                document.getElementById('edit-prezzo').value = p.prezzo;
-                document.getElementById('edit-desc').value = p.descrizione || "";
-                document.getElementById('modal-edit').classList.remove('hidden');
-            };
+            div.onclick = () => apriModifica(res.id, p);
             container.appendChild(div);
         });
     }
 
-    // VERIFICA LINK
+    // FUNZIONI MODULI
+    window.openMarketplace = () => {
+        pulisciModulo();
+        document.getElementById('modal-title').innerText = "Nuovo Annuncio Marketplace";
+        document.getElementById('f-tipo').value = "nuovo";
+        document.getElementById('modal-form').classList.remove('hidden');
+    };
+
+    window.closeModal = () => document.getElementById('modal-form').classList.add('hidden');
+
+    function pulisciModulo() {
+        document.getElementById('f-id').value = "";
+        document.getElementById('f-titolo').value = "";
+        document.getElementById('f-prezzo').value = "";
+        document.getElementById('f-img').value = "";
+        document.getElementById('f-desc').value = "";
+        document.getElementById('f-link').value = "";
+    }
+
+    // VERIFICA LINK AMAZON
     document.getElementById('btn-verifica').onclick = () => {
         const url = document.getElementById('amazon-link').value;
         fetch('https://api.linkpreview.net', {
             method: 'POST', body: JSON.stringify({key: LP_KEY, q: url})
         }).then(r => r.json()).then(res => {
-            document.getElementById('p-titolo').value = res.title;
-            document.getElementById('p-img').src = res.image;
-            document.getElementById('preview-area').classList.remove('hidden');
+            pulisciModulo();
+            document.getElementById('f-tipo').value = "amazon";
+            document.getElementById('f-titolo').value = res.title;
+            document.getElementById('f-img').value = res.image;
+            document.getElementById('f-link').value = url.split("?")[0] + "?tag=" + utenteAttivo.tag;
+            document.getElementById('modal-form').classList.remove('hidden');
         });
     };
 
-    // PUBBLICA
-    document.getElementById('btn-pubblica').onclick = async () => {
-        await addDoc(collection(db, "prodotti"), {
-            titolo: document.getElementById('p-titolo').value,
-            prezzo: document.getElementById('p-prezzo').value,
-            descrizione: document.getElementById('p-desc').value,
-            immagine: document.getElementById('p-img').src,
+    // SALVA (NUOVO O MODIFICA)
+    document.getElementById('btn-salva-prodotto').onclick = async () => {
+        const id = document.getElementById('f-id').value;
+        const data = {
+            titolo: document.getElementById('f-titolo').value,
+            prezzo: document.getElementById('f-prezzo').value,
+            immagine: document.getElementById('f-img').value,
+            descrizione: document.getElementById('f-desc').value,
+            link_amazon: document.getElementById('f-link').value,
+            tipo: document.getElementById('f-tipo').value,
             tag: utenteAttivo.tag,
-            link_amazon: document.getElementById('amazon-link').value.split("?")[0] + "?tag=" + utenteAttivo.tag,
-            creato_da: utenteAttivo.nome,
-            data: new Date()
-        });
-        alert("Prodotto pubblicato!");
-        location.reload();
+            autore: utenteAttivo.nome
+        };
+
+        if(id) {
+            await updateDoc(doc(db, "prodotti", id), data);
+        } else {
+            await addDoc(collection(db, "prodotti"), data);
+        }
+        
+        closeModal();
+        caricaProdotti();
     };
 
-    // ELIMINA
-    window.elimina = async (id) => {
-        if(confirm("Vuoi davvero cancellare questo prodotto dallo shop?")) {
+    window.apriModifica = (id, p) => {
+        document.getElementById('f-id').value = id;
+        document.getElementById('f-titolo').value = p.titolo;
+        document.getElementById('f-prezzo').value = p.prezzo;
+        document.getElementById('f-img').value = p.immagine;
+        document.getElementById('f-desc').value = p.descrizione || "";
+        document.getElementById('f-link').value = p.link_amazon;
+        document.getElementById('f-tipo').value = p.tipo || "amazon";
+        document.getElementById('modal-title').innerText = "Modifica Prodotto";
+        document.getElementById('modal-form').classList.remove('hidden');
+    };
+
+    window.eliminaProdotto = async (e, id) => {
+        e.stopPropagation();
+        if(confirm("⚠️ Sei sicuro? Il prodotto verrà eliminato definitivamente dallo shop.")) {
             await deleteDoc(doc(db, "prodotti", id));
             caricaProdotti();
         }
-    };
-
-    // CHIUDI MODALE
-    window.closeModal = () => document.getElementById('modal-edit').classList.add('hidden');
-
-    // SALVA MODIFICA
-    document.getElementById('btn-save-edit').onclick = async () => {
-        const id = document.getElementById('edit-id').value;
-        await updateDoc(doc(db, "prodotti", id), {
-            titolo: document.getElementById('edit-titolo').value,
-            prezzo: document.getElementById('edit-prezzo').value,
-            descrizione: document.getElementById('edit-desc').value
-        });
-        alert("Modificato con successo!");
-        closeModal();
-        caricaProdotti();
     };
 </script>
 </body>
