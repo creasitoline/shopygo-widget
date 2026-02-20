@@ -1,1 +1,127 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopyGO - Area Collaboratori</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        h2 { color: #1a73e8; text-align: center; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { background: #1557b0; }
+        .hidden { display: none; }
+        #anteprima { border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-top: 10px; text-align: center; }
+        #anteprima img { max-width: 100px; }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <div id="login-section">
+        <h2>Accesso Affiliati</h2>
+        <input type="text" id="codice-accesso" placeholder="Inserisci il tuo codice personale">
+        <button onclick="login()">ENTRA</button>
+    </div>
+
+    <div id="generator-section" class="hidden">
+        <h2>Ciao <span id="nome-utente"></span>!</h2>
+        <p>Incolla il link Amazon del prodotto:</p>
+        <input type="text" id="amazon-link" placeholder="https://www.amazon.it/dp/...">
+        <button onclick="analizzaLink()">VERIFICA PRODOTTO</button>
+        
+        <div id="anteprima" class="hidden">
+            <img id="p-img" src="" alt="anteprima">
+            <p id="p-titolo" style="font-size: 0.9em; font-weight: bold;"></p>
+            <input type="text" id="p-prezzo" placeholder="Conferma Prezzo (es: € 29.00)">
+            <button style="background: #28a745;" onclick="pubblica()">PUBBLICA ORA</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // --- TUA CONFIGURAZIONE FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
+        authDomain: "shopygo-database.firebaseapp.com",
+        projectId: "shopygo-database",
+        storageBucket: "shopygo-database.firebasestorage.app",
+        messagingSenderId: "336849306481",
+        appId: "1:336849306481:web:aef142b389ef778ba3ecd0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // --- DATABASE UTENTI (Esempio) ---
+    const utenti = {
+        "ROSSI01": { nome: "Mario Rossi", tag: "mariorossi-21" },
+        "BIANCHI02": { nome: "Luca Bianchi", tag: "lucab-21" },
+        "ADMIN99": { nome: "Admin", tag: "tuotag-21" }
+    };
+
+    let utenteAttivo = null;
+
+    window.login = function() {
+        const cod = document.getElementById('codice-accesso').value.toUpperCase();
+        if(utenti[cod]) {
+            utenteAttivo = utenti[cod];
+            document.getElementById('nome-utente').innerText = utenteAttivo.nome;
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('generator-section').classList.remove('hidden');
+        } else {
+            alert("Codice errato!");
+        }
+    }
+
+    window.analizzaLink = async function() {
+        const link = document.getElementById('amazon-link').value;
+        if(!link.includes("amazon")) { alert("Inserisci un link Amazon valido"); return; }
+        
+        // Usiamo un servizio gratuito per estrarre i dati (OpenGraph)
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(link)}`);
+        const data = await res.json();
+        const html = data.contents;
+        
+        // Estrazione brutale ma efficace dei meta tag
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const titolo = doc.querySelector('meta[property="og:title"]')?.content || "Prodotto Amazon";
+        const img = doc.querySelector('meta[property="og:image"]')?.content || "";
+
+        document.getElementById('p-titolo').innerText = titolo;
+        document.getElementById('p-img').src = img;
+        document.getElementById('anteprima').classList.remove('hidden');
+    }
+
+    window.pubblica = async function() {
+        const prezzo = document.getElementById('p-prezzo').value;
+        const linkOriginale = document.getElementById('amazon-link').value;
+        
+        // Pulizia link e aggiunta TAG affiliato
+        let linkPulito = linkOriginale.split("?")[0]; // Toglie vecchi tag
+        let linkFinale = `${linkPulito}?tag=${utenteAttivo.tag}`;
+
+        try {
+            await addDoc(collection(db, "prodotti"), {
+                titolo: document.getElementById('p-titolo').innerText,
+                prezzo: prezzo,
+                immagine: document.getElementById('p-img').src,
+                link_amazon: linkFinale,
+                autore: utenteAttivo.nome,
+                id_affiliato: utenteAttivo.tag,
+                data: new Date()
+            });
+            alert("✅ Prodotto inviato allo Shop!");
+            location.reload();
+        } catch (e) {
+            alert("Errore: " + e.message);
+        }
+    }
+</script>
+</body>
+</html>
