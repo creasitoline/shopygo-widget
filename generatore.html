@@ -3,139 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopyGO - Generatore</title>
+    <title>ShopyGO - Generatore Professionale</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:disabled { background: #ccc; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
+        h2 { color: #1a73e8; margin-bottom: 20px; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 1em; }
+        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #1557b0; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
         .hidden { display: none; }
-        #anteprima img { max-width: 150px; margin-top: 10px; display: block; margin-left: auto; margin-right: auto; }
-        .loader { color: #1a73e8; font-size: 0.9em; margin: 10px 0; }
+        #anteprima { border: 1px solid #e0e0e0; padding: 15px; border-radius: 12px; margin-top: 20px; background: #fafafa; }
+        #anteprima img { max-width: 100%; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .status { font-size: 0.85em; color: #666; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="login-section">
-        <h2>ShopyGO Login</h2>
-        <input type="text" id="codice-accesso" placeholder="Inserisci il codice (es: ADMIN00)">
-        <button onclick="login()">ENTRA</button>
+        <h2>Area Collaboratori</h2>
+        <p>Inserisci il tuo codice personale per accedere al generatore.</p>
+        <input type="text" id="codice-accesso" placeholder="Esempio: MARCO01">
+        <button onclick="login()">ACCEDI</button>
     </div>
 
     <div id="generator-section" class="hidden">
-        <h2>Ciao <span id="nome-utente"></span>!</h2>
-        <p style="font-size: 0.8em; color: #666;">Incolla il link Amazon e clicca verifica</p>
-        <input type="text" id="amazon-link" placeholder="https://www.amazon.it/...">
+        <h2>Ciao, <span id="nome-utente" style="color:#28a745;"></span>!</h2>
+        <p>Incolla il link Amazon del prodotto:</p>
+        <input type="text" id="amazon-link" placeholder="https://www.amazon.it/dp/...">
         <button id="btn-verifica" onclick="analizzaLink()">VERIFICA PRODOTTO</button>
-        <div id="loading" class="hidden" class="loader">🔍 Analisi prodotto in corso... attendi...</div>
+        <div id="loading" class="hidden status">🔄 Recupero anteprima in corso...</div>
         
         <div id="anteprima" class="hidden">
-            <hr>
-            <p>Controlla i dati e correggi se necessario:</p>
-            <input type="text" id="p-titolo" placeholder="Titolo Prodotto">
-            <input type="text" id="p-img-url" placeholder="URL Immagine">
-            <img id="p-img-preview" src="">
-            <input type="text" id="p-prezzo" placeholder="Prezzo (es: € 29.00)">
-            <button style="background: #28a745;" onclick="pubblica()">CONFERMA E PUBBLICA ORA</button>
+            <img id="p-img-preview" src="" alt="Anteprima">
+            <input type="text" id="p-titolo" placeholder="Titolo del prodotto">
+            <input type="text" id="p-prezzo" placeholder="Prezzo (es: € 49.90)">
+            <p class="status">Il tuo ID Affiliato verrà applicato automaticamente.</p>
+            <button style="background: #28a745;" onclick="pubblica()">PUBBLICA SULLO SHOP</button>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // Tua configurazione Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
         authDomain: "shopygo-database.firebaseapp.com",
         projectId: "shopygo-database",
         storageBucket: "shopygo-database.firebasestorage.app",
         messagingSenderId: "336849306481",
-        appId: "1:336849306481:web:aef142b389ef778ba3ecd0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const utenti = {
-        "ADMIN00": { nome: "Amministratore", tag: "shopygo-21" },
-        "ROSSI01": { nome: "Mario Rossi", tag: "mariorossi-21" }
-    };
-
-    let utenteAttivo = null;
-
-    window.login = function() {
-        const cod = document.getElementById('codice-accesso').value.trim().toUpperCase();
-        if(utenti[cod]) {
-            utenteAttivo = utenti[cod];
-            document.getElementById('nome-utente').innerText = utenteAttivo.nome;
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('generator-section').classList.remove('hidden');
-        } else {
-            alert("Codice errato!");
-        }
-    }
-
-    window.analizzaLink = async function() {
-        const link = document.getElementById('amazon-link').value;
-        if(!link.includes("amazon")) return alert("Link non valido");
-        
-        const btn = document.getElementById('btn-verifica');
-        const load = document.getElementById('loading');
-        btn.disabled = true;
-        load.classList.remove('hidden');
-
-        try {
-            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(link)}`);
-            const data = await res.json();
-            const doc = new DOMParser().parseFromString(data.contents, 'text/html');
-            
-            // Estraiamo Titolo e Immagine
-            const titolo = doc.querySelector('meta[property="og:title"]')?.content || "";
-            const img = doc.querySelector('meta[property="og:image"]')?.content || "";
-
-            document.getElementById('p-titolo').value = titolo;
-            document.getElementById('p-img-url').value = img;
-            document.getElementById('p-img-preview').src = img;
-            
-            document.getElementById('anteprima').classList.remove('hidden');
-        } catch (e) {
-            alert("Non sono riuscito a leggere Amazon automaticamente. Inserisci i dati a mano qui sotto.");
-            document.getElementById('anteprima').classList.remove('hidden');
-        } finally {
-            btn.disabled = false;
-            load.classList.add('hidden');
-        }
-    }
-
-    window.pubblica = async function() {
-        const t = document.getElementById('p-titolo').value;
-        const img = document.getElementById('p-img-url').value;
-        const p = document.getElementById('p-prezzo').value;
-        const linkOriginale = document.getElementById('amazon-link').value;
-
-        if(!t || !p) return alert("Inserisci almeno Titolo e Prezzo!");
-
-        const linkFinale = linkOriginale.split("?")[0] + "?tag=" + utenteAttivo.tag;
-
-        try {
-            await addDoc(collection(db, "prodotti"), {
-                titolo: t,
-                prezzo: p,
-                immagine: img,
-                link_amazon: linkFinale,
-                autore: utenteAttivo.nome,
-                id_affiliato: utenteAttivo.tag,
-                data: new Date()
-            });
-            alert("✅ Prodotto inviato allo Shop!");
-            location.reload();
-        } catch (e) {
-            alert("Errore: " + e.message);
-        }
-    }
-</script>
-</body>
-</html>
+        appId: "1:336849306481:web:aef14
