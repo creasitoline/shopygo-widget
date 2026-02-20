@@ -3,35 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopyGO Widget</title>
+    <title>ShopyGO Widget Dinamico</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 10px; background: white; }
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding: 5px; }
-        .filter-btn { padding: 8px 15px; border-radius: 20px; border: 1px solid #ff9900; background: white; cursor: pointer; white-space: nowrap; }
+        body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 15px; background: #fff; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
-        .card { border: 1px solid #eee; border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 120px; object-fit: contain; }
-        .card h4 { font-size: 0.9rem; margin: 10px 0; height: 35px; overflow: hidden; }
-        .buy-btn { background: #ff9900; color: white; border: none; padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .card { border: 1px solid #f0f0f0; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 130px; object-fit: contain; margin-bottom: 10px; }
+        .card h4 { font-size: 0.85rem; margin: 8px 0; height: 34px; overflow: hidden; color: #333; line-height: 1.2; }
+        .price { color: #B12704; font-size: 1.1rem; font-weight: bold; margin: 5px 0; }
+        .buy-btn { background: #FFD814; border: 1px solid #FCD200; color: #0f1111; padding: 8px; width: 100%; border-radius: 20px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; font-size: 0.8rem; }
+        .buy-btn:hover { background: #F7CA00; }
+        #loading { text-align: center; padding: 50px; color: #666; }
     </style>
 </head>
 <body>
 
-    <div class="filter-bar">
-        <button class="filter-btn">Tutto</button>
-        <button class="filter-btn">Tech</button>
-        <button class="filter-btn">Casa</button>
-        <button class="filter-btn">Offerte</button>
-    </div>
+    <div id="loading">Caricamento prodotti...</div>
+    <div class="grid" id="product-grid"></div>
 
-    <div class="grid">
-        <div class="card">
-            <img src="https://m.media-amazon.com/images/I/61S98mS63PL._AC_SL1500_.jpg" alt="Prodotto">
-            <h4>Esempio Prodotto Amazon</h4>
-            <p style="color:red; font-weight:bold;">€ 29,99</p>
-            <button class="buy-btn">ACQUISTA ORA</button>
-        </div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
+            authDomain: "shopygo-database.firebaseapp.com",
+            projectId: "shopygo-database",
+            storageBucket: "shopygo-database.firebasestorage.app",
+            messagingSenderId: "336849306481",
+            appId: "1:336849306481:web:aef142b389ef778ba3ecd0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function caricaProdotti() {
+            const grid = document.getElementById('product-grid');
+            const loader = document.getElementById('loading');
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "prodotti"));
+                loader.style.display = 'none';
+                
+                querySnapshot.forEach((doc) => {
+                    const p = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <img src="${p.immagine || 'https://via.placeholder.com/150'}" alt="${p.titolo}">
+                        <h4>${p.titolo}</h4>
+                        <p class="price">${p.prezzo}</p>
+                        <a href="${p.link_amazon}" target="_blank" class="buy-btn">Acquista ora</a>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (e) {
+                console.error("Errore: ", e);
+                loader.innerText = "Errore nel caricamento prodotti.";
+            }
+        }
+
+        caricaProdotti();
+    </script>
 </body>
 </html>
