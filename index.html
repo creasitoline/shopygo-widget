@@ -3,168 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopyGO - Shopping Intelligente</title>
+    <title>ShopyGO - Shop</title>
     <style>
-        :root { --primary: #131921; --accent: #febd69; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #eaeded; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); display: flex; flex-direction: column; }
-
-        /* HEADER */
-        header { background: var(--primary); color: white; padding: 15px 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
-
-        /* LAYOUT PRINCIPALE */
+        :root { --primary: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #eaeded; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; flex-direction: column; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; }
         .main-layout { display: flex; max-width: 1400px; margin: auto; width: 100%; }
-
-        /* SIDEBAR FILTRI */
-        .sidebar { width: 250px; background: white; padding: 20px; border-right: 1px solid #ddd; min-height: 100vh; }
-        .filter-group { margin-bottom: 25px; }
-        .filter-group h3 { font-size: 1rem; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .filter-group label { display: block; font-size: 0.9rem; margin: 8px 0; cursor: pointer; color: #333; }
-        .filter-group input { margin-right: 10px; }
-
-        /* GRIGLIA PRODOTTI */
+        .sidebar { width: 250px; background: white; padding: 20px; border-right: 1px solid #ddd; min-height: 100vh; box-sizing: border-box; }
+        .filter-group { margin-bottom: 20px; }
+        .filter-group h3 { font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .filter-group label { display: block; font-size: 0.85rem; margin: 8px 0; cursor: pointer; }
         .content { flex: 1; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        
-        .card { 
-            background: white; border-radius: 8px; overflow: hidden; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: 0.2s; 
-            display: flex; flex-direction: column; position: relative; border: 1px solid #eee;
-        }
-        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        
-        .badge { 
-            position: absolute; top: 10px; right: 10px; padding: 3px 8px; 
-            border-radius: 4px; color: white; font-size: 9px; font-weight: bold; z-index: 5;
-        }
-
-        .image-container { width: 100%; height: 180px; padding: 15px; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative; border: 1px solid #eee; }
+        .badge { position: absolute; top: 10px; right: 10px; padding: 3px 8px; border-radius: 4px; color: white; font-size: 9px; font-weight: bold; }
+        .image-container { width: 100%; height: 200px; padding: 15px; box-sizing: border-box; }
         .card img { width: 100%; height: 100%; object-fit: contain; }
-
-        .info { padding: 15px; flex-grow: 1; }
-        .info h4 { font-size: 0.9rem; margin: 0 0 10px; color: #0f1111; height: 38px; overflow: hidden; }
-        .price { color: #B12704; font-size: 1.3rem; font-weight: bold; }
-        
-        .buy-btn { 
-            background: #FFD814; border: 1px solid #FCD200; color: #0f1111; padding: 8px; 
-            width: 100%; border-radius: 20px; font-weight: 500; cursor: pointer; 
-            text-decoration: none; text-align: center; display: block; margin-top: 10px; font-size: 0.85rem;
-        }
-
-        /* RESPONSIVE MOBILE */
-        @media (max-width: 768px) {
-            .main-layout { flex-direction: column; }
-            .sidebar { width: 100%; min-height: auto; border-right: none; border-bottom: 1px solid #ddd; }
-            .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-        }
+        .info { padding: 15px; }
+        .price { color: #B12704; font-size: 1.2rem; font-weight: bold; }
+        .buy-btn { background: #FFD814; border: 1px solid #FCD200; color: #0f1111; padding: 8px; width: 100%; border-radius: 20px; text-align: center; text-decoration: none; display: block; margin-top: 10px; font-size: 0.8rem; font-weight: bold; }
+        @media (max-width: 768px) { .main-layout { flex-direction: column; } .sidebar { width: 100%; min-height: auto; } }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1 style="margin:0; font-size: 1.5rem;">ShopyGO Shop</h1>
-    </header>
-
+    <header><h1>ShopyGO Shop</h1></header>
     <div class="main-layout">
         <aside class="sidebar">
             <div class="filter-group">
                 <h3>Piattaforma</h3>
-                <label><input type="checkbox" class="filter-type" value="amazon" checked> Amazon</label>
+                <label><input type="checkbox" class="filter-type" value="amazon"> Amazon</label>
                 <label><input type="checkbox" class="filter-type" value="nuovo"> Marketplace Nuovo</label>
                 <label><input type="checkbox" class="filter-type" value="usato"> Marketplace Usato</label>
-                <label style="opacity:0.5"><input type="checkbox" disabled> eBay (Prossimamente)</label>
-                <label style="opacity:0.5"><input type="checkbox" disabled> Temu (Prossimamente)</label>
             </div>
-
-            <div class="filter-group">
-                <h3>Prezzo Massimo</h3>
-                <input type="range" id="price-range" min="0" max="1000" value="1000" oninput="updatePriceLabel(this.value)">
-                <p>Fino a: <strong>€ <span id="price-val">1000</span></strong></p>
-            </div>
-
             <div class="filter-group">
                 <h3>Categorie</h3>
-                <label><input type="checkbox" value="elettronica"> Elettronica</label>
-                <label><input type="checkbox" value="casa"> Casa e Cucina</label>
-                <label><input type="checkbox" value="moda"> Moda</label>
+                <label><input type="checkbox" class="filter-cat" value="Elettronica"> Elettronica</label>
+                <label><input type="checkbox" class="filter-cat" value="Informatica"> Informatica</label>
+                <label><input type="checkbox" class="filter-cat" value="Casa e Cucina"> Casa e Cucina</label>
+                <label><input type="checkbox" class="filter-cat" value="Moda e Accessori"> Moda e Accessori</label>
+                <label><input type="checkbox" class="filter-cat" value="Salute e Bellezza"> Salute e Bellezza</label>
+                <label><input type="checkbox" class="filter-cat" value="Sport e Tempo Libero"> Sport e Tempo Libero</label>
+                <label><input type="checkbox" class="filter-cat" value="Giochi e Giocattoli"> Giochi e Giocattoli</label>
+                <label><input type="checkbox" class="filter-cat" value="Fai da Te"> Fai da Te</label>
             </div>
         </aside>
-
-        <main class="content">
-            <div id="product-grid" class="grid">
-                </div>
-        </main>
+        <main class="content"><div id="product-grid" class="grid"></div></main>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
-            authDomain: "shopygo-database.firebaseapp.com",
-            projectId: "shopygo-database",
-            storageBucket: "shopygo-database.firebasestorage.app",
-            messagingSenderId: "336849306481",
-            appId: "1:336849306481:web:aef142b389ef778ba3ecd0"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let tuttiIProdotti = [];
+        let tuttiProdotti = [];
 
-        window.updatePriceLabel = (val) => {
-            document.getElementById('price-val').innerText = val;
-            filtraProdotti();
-        };
-
-        async function caricaProdotti() {
-            const grid = document.getElementById('product-grid');
+        async function carica() {
             const snap = await getDocs(collection(db, "prodotti"));
-            tuttiIProdotti = [];
-            snap.forEach(doc => tuttiIProdotti.push({id: doc.id, ...doc.data()}));
-            filtraProdotti();
+            tuttiProdotti = snap.docs.map(doc => doc.data());
+            render();
         }
 
-        function filtraProdotti() {
+        function render() {
             const grid = document.getElementById('product-grid');
-            const maxPrice = parseFloat(document.getElementById('price-range').value);
-            const selectedTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(cb => cb.value);
-
+            const selTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(c => c.value);
+            const selCats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
+            
             grid.innerHTML = "";
-
-            const prodottiFiltrati = tuttiIProdotti.filter(p => {
-                const prezzoNum = parseFloat(p.prezzo.toString().replace(/[^0-9.]/g, '')) || 0;
-                const matchesPrice = prezzoNum <= maxPrice;
-                const matchesType = selectedTypes.length === 0 || selectedTypes.includes(p.tipo || "amazon");
-                return matchesPrice && matchesType;
-            });
-
-            prodottiFiltrati.forEach(p => {
-                let badgeCol = "#007185"; let bText = "Amazon";
-                if(p.tipo === "nuovo") { badgeCol = "#6c5ce7"; bText = "Nuovo"; }
-                if(p.tipo === "usato") { badgeCol = "#2ecc71"; bText = "Usato"; }
-
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="badge" style="background:${badgeCol}">${bText}</div>
-                    <div class="image-container"><img src="${p.immagine}"></div>
-                    <div class="info">
-                        <h4>${p.titolo}</h4>
-                        <p class="price">€ ${p.prezzo}</p>
-                        <a href="${p.link_amazon}" target="_blank" class="buy-btn">Acquista Ora</a>
-                    </div>
-                `;
-                grid.appendChild(card);
+            tuttiProdotti.filter(p => {
+                const tMatch = selTypes.length === 0 || selTypes.includes(p.tipo);
+                const cMatch = selCats.length === 0 || selCats.includes(p.categoria);
+                return tMatch && cMatch;
+            }).forEach(p => {
+                let col = "#007185"; if(p.tipo === "nuovo") col = "#6c5ce7"; if(p.tipo === "usato") col = "#2ecc71";
+                grid.innerHTML += `
+                    <div class="card">
+                        <div class="badge" style="background:${col}">${p.tipo}</div>
+                        <div class="image-container"><img src="${p.immagine}"></div>
+                        <div class="info">
+                            <h4 style="font-size:0.85rem; height:35px; overflow:hidden">${p.titolo}</h4>
+                            <p class="price">€ ${p.prezzo}</p>
+                            <a href="${p.link_amazon}" target="_blank" class="buy-btn">Acquista</a>
+                        </div>
+                    </div>`;
             });
         }
 
-        // Listener per i checkbox dei tipi
-        document.querySelectorAll('.filter-type').forEach(cb => {
-            cb.addEventListener('change', filtraProdotti);
-        });
-
-        caricaProdotti();
+        document.querySelectorAll('input').forEach(i => i.onchange = render);
+        carica();
     </script>
 </body>
 </html>
