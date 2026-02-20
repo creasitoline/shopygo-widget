@@ -8,14 +8,12 @@
         :root { --primary: #1a73e8; --danger: #d93025; --bg: #f8f9fa; --sidebar: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
         
-        /* Layout per PC (Sidebar) */
+        /* Layout Mobile/PC */
         @media (min-width: 768px) {
             body { flex-direction: row; }
             .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid #ddd; padding: 20px; height: 100vh; position: sticky; top: 0; }
             .main-content { flex: 1; padding: 40px; }
         }
-
-        /* Layout per Mobile */
         @media (max-width: 767px) {
             .sidebar { padding: 15px; border-bottom: 1px solid #ddd; background: white; }
             .main-content { padding: 15px; }
@@ -25,70 +23,74 @@
         input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-secondary { background: #5f6368; }
-        .btn-danger { background: var(--danger); }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
 
         /* Lista Prodotti */
-        .grid-prodotti { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .item-prodotto { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; }
-        .item-prodotto:hover { border-color: var(--primary); transform: translateY(-3px); }
-        .item-prodotto img { width: 100%; height: 120px; object-fit: contain; border-radius: 5px; }
-        .item-prodotto h4 { font-size: 13px; margin: 10px 0; height: 35px; overflow: hidden; }
-        .delete-icon { position: absolute; top: 5px; right: 5px; background: rgba(217, 48, 37, 0.1); color: var(--danger); padding: 5px; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: none; }
+        .grid-prodotti { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .item-prodotto { background: white; border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; position: relative; }
+        .item-prodotto img { width: 100%; height: 100px; object-fit: contain; }
+        .delete-icon { position: absolute; top: 5px; right: 5px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; z-index: 10; }
 
-        /* Modal Modifica */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
+        /* MODALE DI MODIFICA (Sistemata) */
+        .modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.7); display: flex; justify-content: center; 
+            align-items: center; z-index: 9999; 
+        }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2 style="color: var(--primary); margin-top: 0;">ShopyGO</h2>
-        <div id="user-info" class="hidden">
-            <p>Benvenuto, <br><strong id="nome-utente" style="font-size: 1.2em;"></strong></p>
-            <hr>
-            <p style="font-size: 0.8em; color: #666;">ID Collaboratore: <span id="id-display"></span></p>
-            <button class="btn-secondary" onclick="location.reload()">Esci</button>
-        </div>
+        <h2 style="color: var(--primary);">ShopyGO</h2>
+        
         <div id="login-section">
-            <p>Accedi alla tua area</p>
-            <input type="text" id="codice-accesso" placeholder="Il tuo codice ID">
-            <button id="btn-login">ENTRA</button>
+            <p>Inserisci il tuo ID per gestire i prodotti</p>
+            <input type="text" id="codice-accesso" placeholder="Codice ID (es. 1971)">
+            <button id="btn-login">ACCEDI ALLA CONSOLE</button>
+        </div>
+
+        <div id="user-info" class="hidden">
+            <p>Collaboratore: <br><strong id="nome-utente"></strong></p>
+            <p style="font-size: 0.8em; color: #666;">ID: <span id="id-display"></span></p>
+            <button class="btn-secondary" onclick="location.reload()">LOGOUT</button>
         </div>
     </div>
 
     <div class="main-content">
         <div id="dashboard" class="hidden">
             <div class="card">
-                <h3>➕ Aggiungi Nuovo Prodotto</h3>
-                <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui">
+                <h3>➕ Carica Prodotto Amazon</h3>
+                <input type="text" id="amazon-link" placeholder="Incolla link prodotto">
                 <button id="btn-verifica">VERIFICA LINK</button>
                 
-                <div id="preview-area" class="hidden" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                    <img id="p-img" src="" style="width: 80px; margin-bottom: 10px;">
+                <div id="preview-area" class="hidden">
+                    <img id="p-img" src="" style="width: 60px;">
                     <input type="text" id="p-titolo" placeholder="Titolo">
-                    <input type="text" id="p-prezzo" placeholder="Prezzo (es. 19.90)">
-                    <textarea id="p-desc" placeholder="Descrizione"></textarea>
+                    <input type="text" id="p-prezzo" placeholder="Prezzo (€)">
+                    <textarea id="p-desc" placeholder="Tua descrizione..."></textarea>
                     <button id="btn-pubblica" style="background: #28a745;">PUBBLICA SULLO SHOP</button>
                 </div>
             </div>
 
-            <h3>📦 I Miei Prodotti</h3>
-            <div id="grid-miei-prodotti" class="grid-prodotti">
-                </div>
+            <h3>📦 I Tuoi Prodotti Online</h3>
+            <div id="grid-miei-prodotti" class="grid-prodotti"></div>
         </div>
     </div>
 
     <div id="modal-edit" class="modal hidden">
         <div class="modal-content">
-            <h3>Modifica Prodotto</h3>
+            <h3>📝 Modifica Prodotto</h3>
+            <label style="font-size: 12px; color: #666;">Titolo</label>
             <input type="text" id="edit-titolo">
+            <label style="font-size: 12px; color: #666;">Prezzo (€)</label>
             <input type="text" id="edit-prezzo">
+            <label style="font-size: 12px; color: #666;">Descrizione</label>
             <textarea id="edit-desc" rows="4"></textarea>
             <input type="hidden" id="edit-id">
             <button id="btn-save-edit">SALVA MODIFICHE</button>
-            <button class="btn-secondary" onclick="closeModal()">ANNULLA</button>
+            <button class="btn-secondary" onclick="closeModal()" style="margin-top: 5px;">ANNULLA</button>
         </div>
     </div>
 
@@ -140,7 +142,7 @@
             const div = document.createElement('div');
             div.className = 'item-prodotto';
             div.innerHTML = `
-                <button class="delete-icon" onclick="event.stopPropagation(); eliminaProdotto('${res.id}')">🗑</button>
+                <button class="delete-icon" onclick="event.stopPropagation(); eliminaProdotto('${res.id}')">✕</button>
                 <img src="${p.immagine}">
                 <h4>${p.titolo}</h4>
                 <p><strong>€ ${p.prezzo}</strong></p>
@@ -153,6 +155,8 @@
     // VERIFICA LINK
     document.getElementById('btn-verifica').onclick = () => {
         const url = document.getElementById('amazon-link').value;
+        if(!url.includes("amazon")) return alert("Link non valido!");
+        
         fetch('https://api.linkpreview.net', {
             method: 'POST', body: JSON.stringify({key: LP_KEY, q: url})
         }).then(r => r.json()).then(res => {
@@ -171,7 +175,7 @@
             immagine: document.getElementById('p-img').src,
             tag: utenteAttivo.tag,
             link_amazon: document.getElementById('amazon-link').value.split("?")[0] + "?tag=" + utenteAttivo.tag,
-            data: new Date()
+            data_creazione: new Date()
         });
         alert("Pubblicato!");
         location.reload();
@@ -179,13 +183,13 @@
 
     // ELIMINAZIONE
     window.eliminaProdotto = async (id) => {
-        if(confirm("⚠️ Sei sicuro di voler cancellare questo prodotto? L'azione è definitiva e lo shop verrà aggiornato.")) {
+        if(confirm("⚠️ Vuoi davvero cancellare questo prodotto?")) {
             await deleteDoc(doc(db, "prodotti", id));
             caricaProdotti();
         }
     };
 
-    // MODIFICA
+    // MODIFICA (MOSTRA MODALE)
     window.openEditModal = (id, data) => {
         document.getElementById('edit-id').value = id;
         document.getElementById('edit-titolo').value = data.titolo;
@@ -194,7 +198,9 @@
         document.getElementById('modal-edit').classList.remove('hidden');
     };
 
-    window.closeModal = () => document.getElementById('modal-edit').classList.add('hidden');
+    window.closeModal = () => {
+        document.getElementById('modal-edit').classList.add('hidden');
+    };
 
     document.getElementById('btn-save-edit').onclick = async () => {
         const id = document.getElementById('edit-id').value;
@@ -203,7 +209,7 @@
             prezzo: document.getElementById('edit-prezzo').value,
             descrizione: document.getElementById('edit-desc').value
         });
-        alert("Modificato!");
+        alert("Aggiornato!");
         closeModal();
         caricaProdotti();
     };
