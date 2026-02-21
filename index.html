@@ -2,83 +2,143 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ShopyGO - Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #eaeded; --accent: #FFD814; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); padding-bottom: 100px; color: var(--text); }
+        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #f3f3f3; --accent: #FFD814; }
+        body { font-family: 'Segoe UI', system-ui; margin: 0; background: var(--bg); padding-bottom: 90px; color: var(--text); overflow-x: hidden; }
         
-        header { background: var(--primary); padding: 5px 20px; display: flex; align-items: center; position: sticky; top: 0; z-index: 1000; height: 55px; border-bottom: 1px solid #ddd; box-sizing: border-box; }
-        .logo { height: 35px; width: auto; }
+        /* HEADER & SEARCH */
+        header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; gap: 10px; }
+        .logo { height: 30px; }
+        
+        .search-container { flex: 1; max-width: 600px; position: relative; display: flex; align-items: center; }
+        .search-container input { width: 100%; padding: 10px 40px 10px 15px; border-radius: 25px; border: 1px solid #ccc; font-size: 14px; outline: none; }
+        .search-container i { position: absolute; right: 15px; color: #888; cursor: pointer; }
 
-        .main-layout { display: flex; max-width: 1400px; margin: auto; width: 100%; }
-        
-        .sidebar { width: 280px; background: white; padding: 20px; border-right: 1px solid #ddd; min-height: 100vh; box-sizing: border-box; }
-        .filter-group { margin-bottom: 20px; }
-        .filter-group h3 { font-size: 0.8rem; text-transform: uppercase; color: #666; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        
-        .price-slider { width: 100%; accent-color: var(--amazon); }
-        .price-val { font-weight: bold; color: var(--amazon); }
+        /* NUOVI PRODOTTI (SLIDER) */
+        .slider-section { padding: 15px 0; background: #fff; margin-bottom: 10px; }
+        .slider-title { padding: 0 15px; margin: 0 0 10px 0; font-size: 1.1rem; font-weight: bold; color: var(--amazon); }
+        .slider-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding: 0 15px 10px 15px; scrollbar-width: none; }
+        .slider-container::-webkit-scrollbar { display: none; }
+        .slider-item { min-width: 160px; max-width: 160px; scroll-snap-align: start; background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; }
+        .slider-item img { width: 100%; height: 100px; object-fit: contain; }
+        .slider-item h5 { font-size: 0.8rem; margin: 5px 0; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        .content { flex: 1; padding: 15px; box-sizing: border-box; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        /* GRID PRINCIPALE */
+        .main-layout { max-width: 1400px; margin: auto; padding: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
         
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; border: 1px solid #eee; min-height: 420px; box-sizing: border-box; }
-        
-        .badge { position: absolute; top: 10px; left: 10px; padding: 3px 8px; border-radius: 4px; color: white; font-size: 9px; font-weight: bold; text-transform: uppercase; z-index: 5; }
-        
-        .image-container { width: 100%; height: 200px; padding: 15px; box-sizing: border-box; background: #fff; }
+        .card { background: white; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #ddd; position: relative; }
+        .badge { position: absolute; top: 8px; left: 8px; padding: 2px 6px; border-radius: 4px; color: white; font-size: 8px; font-weight: bold; text-transform: uppercase; z-index: 5; }
+        .image-container { width: 100%; height: 150px; padding: 10px; background: #fff; box-sizing: border-box; }
         .card img { width: 100%; height: 100%; object-fit: contain; }
-        
-        .info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
-        .info h4 { font-size: 0.95rem; margin: 0; min-height: 45px; line-height: 1.3; color: #333; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        .desc-text { font-size: 0.8rem; color: #666; margin: 8px 0; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; }
-        .price { color: #B12704; font-size: 1.1rem; font-weight: bold; }
-        
-        .buy-btn { background: var(--accent); color: #000; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: bold; border: 1px solid #f0c14b; }
+        .info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+        .info h4 { font-size: 0.85rem; margin: 0; min-height: 35px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .price { color: #B12704; font-size: 1rem; font-weight: bold; margin: 5px 0; }
+        .buy-btn { background: var(--accent); color: #000; padding: 8px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; font-weight: bold; text-align: center; border: 1px solid #f0c14b; margin-top: auto; }
 
-        .nav-bottom { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 20px; display: flex; justify-content: space-around; padding: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); z-index: 2000; border: 1px solid #eee; }
-        .nav-item { text-decoration: none; color: #333; font-size: 12px; text-align: center; font-weight: bold; flex: 1; }
+        /* NAV BOTTOM MODERNA */
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; transition: 0.3s; }
+        .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--amazon); }
 
-        @media (max-width: 768px) { 
-            .main-layout { flex-direction: column; } 
-            .sidebar { width: 100%; min-height: auto; padding: 15px; }
-            .grid { grid-template-columns: 1fr; padding: 0 10px; }
-            .card { min-height: auto; }
+        /* FILTRI DRAWER (BOTTOM MENU) */
+        .filter-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: white; z-index: 3000; border-radius: 25px 25px 0 0; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; max-height: 80vh; overflow-y: auto; box-shadow: 0 -10px 30px rgba(0,0,0,0.2); }
+        .filter-drawer.open { bottom: 0; }
+        .filter-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2500; display: none; }
+        .filter-group { margin-bottom: 20px; }
+        .filter-group h3 { font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px; }
+
+        /* DOPPIO SLIDER PREZZO SIMULATO */
+        .price-inputs { display: flex; gap: 10px; align-items: center; }
+        .price-inputs input { width: 80px; padding: 8px; border-radius: 8px; border: 1px solid #ddd; }
+
+        @media (max-width: 768px) {
+            .search-desktop { display: none; }
+            .grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 769px) {
+            .mobile-only { display: none; }
         }
     </style>
 </head>
 <body>
-    <header><img src="logo.png" alt="ShopyGO" class="logo"></header>
+
+    <header>
+        <img src="logo.png" alt="ShopyGO" class="logo">
+        <div class="search-container search-desktop">
+            <input type="text" id="search-pc" placeholder="Cerca tra i prodotti..." oninput="render()">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <div class="mobile-only" onclick="toggleSearch()">
+            <i class="fa-solid fa-magnifying-glass" style="font-size: 1.2rem; color: var(--amazon);"></i>
+        </div>
+    </header>
+
+    <div id="mobile-search-bar" class="hidden" style="display:none; padding: 10px; background: #fff;">
+        <input type="text" id="search-mobile" placeholder="Cerca..." oninput="render()" style="width:100%; padding:10px; border-radius:20px; border:1px solid #ddd;">
+    </div>
+
+    <div class="slider-section" id="section-novita">
+        <p class="slider-title"><i class="fa-solid fa-fire"></i> Ultime Novità</p>
+        <div class="slider-container" id="slider-prodotti">
+            </div>
+    </div>
+
     <div class="main-layout">
-        <aside class="sidebar">
-            <div class="filter-group">
-                <h3>Prezzo Max: <span id="price-label" class="price-val">5000</span></h3>
-                <input type="range" id="price-range" class="price-slider" min="0" max="5000" step="50" value="5000">
+        <main class="content">
+            <div id="product-grid" class="grid"></div>
+        </main>
+    </div>
+
+    <div class="filter-overlay" id="overlay" onclick="toggleFilters()"></div>
+    <div class="filter-drawer" id="drawer">
+        <div style="width:40px; height:5px; background:#ddd; border-radius:10px; margin: -10px auto 20px auto;"></div>
+        <h3>Filtra Prodotti</h3>
+        
+        <div class="filter-group">
+            <h3>Range di Prezzo</h3>
+            <div class="price-inputs">
+                <input type="number" id="min-price" placeholder="Min" value="0" oninput="render()">
+                <span>-</span>
+                <input type="number" id="max-price" placeholder="Max" value="5000" oninput="render()">
             </div>
-            <div class="filter-group">
-                <h3>Piattaforma</h3>
-                <label><input type="checkbox" class="filter-type" value="amazon"> Amazon</label><br>
-                <label><input type="checkbox" class="filter-type" value="nuovo"> Nuovo</label><br>
-                <label><input type="checkbox" class="filter-type" value="usato"> Usato</label>
+        </div>
+
+        <div class="filter-group">
+            <h3>Piattaforma</h3>
+            <label><input type="checkbox" class="filter-type" value="amazon" onchange="render()"> Amazon</label><br>
+            <label><input type="checkbox" class="filter-type" value="nuovo" onchange="render()"> Nuovo</label><br>
+            <label><input type="checkbox" class="filter-type" value="usato" onchange="render()"> Usato</label>
+        </div>
+
+        <div class="filter-group">
+            <h3>Categorie</h3>
+            <div id="category-list">
+                <label><input type="checkbox" class="filter-cat" value="Elettronica" onchange="render()"> Elettronica</label><br>
+                <label><input type="checkbox" class="filter-cat" value="Informatica" onchange="render()"> Informatica</label><br>
+                <label><input type="checkbox" class="filter-cat" value="Casa e Cucina" onchange="render()"> Casa e Cucina</label>
             </div>
-            <div class="filter-group">
-                <h3>Categorie</h3>
-                <label><input type="checkbox" class="filter-cat" value="Elettronica"> Elettronica</label><br>
-                <label><input type="checkbox" class="filter-cat" value="Informatica"> Informatica</label><br>
-                <label><input type="checkbox" class="filter-cat" value="Casa e Cucina"> Casa e Cucina</label>
-            </div>
-        </aside>
-        <main class="content"><div id="product-grid" class="grid"></div></main>
+        </div>
+        <button onclick="toggleFilters()" style="width:100%; background:var(--amazon); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold;">APPLICA</button>
     </div>
 
     <nav class="nav-bottom">
-        <a href="index.html" class="nav-item" style="color:var(--amazon)">🏠<br>Shop</a>
-        <a href="generatore.html" class="nav-item">🔑<br>Staff</a>
-        <a href="admin-master.html" class="nav-item">📊<br>Admin</a>
+        <a href="index.html" class="nav-item active">
+            <i class="fa-solid fa-house"></i><span>Shop</span>
+        </a>
+        <a href="#" class="nav-item" onclick="toggleFilters()">
+            <i class="fa-solid fa-bars-staggered"></i><span>Filtri</span>
+        </a>
+        <a href="generatore.html" class="nav-item">
+            <i class="fa-solid fa-circle-plus"></i><span>Pubblica</span>
+        </a>
+        <a href="admin-master.html" class="nav-item">
+            <i class="fa-solid fa-chart-simple"></i><span>Admin</span>
+        </a>
     </nav>
 
     <script type="module">
@@ -88,66 +148,80 @@
         const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
         let tuttiProdotti = [];
 
+        window.toggleFilters = () => {
+            const d = document.getElementById('drawer');
+            const o = document.getElementById('overlay');
+            d.classList.toggle('open');
+            o.style.display = d.classList.contains('open') ? 'block' : 'none';
+        }
+
+        window.toggleSearch = () => {
+            const bar = document.getElementById('mobile-search-bar');
+            bar.style.display = bar.style.display === 'none' ? 'block' : 'none';
+        }
+
         async function carica() {
-            const grid = document.getElementById('product-grid');
-            grid.innerHTML = "<p style='text-align:center'>Caricamento...</p>";
             try {
                 const snap = await getDocs(collection(db, "prodotti"));
                 tuttiProdotti = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                tuttiProdotti.reverse(); 
+                // I più recenti per primi
+                tuttiProdotti.sort((a, b) => b.data_creazione - a.data_creazione); 
                 render();
-            } catch (e) { grid.innerHTML = "Errore dati."; }
+            } catch (e) { console.error(e); }
         }
 
         function render() {
             const grid = document.getElementById('product-grid');
+            const slider = document.getElementById('slider-prodotti');
+            
+            // Valori filtri
+            const query = (document.getElementById('search-pc').value || document.getElementById('search-mobile').value).toLowerCase();
+            const minP = parseFloat(document.getElementById('min-price').value) || 0;
+            const maxP = parseFloat(document.getElementById('max-price').value) || 5000;
             const selTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(c => c.value);
             const selCats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
-            const maxPrice = parseInt(document.getElementById('price-range').value);
-            document.getElementById('price-label').innerText = maxPrice;
-            grid.innerHTML = "";
 
+            // Filtra
             const filtrati = tuttiProdotti.filter(p => {
-                const tMatch = selTypes.length === 0 || selTypes.includes(p.tipo);
-                const cMatch = selCats.length === 0 || selCats.includes(p.categoria);
-                const pValue = parseFloat(p.prezzo ? p.prezzo.toString().replace(',', '.') : "0");
-                return tMatch && cMatch && (pValue <= maxPrice);
+                const pValue = parseFloat(p.prezzo?.toString().replace(',', '.') || 0);
+                const matchesSearch = p.titolo.toLowerCase().includes(query);
+                const matchesType = selTypes.length === 0 || selTypes.includes(p.tipo);
+                const matchesCat = selCats.length === 0 || selCats.includes(p.categoria);
+                const matchesPrice = pValue >= minP && pValue <= maxP;
+                return matchesSearch && matchesType && matchesCat && matchesPrice;
             });
 
-            if(filtrati.length === 0) {
-                grid.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>Nessun prodotto trovato.</p>";
-                return;
-            }
+            // 1. Render Slider (Sempre gli ultimi 8 prodotti inseriti, indipendentemente dai filtri per dare visibilità)
+            slider.innerHTML = "";
+            tuttiProdotti.slice(0, 8).forEach(p => {
+                slider.innerHTML += `
+                    <div class="slider-item" onclick="window.open('${p.link_amazon}', '_blank')">
+                        <img src="${p.immagine}">
+                        <h5>${p.titolo}</h5>
+                        <p class="price">${p.valuta || '€'} ${p.prezzo}</p>
+                    </div>`;
+            });
 
+            // 2. Render Grid
+            grid.innerHTML = "";
             filtrati.forEach(p => {
-                let col = "var(--amazon)"; 
-                if(p.tipo === "nuovo") col = "var(--nuovo)"; 
-                if(p.tipo === "usato") col = "var(--usato)";
-                
-                // GESTIONE VALUTA DINAMICA
-                // Se p.valuta non esiste (vecchi prodotti), usa €
-                const valutaSimbolo = p.valuta || '€'; 
-
+                let col = p.tipo === "nuovo" ? "var(--nuovo)" : (p.tipo === "usato" ? "var(--usato)" : "var(--amazon)");
                 grid.innerHTML += `
                     <div class="card">
                         <div class="badge" style="background:${col}">${p.tipo || 'Amazon'}</div>
-                        <div class="image-container"><img src="${p.immagine || 'https://via.placeholder.com/150'}"></div>
+                        <div class="image-container"><img src="${p.immagine}"></div>
                         <div class="info">
                             <h4>${p.titolo}</h4>
-                            <p class="desc-text">${p.descrizione || ''}</p>
-                            <div class="price-row">
-                                <span class="price">${valutaSimbolo} ${p.prezzo}</span>
-                                <a href="${p.link_amazon}" target="_blank" class="buy-btn">OFFERTA</a>
-                            </div>
+                            <span class="price">${p.valuta || '€'} ${p.prezzo}</span>
+                            <a href="${p.link_amazon}" target="_blank" class="buy-btn">VEDI OFFERTA</a>
                         </div>
                     </div>`;
             });
         }
 
-        document.getElementById('price-range').oninput = render;
-        document.querySelectorAll('input').forEach(i => i.onchange = render);
         carica();
     </script>
 </body>
