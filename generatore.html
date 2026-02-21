@@ -26,6 +26,7 @@
         button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         button:active { transform: scale(0.98); }
         .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; }
+        .btn-manual { background: var(--nuovo); margin-top: 5px; }
 
         /* GRID PRODOTTI */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
@@ -75,10 +76,13 @@
             </div>
 
             <div style="background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 25px;">
-                <h4 style="margin: 0 0 10px 0;"><i class="fa-brands fa-amazon"></i> Importa Link</h4>
-                <p style="font-size: 12px; color: #666;">Incolla il link del prodotto per estrarre dati e immagine.</p>
-                <input type="text" id="amazon-link" placeholder="https://www.amazon.it/...">
-                <button id="btn-verifica" style="background: var(--amazon);"><i class="fa-solid fa-wand-magic-sparkles"></i> VERIFICA E CARICA</button>
+                <h4 style="margin: 0 0 10px 0;"><i class="fa-brands fa-amazon"></i> Pubblica Prodotto</h4>
+                <p style="font-size: 12px; color: #666;">Incolla un link Amazon per l'importazione automatica oppure crea un annuncio manualmente.</p>
+                
+                <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui...">
+                <button id="btn-verifica"><i class="fa-solid fa-wand-magic-sparkles"></i> VERIFICA E CARICA</button>
+                
+                <button id="btn-nuovo-manuale" class="btn-manual"><i class="fa-solid fa-plus"></i> CREA MANUALE (NUOVO/USATO)</button>
             </div>
 
             <h4 style="border-bottom: 2px solid var(--amazon); padding-bottom: 5px; display: inline-block;">I Tuoi Annunci</h4>
@@ -209,6 +213,26 @@
         if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
     };
 
+    function pulisci() {
+        document.getElementById('f-id').value = ""; 
+        document.getElementById('f-titolo').value = ""; 
+        document.getElementById('f-prezzo').value = ""; 
+        document.getElementById('f-valuta').value = "€";
+        document.getElementById('f-img').value = ""; 
+        document.getElementById('f-desc').value = ""; 
+        document.getElementById('f-link').value = ""; 
+        document.getElementById('f-tipo').value = "amazon"; 
+        document.getElementById('f-categoria').value = "Elettronica";
+        document.getElementById('amazon-link').value = "";
+    }
+
+    // TASTO NUOVO PRODOTTO (MANUALE)
+    document.getElementById('btn-nuovo-manuale').onclick = () => {
+        pulisci();
+        document.getElementById('modal-title').innerText = "Nuovo Prodotto Manuale";
+        document.getElementById('modal-form').classList.remove('hidden');
+    };
+
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
         const data = {
@@ -222,7 +246,7 @@
             categoria: document.getElementById('f-categoria').value, 
             tag: utenteAttivo.tag, 
             autore: utenteAttivo.nome,
-            data_creazione: serverTimestamp() // Aggiunto per ordinamento slider
+            data_creazione: serverTimestamp()
         };
         if(id) await updateDoc(doc(db, "prodotti", id), data);
         else await addDoc(collection(db, "prodotti"), data);
@@ -240,6 +264,7 @@
         document.getElementById('f-link').value = p.link_amazon;
         document.getElementById('f-tipo').value = p.tipo || "amazon"; 
         document.getElementById('f-categoria').value = p.categoria || "Elettronica";
+        document.getElementById('modal-title').innerText = "Modifica Prodotto";
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
@@ -251,7 +276,7 @@
         document.getElementById('btn-verifica').innerText = "Attendi...";
         fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: url}) })
         .then(r => r.json()).then(res => {
-            document.getElementById('f-id').value = ""; 
+            pulisci();
             document.getElementById('f-titolo').value = res.title; 
             document.getElementById('f-img').value = res.image;
             document.getElementById('f-link').value = url.split("?")[0] + "?tag=" + utenteAttivo.tag;
