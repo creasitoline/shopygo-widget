@@ -2,64 +2,77 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ShopyGO - Console Collaboratore</title>
     <style>
-        :root { --primary: #1a73e8; --bg: #f0f2f5; --white: #ffffff; --danger: #ff4757; --success: #28a745; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; }
+        :root { --primary: #1a73e8; --bg: #f0f2f5; --white: #ffffff; --danger: #ff4757; --success: #28a745; --accent: #FFD814; }
         
-        #login-section { display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; overflow-x: hidden; width: 100%; }
         
-        #main-container { display: flex; flex-direction: column; min-height: 100vh; }
+        /* LOGIN */
+        #login-section { display: flex; justify-content: center; align-items: center; height: 100vh; padding: 20px; }
+        .login-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
+        
+        /* LAYOUT */
+        #main-container { display: flex; flex-direction: column; width: 100%; }
+        
         @media (min-width: 768px) {
             #main-container { flex-direction: row; }
-            .sidebar { width: 260px; background: white; border-right: 1px solid #ddd; height: 100vh; position: sticky; top: 0; padding: 25px; box-sizing: border-box; }
+            .sidebar { width: 280px; background: white; border-right: 1px solid #ddd; height: 100vh; position: sticky; top: 0; padding: 25px; }
             .content { flex: 1; padding: 40px; }
         }
 
-        input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        @media (max-width: 767px) {
+            .sidebar { width: 100%; background: white; padding: 20px; border-bottom: 1px solid #ddd; text-align: center; }
+            .content { padding: 15px; width: 100%; }
+        }
+
+        input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-market { background: #6c5ce7; }
         .hidden { display: none !important; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-        .card-p { background: white; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; }
-        .card-p img { width: 100%; height: 120px; object-fit: contain; pointer-events: none; }
+        /* GRIGLIA MOBILE FIX */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; width: 100%; }
+        @media (max-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .card-p { background: white; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; }
+        .card-p img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 5px; }
         
-        /* TASTO X SUL PRODOTTO */
+        /* TASTO ELIMINA */
         .delete-btn { 
-            position: absolute; top: -10px; right: -10px; 
+            position: absolute; top: -5px; right: -5px; 
             background: var(--danger) !important; color: white !important; 
-            width: 30px !important; height: 30px !important; 
+            width: 26px !important; height: 26px !important; 
             border-radius: 50% !important; border: 2px solid white !important; 
-            cursor: pointer !important; z-index: 100; 
-            font-weight: bold; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0 !important;
         }
 
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; text-align: center; }
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; margin-bottom: 5px; display: inline-block; text-transform: uppercase; font-weight: bold; }
+        /* MENU BASSO (IDENTICO ALLO SHOP) */
+        .nav-bottom { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 20px; display: flex; justify-content: space-around; padding: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); z-index: 2500; border: 1px solid #eee; }
+        .nav-item { text-decoration: none; color: #333; font-size: 11px; text-align: center; font-weight: bold; flex: 1; }
+
+        /* MODALI */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 10px; }
+        .modal-box { background: white; padding: 20px; border-radius: 20px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; }
         
-        /* Upload Area */
-        .upload-btn { background: #f8f9fa; color: #555; border: 2px dashed #ddd; margin-bottom: 10px; }
+        .badge { font-size: 8px; padding: 2px 5px; border-radius: 3px; color: white; text-transform: uppercase; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="confirm-modal" class="modal hidden">
-        <div class="modal-box">
-            <h2 style="color: var(--danger);">Sei sicuro?</h2>
-            <p>Vuoi eliminare definitivamente questo prodotto? L'azione non è reversibile.</p>
+        <div class="modal-box" style="text-align: center;">
+            <h3 style="color: var(--danger);">Eliminare prodotto?</h3>
             <button id="confirm-delete-yes" style="background: var(--danger);">SÌ, ELIMINA</button>
-            <button id="confirm-delete-no" style="background: #ccc; color: #333;">ANNULLA</button>
+            <button id="confirm-delete-no" style="background: #ccc; color: #333; margin-top: 5px;">ANNULLA</button>
         </div>
     </div>
 
     <div id="login-section">
         <div class="login-card">
-            <h1>ShopyGO</h1>
+            <h2 style="color: var(--primary);">ShopyGO Staff</h2>
             <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID">
             <button id="btn-login">ACCEDI</button>
         </div>
@@ -67,64 +80,55 @@
 
     <div id="main-container" class="hidden">
         <div class="sidebar">
-            <h2 style="color: var(--primary);">Dashboard</h2>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 10px;">
                 <p id="nome-utente" style="font-weight: bold; margin: 0;"></p>
-                <code id="id-display"></code>
+                <code id="id-display" style="font-size: 11px;"></code>
             </div>
-            <button class="btn-market" id="open-market-btn">➕ NUOVO ANNUNCIO</button>
+            <button class="btn-market" id="open-market-btn">➕ NUOVO PRODOTTO</button>
             <button style="background: #5f6368; margin-top: 10px;" id="btn-logout">Esci</button>
         </div>
 
         <div class="content">
-            <div class="card-p" style="margin-bottom: 30px; text-align: left; cursor: default;">
-                <h3>🔗 Carica da Amazon</h3>
+            <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 10px 0;">🔗 Importa da Link</h4>
                 <input type="text" id="amazon-link" placeholder="Incolla link Amazon">
-                <button id="btn-verifica">VERIFICA E MODIFICA</button>
+                <button id="btn-verifica">VERIFICA E CARICA</button>
             </div>
-            <h3>📦 I Tuoi Prodotti</h3>
+            <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">I Tuoi Annunci</h4>
             <div id="grid-prodotti" class="grid"></div>
         </div>
     </div>
 
     <div id="modal-form" class="modal hidden">
-        <div class="modal-box" style="text-align: left;">
+        <div class="modal-box">
             <h3 id="modal-title">Configura Prodotto</h3>
-            <label>Tipo e Categoria</label>
-            <div style="display: flex; gap: 10px;">
-                <select id="f-tipo">
-                    <option value="amazon">Amazon</option>
-                    <option value="nuovo">Marketplace Nuovo</option>
-                    <option value="usato">Marketplace Usato</option>
-                </select>
-                <select id="f-categoria">
-                    <option value="Elettronica">Elettronica</option>
-                    <option value="Informatica">Informatica</option>
-                    <option value="Casa e Cucina">Casa e Cucina</option>
-                    <option value="Moda e Accessori">Moda e Accessori</option>
-                    <option value="Salute e Bellezza">Salute e Bellezza</option>
-                    <option value="Sport e Tempo Libero">Sport e Tempo Libero</option>
-                    <option value="Giochi e Giocattoli">Giochi e Giocattoli</option>
-                    <option value="Fai da Te">Fai da Te</option>
-                </select>
-            </div>
+            <select id="f-tipo"><option value="amazon">Amazon</option><option value="nuovo">Nuovo</option><option value="usato">Usato</option></select>
+            <select id="f-categoria">
+                <option value="Elettronica">Elettronica</option><option value="Informatica">Informatica</option><option value="Casa e Cucina">Casa e Cucina</option>
+                <option value="Moda e Accessori">Moda e Accessori</option><option value="Salute e Bellezza">Salute e Bellezza</option>
+                <option value="Sport e Tempo Libero">Sport e Tempo Libero</option><option value="Giochi e Giocattoli">Giochi e Giocattoli</option><option value="Fai da Te">Fai da Te</option>
+            </select>
             <input type="text" id="f-titolo" placeholder="Titolo">
             <input type="text" id="f-prezzo" placeholder="Prezzo (€)">
-            
-            <label>Immagine (URL o Carica)</label>
             <input type="text" id="f-img" placeholder="URL Immagine">
-            <button class="upload-btn" onclick="document.getElementById('file-input').click()">📷 Carica foto da PC</button>
+            <button type="button" style="background:#f0f0f0; color:#333; font-size:12px;" onclick="document.getElementById('file-input').click()">📷 Carica Foto</button>
             <input type="file" id="file-input" class="hidden" accept="image/*">
-
-            <textarea id="f-desc" rows="3" placeholder="Descrizione"></textarea>
+            <textarea id="f-desc" rows="2" placeholder="Descrizione"></textarea>
             <input type="text" id="f-link" placeholder="Link finale">
             <input type="hidden" id="f-id">
             <button id="btn-salva-prodotto" style="background: var(--success);">PUBBLICA</button>
-            <button style="background: #ccc; color: #333;" id="btn-close-modal">CHIUDI</button>
+            <button style="background: #eee; color: #333;" id="btn-close-modal">ANNULLA</button>
         </div>
     </div>
 
+    <nav class="nav-bottom">
+        <a href="index.html" class="nav-item">🏠<br>Shop</a>
+        <a href="generatore.html" class="nav-item" style="color: var(--primary);">🔑<br>Staff</a>
+        <a href="admin-master.html" class="nav-item">📊<br>Admin</a>
+    </nav>
+
 <script type="module">
+    // ... (Logica Firebase identica alla precedente, integrata con i nuovi ID)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -132,12 +136,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
+    
     let utenteAttivo = JSON.parse(localStorage.getItem('shopygo_user'));
     let idDaEliminare = null;
 
     if(utenteAttivo) mostraDashboard();
 
-    // LOGIN
     document.getElementById('btn-login').onclick = async () => {
         const cod = document.getElementById('codice-accesso').value.trim();
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", cod));
@@ -148,6 +152,7 @@
             mostraDashboard();
         } else { alert("ID non valido"); }
     };
+
     document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('shopygo_user'); location.reload(); };
 
     function mostraDashboard() {
@@ -160,7 +165,7 @@
 
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
-        container.innerHTML = "Caricamento...";
+        container.innerHTML = "Sincronizzazione...";
         const q = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
         const snap = await getDocs(q);
         container.innerHTML = "";
@@ -168,59 +173,31 @@
             const p = res.data();
             const div = document.createElement('div');
             div.className = 'card-p';
-            let bColor = "#1a73e8"; if(p.tipo === "nuovo") bColor = "#6c5ce7"; if(p.tipo === "usato") bColor = "#2ecc71";
-            div.innerHTML = `
-                <div class="delete-btn">✕</div>
-                <span class="badge" style="background:${bColor}">${p.tipo || 'amazon'}</span>
-                <img src="${p.immagine}">
-                <p style="font-size: 11px; margin: 5px 0; font-weight:bold;">${p.titolo.substring(0, 30)}...</p>
-                <strong>€ ${p.prezzo}</strong>
-            `;
+            div.innerHTML = `<div class="delete-btn">✕</div><img src="${p.immagine}"><p style="font-size:10px; font-weight:bold; margin:2px 0;">€ ${p.prezzo}</p>`;
             div.onclick = () => apriModifica(res.id, p);
-            
-            // LOGICA ELIMINA CON POPUP PERSONALIZZATO
-            div.querySelector('.delete-btn').onclick = (e) => {
-                e.stopPropagation();
-                idDaEliminare = res.id;
-                document.getElementById('confirm-modal').classList.remove('hidden');
-            };
+            div.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); idDaEliminare = res.id; document.getElementById('confirm-modal').classList.remove('hidden'); };
             container.appendChild(div);
         });
     }
 
-    // GESTIONE POPUP CONFERMA
     document.getElementById('confirm-delete-yes').onclick = async () => {
-        if(idDaEliminare) {
-            await deleteDoc(doc(db, "prodotti", idDaEliminare));
-            document.getElementById('confirm-modal').classList.add('hidden');
-            idDaEliminare = null;
-            caricaProdotti();
-        }
+        if(idDaEliminare) { await deleteDoc(doc(db, "prodotti", idDaEliminare)); document.getElementById('confirm-modal').classList.add('hidden'); caricaProdotti(); }
     };
-    document.getElementById('confirm-delete-no').onclick = () => {
-        document.getElementById('confirm-modal').classList.add('hidden');
-        idDaEliminare = null;
-    };
+    document.getElementById('confirm-delete-no').onclick = () => document.getElementById('confirm-modal').classList.add('hidden');
 
-    // CARICAMENTO FOTO DA PC (GitHub Ready)
-    document.getElementById('file-input').onchange = function(e) {
+    document.getElementById('file-input').onchange = (e) => {
         const reader = new FileReader();
-        reader.onload = function() { document.getElementById('f-img').value = reader.result; };
+        reader.onload = () => document.getElementById('f-img').value = reader.result;
         if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
     };
 
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
         const data = {
-            titolo: document.getElementById('f-titolo').value,
-            prezzo: document.getElementById('f-prezzo').value,
-            immagine: document.getElementById('f-img').value,
-            descrizione: document.getElementById('f-desc').value,
-            link_amazon: document.getElementById('f-link').value,
-            tipo: document.getElementById('f-tipo').value,
-            categoria: document.getElementById('f-categoria').value,
-            tag: utenteAttivo.tag,
-            autore: utenteAttivo.nome
+            titolo: document.getElementById('f-titolo').value, prezzo: document.getElementById('f-prezzo').value,
+            immagine: document.getElementById('f-img').value, descrizione: document.getElementById('f-desc').value,
+            link_amazon: document.getElementById('f-link').value, tipo: document.getElementById('f-tipo').value,
+            categoria: document.getElementById('f-categoria').value, tag: utenteAttivo.tag, autore: utenteAttivo.nome
         };
         if(id) await updateDoc(doc(db, "prodotti", id), data);
         else await addDoc(collection(db, "prodotti"), data);
@@ -229,29 +206,23 @@
     };
 
     window.apriModifica = (id, p) => {
-        document.getElementById('f-id').value = id;
-        document.getElementById('f-titolo').value = p.titolo;
-        document.getElementById('f-prezzo').value = p.prezzo;
-        document.getElementById('f-img').value = p.immagine;
-        document.getElementById('f-desc').value = p.descrizione || "";
-        document.getElementById('f-link').value = p.link_amazon;
-        document.getElementById('f-tipo').value = p.tipo || "amazon";
-        document.getElementById('f-categoria').value = p.categoria || "Elettronica";
+        document.getElementById('f-id').value = id; document.getElementById('f-titolo').value = p.titolo;
+        document.getElementById('f-prezzo').value = p.prezzo; document.getElementById('f-img').value = p.immagine;
+        document.getElementById('f-desc').value = p.descrizione || ""; document.getElementById('f-link').value = p.link_amazon;
+        document.getElementById('f-tipo').value = p.tipo || "amazon"; document.getElementById('f-categoria').value = p.categoria || "Elettronica";
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
-    document.getElementById('open-market-btn').onclick = () => { pulisciModulo(); document.getElementById('modal-form').classList.remove('hidden'); };
+    document.getElementById('open-market-btn').onclick = () => { pulisci(); document.getElementById('modal-form').classList.remove('hidden'); };
     document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-form').classList.add('hidden');
-    function pulisciModulo() { document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; document.getElementById('f-prezzo').value = ""; document.getElementById('f-img').value = ""; document.getElementById('f-desc').value = ""; document.getElementById('f-link').value = ""; }
-    
+    function pulisci() { document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; document.getElementById('f-prezzo').value = ""; document.getElementById('f-img').value = ""; document.getElementById('f-link').value = ""; }
+
     document.getElementById('btn-verifica').onclick = () => {
         const url = document.getElementById('amazon-link').value;
+        if(!url) return;
         fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: url}) })
         .then(r => r.json()).then(res => {
-            pulisciModulo();
-            document.getElementById('f-tipo').value = "amazon";
-            document.getElementById('f-titolo').value = res.title;
-            document.getElementById('f-img').value = res.image;
+            pulisci(); document.getElementById('f-titolo').value = res.title; document.getElementById('f-img').value = res.image;
             document.getElementById('f-link').value = url.split("?")[0] + "?tag=" + utenteAttivo.tag;
             document.getElementById('modal-form').classList.remove('hidden');
         });
