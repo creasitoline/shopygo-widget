@@ -2,81 +2,122 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Master Control - ShopyGO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #e94560; --bg: #1a1a2e; --card: #16213e; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
-        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .card { background: var(--card); padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
-        input { background: #0f3460; border: 1px solid #1a73e8; color: white; padding: 12px; margin: 10px 5px; border-radius: 5px; width: calc(28% - 20px); }
-        button { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { opacity: 0.8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #0f3460; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #16213e; }
-        th { background: var(--primary); font-size: 0.9em; text-transform: uppercase; }
-        .del-btn { background: #ff4d4d; padding: 5px 10px; font-size: 0.8em; }
+        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --bg: #f3f3f3; --accent: #FFD814; --danger: #ff4757; }
+        body { font-family: 'Segoe UI', system-ui; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; }
+        
+        header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; }
+        .logo { height: 30px; }
+
+        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+        
+        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; border: 1px solid #ddd; }
+        
+        h1, h2, h3 { color: var(--amazon); margin-top: 0; }
+
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; outline: none; box-sizing: border-box; }
+        button { background: var(--amazon); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* TABELLA RESPONSIVE */
+        .table-wrapper { overflow-x: auto; background: white; border-radius: 15px; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #555; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .del-btn { background: var(--danger); padding: 6px 12px; font-size: 0.8em; width: auto; }
+        
+        /* NAV BOTTOM (Stessa della Index) */
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; transition: 0.3s; cursor: pointer; border:none; background:none; }
+        .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--amazon); }
+
         .hidden { display: none !important; }
+
+        @media (min-width: 768px) {
+            .form-inline { display: flex; gap: 10px; align-items: center; }
+            .form-inline input { flex: 1; }
+            .form-inline button { width: auto; }
+        }
     </style>
 </head>
 <body>
 
 <div id="admin-auth" class="login-overlay">
-    <div class="card" style="text-align: center; width: 300px;">
-        <h2>🔐 Admin Access</h2>
-        <input type="password" id="master-pass" placeholder="Password Master" style="width: 90%;">
-        <button onclick="checkMasterPass()" style="width: 100%; margin-top: 10px;">ACCEDI AL SISTEMA</button>
+    <div class="card" style="text-align: center; width: 320px;">
+        <i class="fa-solid fa-unlock-keyhole" style="font-size: 3rem; color: var(--amazon); margin-bottom: 15px;"></i>
+        <h2>Admin Access</h2>
+        <input type="password" id="master-pass" placeholder="Password Master">
+        <button onclick="checkMasterPass()">ACCEDI AL SISTEMA</button>
     </div>
 </div>
 
+<header>
+    <img src="logo.png" alt="ShopyGO" class="logo">
+    <span style="font-weight: bold; font-size: 0.8rem; color: var(--danger);">PANNELLO MASTER</span>
+</header>
+
 <div id="dashboard" class="container hidden">
     <div class="card">
-        <h1>🚀 ShopyGO Control Center</h1>
-        <p>Aggiungi un nuovo collaboratore al sistema:</p>
-        <div style="display: flex; justify-content: space-between;">
+        <h3><i class="fa-solid fa-user-plus"></i> Nuovo Collaboratore</h3>
+        <p style="font-size: 13px; color: #666;">Abilita un nuovo utente assegnandogli un ID e il suo Tag Amazon.</p>
+        <div class="form-inline">
             <input type="text" id="n-nome" placeholder="Nome">
-            <input type="text" id="n-id" placeholder="ID (es. 101)">
+            <input type="text" id="n-id" placeholder="ID Accesso">
             <input type="text" id="n-tag" placeholder="Tag Amazon">
             <button onclick="aggiungiUtente()">ABILITA</button>
         </div>
     </div>
 
     <div class="card">
-        <h3>Lista Collaboratori Attivi</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>ID Accesso</th>
-                    <th>Tag Amazon</th>
-                    <th>Azioni</th>
-                </tr>
-            </thead>
-            <tbody id="tabella-corpo"></tbody>
-        </table>
+        <h3><i class="fa-solid fa-users-gear"></i> Gestione Staff</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>ID</th>
+                        <th>Tag Amazon</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="tabella-corpo"></tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<nav class="nav-bottom">
+    <a href="index.html" class="nav-item">
+        <i class="fa-solid fa-house"></i><span>Shop</span>
+    </a>
+    <div class="nav-item" onclick="location.href='index.html?openFilters=true'">
+        <i class="fa-solid fa-bars-staggered"></i><span>Filtri</span>
+    </div>
+    <a href="generatore.html" class="nav-item">
+        <i class="fa-solid fa-circle-plus"></i><span>Staff</span>
+    </a>
+    <a href="admin-master.html" class="nav-item active">
+        <i class="fa-solid fa-chart-simple"></i><span>Admin</span>
+    </a>
+</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc",
-        authDomain: "shopygo-database.firebaseapp.com",
-        projectId: "shopygo-database",
-        storageBucket: "shopygo-database.firebasestorage.app",
-        messagingSenderId: "336849306481",
-        appId: "1:336849306481:web:aef142b389ef778ba3ecd0"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 1. GESTIONE PASSWORD MASTER
     window.checkMasterPass = function() {
         const pass = document.getElementById('master-pass').value;
-        if(pass === "MASTER2026") { // CAMBIA QUESTA PASSWORD SE VUOI
+        if(pass === "MASTER2026") {
             document.getElementById('admin-auth').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             caricaLista();
@@ -85,52 +126,45 @@
         }
     }
 
-    // 2. CARICA LISTA SENZA DUPLICATI VISIVI
     async function caricaLista() {
         const corpo = document.getElementById('tabella-corpo');
-        corpo.innerHTML = "<tr><td colspan='4'>Caricamento...</td></tr>";
-        
+        corpo.innerHTML = "<tr><td colspan='4'>Sincronizzazione...</td></tr>";
         const snap = await getDocs(collection(db, "utenti_abilitati"));
         corpo.innerHTML = "";
-        
         snap.forEach((res) => {
             const u = res.data();
             corpo.innerHTML += `
                 <tr>
-                    <td>${u.nome}</td>
-                    <td><strong>${u.codice}</strong></td>
+                    <td><strong>${u.nome}</strong></td>
+                    <td><code>${u.codice}</code></td>
                     <td>${u.tag}</td>
-                    <td><button class="del-btn" onclick="eliminaUtente('${res.id}')">Elimina</button></td>
+                    <td><button class="del-btn" onclick="eliminaUtente('${res.id}')"><i class="fa-solid fa-trash"></i></button></td>
                 </tr>`;
         });
     }
 
-    // 3. AGGIUNGI UTENTE CON CONTROLLO
     window.aggiungiUtente = async function() {
         const n = document.getElementById('n-nome').value.trim();
         const i = document.getElementById('n-id').value.trim();
         const t = document.getElementById('n-tag').value.trim();
-
-        if(!n || !i || !t) return alert("Tutti i campi sono obbligatori!");
-
-        // Verifica se l'ID esiste già nel DB
+        if(!n || !i || !t) return alert("Compila tutto!");
+        
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", i));
         const check = await getDocs(q);
-        if(!check.empty) return alert("Errore: Questo ID è già assegnato a un altro utente!");
+        if(!check.empty) return alert("ID già esistente!");
 
-        await addDoc(collection(db, "utenti_abilitati"), {
-            nome: n, codice: i, tag: t, vendite: 0
-        });
-
-        alert("Utente abilitato con successo!");
-        location.reload();
+        await addDoc(collection(db, "utenti_abilitati"), { nome: n, codice: i, tag: t, vendite: 0 });
+        alert("Collaboratore aggiunto!");
+        caricaLista();
+        document.getElementById('n-nome').value = "";
+        document.getElementById('n-id').value = "";
+        document.getElementById('n-tag').value = "";
     }
 
-    // 4. ELIMINA UTENTE
     window.eliminaUtente = async function(docId) {
-        if(confirm("Vuoi revocare l'accesso a questo collaboratore?")) {
+        if(confirm("Eliminare definitivamente questo collaboratore?")) {
             await deleteDoc(doc(db, "utenti_abilitati", docId));
-            location.reload();
+            caricaLista();
         }
     }
 </script>
