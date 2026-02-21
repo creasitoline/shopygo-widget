@@ -6,23 +6,18 @@
     <title>ShopyGO - Console Collaboratore</title>
     <style>
         :root { --primary: #1a73e8; --bg: #f0f2f5; --white: #ffffff; --danger: #ff4757; --success: #28a745; --accent: #FFD814; }
-        
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; overflow-x: hidden; width: 100%; }
         
-        /* LOGIN */
         #login-section { display: flex; justify-content: center; align-items: center; height: 100vh; padding: 20px; }
         .login-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
         
-        /* LAYOUT */
         #main-container { display: flex; flex-direction: column; width: 100%; }
-        
         @media (min-width: 768px) {
             #main-container { flex-direction: row; }
             .sidebar { width: 280px; background: white; border-right: 1px solid #ddd; height: 100vh; position: sticky; top: 0; padding: 25px; }
             .content { flex: 1; padding: 40px; }
         }
-
         @media (max-width: 767px) {
             .sidebar { width: 100%; background: white; padding: 20px; border-bottom: 1px solid #ddd; text-align: center; }
             .content { padding: 15px; width: 100%; }
@@ -33,31 +28,24 @@
         .btn-market { background: #6c5ce7; }
         .hidden { display: none !important; }
         
-        /* GRIGLIA MOBILE FIX */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; width: 100%; }
         @media (max-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 
         .card-p { background: white; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; }
         .card-p img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 5px; }
         
-        /* TASTO ELIMINA */
-        .delete-btn { 
-            position: absolute; top: -5px; right: -5px; 
-            background: var(--danger) !important; color: white !important; 
-            width: 26px !important; height: 26px !important; 
-            border-radius: 50% !important; border: 2px solid white !important; 
-            z-index: 10; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0 !important;
-        }
+        .delete-btn { position: absolute; top: -5px; right: -5px; background: var(--danger) !important; color: white !important; width: 26px !important; height: 26px !important; border-radius: 50% !important; border: 2px solid white !important; z-index: 10; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0 !important; }
 
-        /* MENU BASSO (IDENTICO ALLO SHOP) */
         .nav-bottom { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: white; border-radius: 20px; display: flex; justify-content: space-around; padding: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); z-index: 2500; border: 1px solid #eee; }
         .nav-item { text-decoration: none; color: #333; font-size: 11px; text-align: center; font-weight: bold; flex: 1; }
 
-        /* MODALI */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 10px; }
         .modal-box { background: white; padding: 20px; border-radius: 20px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; }
-        
-        .badge { font-size: 8px; padding: 2px 5px; border-radius: 3px; color: white; text-transform: uppercase; font-weight: bold; }
+
+        /* FIX PER RIGA PREZZO E VALUTA */
+        .price-row-input { display: flex; gap: 10px; align-items: center; }
+        .price-row-input input { flex: 2; }
+        .price-row-input select { flex: 1; }
     </style>
 </head>
 <body>
@@ -109,11 +97,19 @@
                 <option value="Sport e Tempo Libero">Sport e Tempo Libero</option><option value="Giochi e Giocattoli">Giochi e Giocattoli</option><option value="Fai da Te">Fai da Te</option>
             </select>
             <input type="text" id="f-titolo" placeholder="Titolo">
-            <input type="text" id="f-prezzo" placeholder="Prezzo (€)">
+            
+            <div class="price-row-input">
+                <input type="text" id="f-prezzo" placeholder="Prezzo">
+                <select id="f-valuta">
+                    <option value="€">EUR (€)</option>
+                    <option value="CHF">CHF</option>
+                </select>
+            </div>
+
             <input type="text" id="f-img" placeholder="URL Immagine">
             <button type="button" style="background:#f0f0f0; color:#333; font-size:12px;" onclick="document.getElementById('file-input').click()">📷 Carica Foto</button>
             <input type="file" id="file-input" class="hidden" accept="image/*">
-            <textarea id="f-desc" rows="2" placeholder="Descrizione"></textarea>
+            <textarea id="f-desc" rows="3" placeholder="Descrizione del prodotto (sarà visibile nello shop)"></textarea>
             <input type="text" id="f-link" placeholder="Link finale">
             <input type="hidden" id="f-id">
             <button id="btn-salva-prodotto" style="background: var(--success);">PUBBLICA</button>
@@ -128,7 +124,6 @@
     </nav>
 
 <script type="module">
-    // ... (Logica Firebase identica alla precedente, integrata con i nuovi ID)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -173,7 +168,8 @@
             const p = res.data();
             const div = document.createElement('div');
             div.className = 'card-p';
-            div.innerHTML = `<div class="delete-btn">✕</div><img src="${p.immagine}"><p style="font-size:10px; font-weight:bold; margin:2px 0;">€ ${p.prezzo}</p>`;
+            // Visualizza la valuta salvata anche nell'anteprima
+            div.innerHTML = `<div class="delete-btn">✕</div><img src="${p.immagine}"><p style="font-size:10px; font-weight:bold; margin:2px 0;">${p.valuta || '€'} ${p.prezzo}</p>`;
             div.onclick = () => apriModifica(res.id, p);
             div.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); idDaEliminare = res.id; document.getElementById('confirm-modal').classList.remove('hidden'); };
             container.appendChild(div);
@@ -194,10 +190,16 @@
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
         const data = {
-            titolo: document.getElementById('f-titolo').value, prezzo: document.getElementById('f-prezzo').value,
-            immagine: document.getElementById('f-img').value, descrizione: document.getElementById('f-desc').value,
-            link_amazon: document.getElementById('f-link').value, tipo: document.getElementById('f-tipo').value,
-            categoria: document.getElementById('f-categoria').value, tag: utenteAttivo.tag, autore: utenteAttivo.nome
+            titolo: document.getElementById('f-titolo').value, 
+            prezzo: document.getElementById('f-prezzo').value,
+            valuta: document.getElementById('f-valuta').value, // SALVA LA VALUTA
+            immagine: document.getElementById('f-img').value, 
+            descrizione: document.getElementById('f-desc').value,
+            link_amazon: document.getElementById('f-link').value, 
+            tipo: document.getElementById('f-tipo').value,
+            categoria: document.getElementById('f-categoria').value, 
+            tag: utenteAttivo.tag, 
+            autore: utenteAttivo.nome
         };
         if(id) await updateDoc(doc(db, "prodotti", id), data);
         else await addDoc(collection(db, "prodotti"), data);
@@ -206,23 +208,39 @@
     };
 
     window.apriModifica = (id, p) => {
-        document.getElementById('f-id').value = id; document.getElementById('f-titolo').value = p.titolo;
-        document.getElementById('f-prezzo').value = p.prezzo; document.getElementById('f-img').value = p.immagine;
-        document.getElementById('f-desc').value = p.descrizione || ""; document.getElementById('f-link').value = p.link_amazon;
-        document.getElementById('f-tipo').value = p.tipo || "amazon"; document.getElementById('f-categoria').value = p.categoria || "Elettronica";
+        document.getElementById('f-id').value = id; 
+        document.getElementById('f-titolo').value = p.titolo;
+        document.getElementById('f-prezzo').value = p.prezzo; 
+        document.getElementById('f-valuta').value = p.valuta || "€"; // CARICA LA VALUTA
+        document.getElementById('f-img').value = p.immagine;
+        document.getElementById('f-desc').value = p.descrizione || ""; 
+        document.getElementById('f-link').value = p.link_amazon;
+        document.getElementById('f-tipo').value = p.tipo || "amazon"; 
+        document.getElementById('f-categoria').value = p.categoria || "Elettronica";
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
     document.getElementById('open-market-btn').onclick = () => { pulisci(); document.getElementById('modal-form').classList.remove('hidden'); };
     document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-form').classList.add('hidden');
-    function pulisci() { document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; document.getElementById('f-prezzo').value = ""; document.getElementById('f-img').value = ""; document.getElementById('f-link').value = ""; }
+    
+    function pulisci() { 
+        document.getElementById('f-id').value = ""; 
+        document.getElementById('f-titolo').value = ""; 
+        document.getElementById('f-prezzo').value = ""; 
+        document.getElementById('f-img').value = ""; 
+        document.getElementById('f-link').value = ""; 
+        document.getElementById('f-desc').value = "";
+        document.getElementById('f-valuta').value = "€";
+    }
 
     document.getElementById('btn-verifica').onclick = () => {
         const url = document.getElementById('amazon-link').value;
         if(!url) return;
         fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: url}) })
         .then(r => r.json()).then(res => {
-            pulisci(); document.getElementById('f-titolo').value = res.title; document.getElementById('f-img').value = res.image;
+            pulisci(); 
+            document.getElementById('f-titolo').value = res.title; 
+            document.getElementById('f-img').value = res.image;
             document.getElementById('f-link').value = url.split("?")[0] + "?tag=" + utenteAttivo.tag;
             document.getElementById('modal-form').classList.remove('hidden');
         });
