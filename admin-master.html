@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Master Control - ShopyGO</title>
+    
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --bg: #f3f3f3; --accent: #FFD814; --danger: #ff4757; --success: #2ecc71; --master: #e67e22; --edit: #3498db; }
@@ -149,7 +153,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // CONTROLLO SESSIONE AL CARICAMENTO
     window.onload = () => {
         if(sessionStorage.getItem('master_logged') === 'true') {
             document.getElementById('admin-auth').classList.add('hidden');
@@ -209,7 +212,6 @@
         document.getElementById('stat-netto').innerText = "€ " + (lordoTot * 0.10).toFixed(2);
     }
 
-    // --- LE ALTRE FUNZIONI RIMANGONO IDENTICHE ---
     window.preparaModifica = function(fid, u) {
         document.getElementById('u-firebase-id').value = fid;
         document.getElementById('u-nome').value = u.nome;
