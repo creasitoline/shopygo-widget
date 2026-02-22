@@ -107,8 +107,6 @@
                 <select id="f-valuta" style="width:80px;"><option value="€">€</option><option value="CHF">CHF</option></select>
             </div>
             <input type="text" id="f-img" placeholder="URL Immagine">
-            <button type="button" style="background:#f0f0f0; color:#333; font-size:12px;" onclick="document.getElementById('file-input').click()">Carica Foto</button>
-            <input type="file" id="file-input" class="hidden" accept="image/*">
             <textarea id="f-desc" rows="3" placeholder="Descrizione"></textarea>
             <input type="text" id="f-link" placeholder="Link finale">
             <input type="hidden" id="f-id">
@@ -131,7 +129,7 @@
 
     <nav class="nav-bottom">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Shop</span></a>
-        <a href="generatore.html" class="nav-item active"><i class="fa-solid fa-circle-plus"></i><span>Pubblica</span></a>
+        <a href="staff.html" class="nav-item active"><i class="fa-solid fa-circle-plus"></i><span>Staff</span></a>
         <a href="admin-master.html" class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>
     </nav>
 
@@ -157,6 +155,8 @@
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
             mostraDashboard();
+        } else {
+            if(sessione) localStorage.removeItem('shopygo_user_session');
         }
     }
 
@@ -170,11 +170,14 @@
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
+        
         const lordo = parseFloat(utenteAttivo.guadagno_lordo || 0);
         const nettoStaff = lordo * 0.90;
         document.getElementById('wallet-importo').innerText = "€ " + nettoStaff.toFixed(2);
+        
         const statusDiv = document.getElementById('wallet-status');
         statusDiv.innerHTML = utenteAttivo.pagato ? '<span class="status-badge status-paid"><i class="fa-solid fa-check-double"></i> Pagato</span>' : '<span class="status-badge status-pending"><i class="fa-solid fa-clock"></i> In Attesa</span>';
+        
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('main-container').classList.remove('hidden');
         caricaProdotti();
@@ -195,7 +198,6 @@
         });
     }
 
-    // GESTIONE ELIMINAZIONE PERSONALIZZATA
     window.eliminaP = (id) => {
         idDaEliminare = id;
         document.getElementById('modal-confirm').classList.remove('hidden');
@@ -240,28 +242,48 @@
 
     window.apriModifica = (id, p) => {
         document.getElementById('f-id').value = id; 
-        document.getElementById('f-titolo').value = p.titolo;
-        document.getElementById('f-prezzo').value = p.prezzo;
-        document.getElementById('f-img').value = p.immagine;
-        document.getElementById('f-link').value = p.link_amazon;
+        document.getElementById('f-titolo').value = p.titolo || "";
+        document.getElementById('f-prezzo').value = p.prezzo || "";
+        document.getElementById('f-img').value = p.immagine || "";
+        document.getElementById('f-link').value = p.link_amazon || "";
+        document.getElementById('f-desc').value = p.descrizione || "";
+        document.getElementById('f-tipo').value = p.tipo || "amazon";
+        document.getElementById('f-categoria').value = p.categoria || "Elettronica";
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
     document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-form').classList.add('hidden');
     
     document.getElementById('btn-verifica').onclick = () => {
-        const url = document.getElementById('amazon-link').value;
-        if(!url) return;
-        fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: url}) })
-        .then(r => r.json()).then(res => {
-            document.getElementById('f-titolo').value = res.title; 
-            document.getElementById('f-img').value = res.image;
-            document.getElementById('f-link').value = url.split("?")[0] + "?tag=" + utenteAttivo.tag;
+        const urlInput = document.getElementById('amazon-link').value;
+        if(!urlInput) return;
+        
+        fetch('https://api.linkpreview.net', { 
+            method: 'POST', 
+            body: JSON.stringify({key: LP_KEY, q: urlInput}) 
+        })
+        .then(r => r.json())
+        .then(res => {
+            // Pulizia link e aggiunta TAG utente
+            let cleanUrl = urlInput.split("?")[0];
+            let finalUrl = cleanUrl + "?tag=" + utenteAttivo.tag;
+
+            document.getElementById('f-titolo').value = res.title || ""; 
+            document.getElementById('f-img').value = res.image || "";
+            document.getElementById('f-link').value = finalUrl;
             document.getElementById('modal-form').classList.remove('hidden');
-        });
+        })
+        .catch(err => alert("Errore nel recupero dati. Inserisci manualmente."));
     };
 
-    function pulisci() { document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; document.getElementById('f-prezzo').value = ""; document.getElementById('f-img').value = ""; document.getElementById('f-link').value = ""; }
+    function pulisci() { 
+        document.getElementById('f-id').value = ""; 
+        document.getElementById('f-titolo').value = ""; 
+        document.getElementById('f-prezzo').value = ""; 
+        document.getElementById('f-img').value = ""; 
+        document.getElementById('f-link').value = ""; 
+        document.getElementById('f-desc').value = "";
+    }
 </script>
 </body>
 </html>
