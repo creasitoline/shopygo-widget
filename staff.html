@@ -48,7 +48,7 @@
         .input-group-custom { display: flex; gap: 5px; align-items: center; }
         .input-group-custom select { flex: 1; }
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
-        .btn-minus { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
+        .btn-trash { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -104,15 +104,15 @@
             <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
             <div class="input-group-custom">
                 <select id="f-tipo"></select>
-                <button class="btn-plus" onclick="aggiungiOpzione('f-tipo', 'piattaforme')">+</button>
-                <button class="btn-minus" onclick="eliminaOpzione('f-tipo')">-</button>
+                <button class="btn-plus" onclick="apriPopupNuovo('piattaforme')"><i class="fa-solid fa-plus"></i></button>
+                <button class="btn-trash" onclick="chiediEliminaOpzione('f-tipo')"><i class="fa-solid fa-trash"></i></button>
             </div>
 
             <label style="font-size:11px; font-weight:bold; margin-top:5px; display:block;">Categoria</label>
             <div class="input-group-custom">
                 <select id="f-categoria"></select>
-                <button class="btn-plus" onclick="aggiungiOpzione('f-categoria', 'categorie')">+</button>
-                <button class="btn-minus" onclick="eliminaOpzione('f-categoria')">-</button>
+                <button class="btn-plus" onclick="apriPopupNuovo('categorie')"><i class="fa-solid fa-plus"></i></button>
+                <button class="btn-trash" onclick="chiediEliminaOpzione('f-categoria')"><i class="fa-solid fa-trash"></i></button>
             </div>
 
             <input type="text" id="f-titolo" placeholder="Titolo">
@@ -131,10 +131,22 @@
         </div>
     </div>
 
+    <div id="modal-input" class="modal hidden">
+        <div class="modal-box" style="max-width:350px; text-align:center;">
+            <h3 id="input-modal-title">Aggiungi Nuova</h3>
+            <input type="text" id="nuovo-valore-input" placeholder="Scrivi qui...">
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button id="btn-conferma-input" style="background:var(--success);">AGGIUNGI</button>
+                <button onclick="document.getElementById('modal-input').classList.add('hidden')" style="background:#eee; color:#333;">ANNULLA</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-confirm" class="modal hidden">
         <div class="modal-box" style="text-align: center; max-width: 350px;">
             <i class="fa-solid fa-trash-can" style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;"></i>
-            <h3>Sei sicuro?</h3>
+            <h3 id="confirm-title">Sei sicuro?</h3>
+            <p id="confirm-msg" style="font-size:13px; color:#666;">Questa azione è irreversibile.</p>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button id="confirm-delete-btn" style="background: var(--danger);">ELIMINA</button>
                 <button id="cancel-delete-btn" style="background: #eee; color: #333;">ANNULLA</button>
@@ -158,51 +170,74 @@
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
     
     let utenteAttivo = null;
-    let idDaEliminare = null;
+    let azioneConferma = null; // Per gestire cosa eliminare nella modale di conferma
+    let tipoConfigCorrente = ""; // categoria o piattaforma
 
-    // --- CARICAMENTO CONFIGURAZIONI (SOLO DAL DB) ---
+    // --- CARICAMENTO CONFIGURAZIONI ---
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
-        selCat.innerHTML = "";
-        selTipo.innerHTML = "";
+        selCat.innerHTML = ""; selTipo.innerHTML = "";
 
         const snap = await getDocs(collection(db, "app_config"));
         snap.forEach(d => {
             const data = d.data();
             const opt = document.createElement('option');
-            opt.value = data.nome;
-            opt.text = data.nome;
-            opt.dataset.id = d.id; // Salviamo l'ID del documento per eliminarlo dopo
+            opt.value = data.nome; opt.text = data.nome; opt.dataset.id = d.id;
             if (data.tipo === 'categorie') selCat.add(opt);
             else selTipo.add(opt);
         });
     }
 
-    // --- AGGIUNTA DINAMICA ---
-    window.aggiungiOpzione = async (selectId, tipo) => {
-        const nuovoValore = prompt("Inserisci il nuovo nome:");
-        if (nuovoValore) {
-            await addDoc(collection(db, "app_config"), { nome: nuovoValore, tipo: tipo });
+    // --- POPUP PERSONALIZZATO PER AGGIUNTA ---
+    window.apriPopupNuovo = (tipo) => {
+        tipoConfigCorrente = tipo;
+        document.getElementById('input-modal-title').innerText = "Aggiungi " + (tipo === 'categorie' ? "Categoria" : "Piattaforma");
+        document.getElementById('nuovo-valore-input').value = "";
+        document.getElementById('modal-input').classList.remove('hidden');
+    };
+
+    document.getElementById('btn-conferma-input').onclick = async () => {
+        const val = document.getElementById('nuovo-valore-input').value.trim();
+        if(val) {
+            await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
             await caricaConfigurazioni();
-            document.getElementById(selectId).value = nuovoValore;
+            document.getElementById('modal-input').classList.add('hidden');
         }
     };
 
-    // --- ELIMINAZIONE DINAMICA ---
-    window.eliminaOpzione = async (selectId) => {
+    // --- ELIMINAZIONE OPZIONI CON MODALE ---
+    window.chiediEliminaOpzione = (selectId) => {
         const sel = document.getElementById(selectId);
         const selectedOpt = sel.options[sel.selectedIndex];
         if(!selectedOpt) return;
-        
-        if(confirm(`Vuoi davvero eliminare "${selectedOpt.value}" dalle opzioni?`)) {
-            const docId = selectedOpt.dataset.id;
-            if(docId) {
-                await deleteDoc(doc(db, "app_config", docId));
-                await caricaConfigurazioni();
-            }
-        }
+
+        document.getElementById('confirm-title').innerText = "Elimina Opzione?";
+        document.getElementById('confirm-msg').innerText = `Vuoi davvero eliminare "${selectedOpt.value}" dalle liste?`;
+        document.getElementById('modal-confirm').classList.remove('hidden');
+
+        azioneConferma = async () => {
+            await deleteDoc(doc(db, "app_config", selectedOpt.dataset.id));
+            await caricaConfigurazioni();
+            document.getElementById('modal-confirm').classList.add('hidden');
+        };
     };
+
+    // --- ELIMINAZIONE PRODOTTI CON MODALE ---
+    window.eliminaP = (id) => {
+        document.getElementById('confirm-title').innerText = "Elimina Annuncio?";
+        document.getElementById('confirm-msg').innerText = "Sei sicuro di voler rimuovere questo prodotto dallo shop?";
+        document.getElementById('modal-confirm').classList.remove('hidden');
+
+        azioneConferma = async () => {
+            await deleteDoc(doc(db, "prodotti", id));
+            caricaProdotti();
+            document.getElementById('modal-confirm').classList.add('hidden');
+        };
+    };
+
+    // Gestore unico del tasto "ELIMINA" nella modale di conferma
+    document.getElementById('confirm-delete-btn').onclick = () => { if(azioneConferma) azioneConferma(); };
 
     // --- CARICAMENTO FOTO ---
     document.getElementById('file-input').onchange = (e) => {
@@ -224,8 +259,6 @@
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
             mostraDashboard();
-        } else {
-            alert("ID non valido");
         }
     }
 
@@ -263,17 +296,6 @@
         });
     }
 
-    window.eliminaP = (id) => { idDaEliminare = id; document.getElementById('modal-confirm').classList.remove('hidden'); };
-
-    document.getElementById('confirm-delete-btn').onclick = async () => {
-        if(idDaEliminare) {
-            await deleteDoc(doc(db, "prodotti", idDaEliminare));
-            idDaEliminare = null;
-            document.getElementById('modal-confirm').classList.add('hidden');
-            caricaProdotti();
-        }
-    };
-
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
         const data = {
@@ -285,9 +307,7 @@
             link_amazon: document.getElementById('f-link').value, 
             tipo: document.getElementById('f-tipo').value,
             categoria: document.getElementById('f-categoria').value, 
-            tag: utenteAttivo.tag, 
-            autore: utenteAttivo.nome,
-            timestamp: serverTimestamp()
+            tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
         };
         if(id) await updateDoc(doc(db, "prodotti", id), data);
         else await addDoc(collection(db, "prodotti"), data);
@@ -321,12 +341,9 @@
     };
 
     function pulisci() { 
-        document.getElementById('f-id').value = ""; 
-        document.getElementById('f-titolo').value = ""; 
-        document.getElementById('f-prezzo').value = ""; 
-        document.getElementById('f-img').value = ""; 
-        document.getElementById('f-link').value = ""; 
-        document.getElementById('f-desc').value = "";
+        document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; 
+        document.getElementById('f-prezzo').value = ""; document.getElementById('f-img').value = ""; 
+        document.getElementById('f-link').value = ""; document.getElementById('f-desc').value = "";
     }
     
     document.getElementById('btn-nuovo-manuale').onclick = () => { pulisci(); document.getElementById('modal-form').classList.remove('hidden'); };
