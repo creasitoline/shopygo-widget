@@ -45,9 +45,6 @@
         .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; }
         .hidden { display: none !important; }
 
-        .btn-bio-login { background: #f8f9fa; color: #555; border: 1px solid #ddd; display: none; margin-top: 10px; }
-        .btn-bio-login i { color: var(--amazon); margin-right: 8px; }
-
         .input-group-custom { display: flex; gap: 5px; align-items: center; }
         .input-group-custom select { flex: 1; }
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
@@ -65,19 +62,12 @@
         <div class="login-card">
             <i class="fa-solid fa-user-shield" style="font-size: 3rem; color: var(--amazon); margin-bottom: 15px;"></i>
             <h2 style="margin: 0 0 10px 0;">Accesso Staff</h2>
-            <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID" autocomplete="off">
+            <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID (es. SG001)">
             <button id="btn-login">ENTRA</button>
-            <button id="btn-bio-trigger" class="btn-bio-login"><i class="fa-solid fa-fingerprint"></i> Usa Biometria</button>
-        </div>
-    </div>
-
-    <div id="modal-bio-setup" class="modal hidden">
-        <div class="modal-box" style="max-width:350px; text-align:center;">
-            <i class="fa-solid fa-fingerprint" style="font-size: 3rem; color: var(--amazon); margin-bottom: 15px;"></i>
-            <h3>Accesso Rapido</h3>
-            <p style="font-size: 14px; color: #666;">Vuoi abilitare l'impronta digitale o il FaceID per i prossimi accessi?</p>
-            <button id="btn-accetta-bio" style="background:var(--success);">ATTIVA ORA</button>
-            <button id="btn-rifiuta-bio" style="background:#eee; color:#333; margin-top:5px;">NON ORA</button>
+            
+            <button id="btn-biometrico" style="background:#f0f0f0; color:#333; margin-top:10px; display:none;">
+                <i class="fa-solid fa-fingerprint"></i> Usa Impronta
+            </button>
         </div>
     </div>
 
@@ -181,6 +171,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // --- IMPORTAZIONE FILE BIOMETRICO ---
+    import { attivaSensoreImpronta } from "./auth-biometric.js";
+
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -189,6 +182,60 @@
     let utenteAttivo = null;
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
+
+    // --- GESTIONE BIOMETRIA ---
+    const btnBio = document.getElementById('btn-biometrico');
+    const bioIdSalvato = localStorage.getItem('sg_staff_bio_id');
+
+    // Mostra il tasto impronta se c'è una sessione precedente salvata
+    if(bioIdSalvato && !localStorage.getItem('shopygo_user_session')) {
+        btnBio.style.display = 'block';
+    }
+
+    btnBio.onclick = () => {
+        attivaSensoreImpronta(bioIdSalvato, (codice) => {
+            aggiornaDatiUtente(codice); 
+        });
+    };
+
+    // --- LOGIN E DASHBOARD ---
+    const sessione = localStorage.getItem('shopygo_user_session');
+    if(sessione) { aggiornaDatiUtente(sessione); }
+
+    async function aggiornaDatiUtente(codice) {
+        const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
+        const snap = await getDocs(q);
+        if(!snap.empty) {
+            utenteAttivo = snap.docs[0].data();
+            localStorage.setItem('shopygo_user_session', codice);
+            localStorage.setItem('sg_staff_bio_id', codice); // Salva ID per futuro uso biometrico
+            mostraDashboard();
+        } else {
+            alert("ID non autorizzato.");
+        }
+    }
+
+    document.getElementById('btn-login').onclick = () => {
+        const cod = document.getElementById('codice-accesso').value.trim();
+        if(cod) aggiornaDatiUtente(cod);
+    };
+
+    document.getElementById('btn-logout').onclick = () => { 
+        localStorage.removeItem('shopygo_user_session'); 
+        location.reload(); 
+    };
+
+    function mostraDashboard() {
+        document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
+        document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
+        document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_lordo || 0) * 0.90).toFixed(2);
+        const statusDiv = document.getElementById('wallet-status');
+        statusDiv.innerHTML = utenteAttivo.pagato ? '<span class="status-badge status-paid">Pagato</span>' : '<span class="status-badge status-pending">In Attesa</span>';
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('main-container').classList.remove('hidden');
+        caricaConfigurazioni();
+        caricaProdotti();
+    }
 
     // --- CARICAMENTO CONFIGURAZIONI ---
     async function caricaConfigurazioni() {
@@ -207,76 +254,7 @@
         });
     }
 
-    // --- LOGICA BIOMETRICA AVANZATA (ANTI-AUTO-LOGIN) ---
-    const btnBioTrigger = document.getElementById('btn-bio-trigger');
-    const bioIdSalvato = localStorage.getItem('sg_staff_bio_id');
-
-    if(bioIdSalvato && !localStorage.getItem('shopygo_user_session')) {
-        btnBioTrigger.style.display = 'block';
-    }
-
-    btnBioTrigger.onclick = async () => {
-        // Forza il check biometrico del dispositivo
-        if (window.PublicKeyCredential) {
-            try {
-                // Questo attiva il sensore fisico del telefono
-                const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-                if (available) {
-                    // Se il sensore risponde, procediamo al login
-                    aggiornaDatiUtente(bioIdSalvato);
-                }
-            } catch (e) { console.log("Login Biometrico annullato o fallito"); }
-        } else {
-            aggiornaDatiUtente(bioIdSalvato);
-        }
-    };
-
-    document.getElementById('btn-accetta-bio').onclick = () => {
-        localStorage.setItem('sg_staff_bio_id', utenteAttivo.codice);
-        document.getElementById('modal-bio-setup').classList.add('hidden');
-    };
-    document.getElementById('btn-rifiuta-bio').onclick = () => document.getElementById('modal-bio-setup').classList.add('hidden');
-
-    // --- GESTIONE ACCESSI ---
-    async function aggiornaDatiUtente(codice) {
-        const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
-        const snap = await getDocs(q);
-        if(!snap.empty) {
-            utenteAttivo = snap.docs[0].data();
-            localStorage.setItem('shopygo_user_session', codice);
-            if(!localStorage.getItem('sg_staff_bio_id')) {
-                document.getElementById('modal-bio-setup').classList.remove('hidden');
-            }
-            mostraDashboard();
-        }
-    }
-
-    const sessioneInit = localStorage.getItem('shopygo_user_session');
-    if(sessioneInit) aggiornaDatiUtente(sessioneInit);
-
-    document.getElementById('btn-login').onclick = () => {
-        const cod = document.getElementById('codice-accesso').value.trim();
-        if(cod) aggiornaDatiUtente(cod);
-    };
-
-    document.getElementById('btn-logout').onclick = () => { 
-        localStorage.removeItem('shopygo_user_session'); 
-        location.reload(); 
-    };
-
-    // --- LOGICA DASHBOARD (RESTANTE CODICE INVARIATO) ---
-    function mostraDashboard() {
-        document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
-        document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
-        document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_lordo || 0) * 0.90).toFixed(2);
-        const statusDiv = document.getElementById('wallet-status');
-        statusDiv.innerHTML = utenteAttivo.pagato ? '<span class="status-badge status-paid">Pagato</span>' : '<span class="status-badge status-pending">In Attesa</span>';
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('main-container').classList.remove('hidden');
-        caricaConfigurazioni();
-        caricaProdotti();
-    }
-
+    // --- GESTIONE PRODOTTI ---
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
         container.innerHTML = "";
@@ -292,67 +270,24 @@
         });
     }
 
-    // --- FUNZIONI UTILITY MODALI ---
-    window.apriPopupNuovo = (tipo) => {
-        tipoConfigCorrente = tipo;
-        document.getElementById('input-modal-title').innerText = "Aggiungi " + tipo;
-        document.getElementById('nuovo-valore-input').value = "";
-        document.getElementById('modal-input').classList.remove('hidden');
-    };
-    document.getElementById('btn-conferma-input').onclick = async () => {
-        const val = document.getElementById('nuovo-valore-input').value.trim();
-        if(val) {
-            await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
-            caricaConfigurazioni();
-            document.getElementById('modal-input').classList.add('hidden');
-        }
-    };
-    window.chiediEliminaOpzione = (selectId) => {
-        const sel = document.getElementById(selectId);
-        const opt = sel.options[sel.selectedIndex];
-        if(!opt) return;
-        document.getElementById('confirm-title').innerText = "Elimina?";
-        document.getElementById('confirm-msg').innerText = `Rimuovere ${opt.value}?`;
-        document.getElementById('modal-confirm').classList.remove('hidden');
-        azioneConferma = async () => {
-            await deleteDoc(doc(db, "app_config", opt.dataset.id));
-            caricaConfigurazioni();
-            document.getElementById('modal-confirm').classList.add('hidden');
-        };
-    };
-    window.eliminaP = (id) => {
-        document.getElementById('confirm-title').innerText = "Elimina Annuncio?";
-        document.getElementById('modal-confirm').classList.remove('hidden');
-        azioneConferma = async () => {
-            await deleteDoc(doc(db, "prodotti", id));
-            caricaProdotti();
-            document.getElementById('modal-confirm').classList.add('hidden');
-        };
-    };
-    document.getElementById('confirm-delete-btn').onclick = () => azioneConferma && azioneConferma();
-
-    // --- SALVATAGGIO ---
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
         const data = {
-            titolo: document.getElementById('f-titolo').value, prezzo: document.getElementById('f-prezzo').value,
-            valuta: document.getElementById('f-valuta').value, immagine: document.getElementById('f-img').value,
-            descrizione: document.getElementById('f-desc').value, link_amazon: document.getElementById('f-link').value,
-            tipo: document.getElementById('f-tipo').value, categoria: document.getElementById('f-categoria').value,
-            stato: document.getElementById('f-stato').value, tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
+            titolo: document.getElementById('f-titolo').value, 
+            prezzo: document.getElementById('f-prezzo').value,
+            valuta: document.getElementById('f-valuta').value,
+            immagine: document.getElementById('f-img').value, 
+            descrizione: document.getElementById('f-desc').value,
+            link_amazon: document.getElementById('f-link').value, 
+            tipo: document.getElementById('f-tipo').value,
+            categoria: document.getElementById('f-categoria').value, 
+            stato: document.getElementById('f-stato').value,
+            tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
         };
-        id ? await updateDoc(doc(db, "prodotti", id), data) : await addDoc(collection(db, "prodotti"), data);
+        if(id) await updateDoc(doc(db, "prodotti", id), data);
+        else await addDoc(collection(db, "prodotti"), data);
         document.getElementById('modal-form').classList.add('hidden');
         caricaProdotti();
-    };
-
-    window.apriModifica = (id, p) => {
-        pulisci();
-        document.getElementById('f-id').value = id; document.getElementById('f-titolo').value = p.titolo;
-        document.getElementById('f-prezzo').value = p.prezzo; document.getElementById('f-img').value = p.immagine;
-        document.getElementById('f-link').value = p.link_amazon; document.getElementById('f-desc').value = p.descrizione || "";
-        document.getElementById('f-tipo').value = p.tipo; document.getElementById('f-categoria').value = p.categoria;
-        document.getElementById('f-stato').value = p.stato || ""; document.getElementById('modal-form').classList.remove('hidden');
     };
 
     document.getElementById('btn-verifica').onclick = () => {
@@ -360,21 +295,84 @@
         if(!url) return;
         fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: url}) })
         .then(r => r.json()).then(res => {
-            document.getElementById('f-titolo').value = res.title; document.getElementById('f-img').value = res.image;
+            document.getElementById('f-titolo').value = res.title; 
+            document.getElementById('f-img').value = res.image;
             document.getElementById('f-link').value = url.split("?")[0] + "?tag=" + utenteAttivo.tag;
             document.getElementById('modal-form').classList.remove('hidden');
         });
+    };
+
+    // --- FUNZIONI WINDOW (Globali per bottoni inline) ---
+    window.apriModifica = (id, p) => {
+        pulisci();
+        document.getElementById('f-id').value = id; 
+        document.getElementById('f-titolo').value = p.titolo;
+        document.getElementById('f-prezzo').value = p.prezzo;
+        document.getElementById('f-img').value = p.immagine;
+        document.getElementById('f-link').value = p.link_amazon;
+        document.getElementById('f-desc').value = p.descrizione || "";
+        document.getElementById('f-tipo').value = p.tipo;
+        document.getElementById('f-categoria').value = p.categoria;
+        document.getElementById('f-stato').value = p.stato || "";
+        document.getElementById('modal-form').classList.remove('hidden');
+    };
+
+    window.apriPopupNuovo = (tipo) => {
+        tipoConfigCorrente = tipo;
+        document.getElementById('input-modal-title').innerText = "Aggiungi " + tipo;
+        document.getElementById('nuovo-valore-input').value = "";
+        document.getElementById('modal-input').classList.remove('hidden');
+    };
+
+    window.chiediEliminaOpzione = (selectId) => {
+        const sel = document.getElementById(selectId);
+        const selectedOpt = sel.options[sel.selectedIndex];
+        if(!selectedOpt) return;
+        document.getElementById('modal-confirm').classList.remove('hidden');
+        azioneConferma = async () => {
+            await deleteDoc(doc(db, "app_config", selectedOpt.dataset.id));
+            await caricaConfigurazioni();
+            document.getElementById('modal-confirm').classList.add('hidden');
+        };
+    };
+
+    window.eliminaP = (id) => {
+        document.getElementById('modal-confirm').classList.remove('hidden');
+        azioneConferma = async () => {
+            await deleteDoc(doc(db, "prodotti", id));
+            caricaProdotti();
+            document.getElementById('modal-confirm').classList.add('hidden');
+        };
     };
 
     function pulisci() { 
         document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; 
         document.getElementById('f-prezzo').value = ""; document.getElementById('f-img').value = ""; 
         document.getElementById('f-link').value = ""; document.getElementById('f-desc').value = "";
+        document.getElementById('f-stato').value = "";
     }
-    
+
+    // --- GESTIONE BOTTONI MODALI ---
+    document.getElementById('btn-conferma-input').onclick = async () => {
+        const val = document.getElementById('nuovo-valore-input').value.trim();
+        if(val) {
+            await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
+            await caricaConfigurazioni();
+            document.getElementById('modal-input').classList.add('hidden');
+        }
+    };
+    document.getElementById('confirm-delete-btn').onclick = () => { if(azioneConferma) azioneConferma(); };
     document.getElementById('btn-nuovo-manuale').onclick = () => { pulisci(); document.getElementById('modal-form').classList.remove('hidden'); };
     document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-form').classList.add('hidden');
     document.getElementById('cancel-delete-btn').onclick = () => document.getElementById('modal-confirm').classList.add('hidden');
+    
+    document.getElementById('file-input').onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => { document.getElementById('f-img').value = event.target.result; };
+        reader.readAsDataURL(file);
+    };
 </script>
 </body>
 </html>
