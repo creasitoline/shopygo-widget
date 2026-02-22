@@ -1,56 +1,292 @@
-<style>
-    /* ... (tutto il resto rimane invariato) ... */
-
-    /* Bottone Paga e Cestino ottimizzati */
-    .btn-pay { 
-        background: var(--success); 
-        padding: 6px 10px; 
-        width: auto; 
-        font-size: 11px; 
-        border-radius: 6px;
-        min-width: 60px;
-    }
-    .btn-pay.waiting { background: var(--danger); }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Master Control - ShopyGO</title>
     
-    .btn-delete {
-        background: #f3f3f3; 
-        color: #888; 
-        width: 32px; 
-        height: 32px; 
-        padding: 0; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center;
-        border-radius: 6px;
-    }
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
 
-    /* Fix specifico per Mobile */
-    @media (max-width: 600px) {
-        thead { display: none; }
-        tr { display: block; border-bottom: 5px solid #f3f3f3; padding: 10px 0; }
-        td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 4px 15px; text-align: right; }
-        td::before { content: attr(data-label); font-weight: bold; text-transform: uppercase; font-size: 10px; color: #888; text-align: left; }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --primary: #ffffff; --text: #131921; --amazon: #007185; --bg: #f3f3f3; 
+            --accent: #FFD814; --danger: #ff4757; --success: #2ecc71; 
+            --master: #e67e22; --edit: #3498db; 
+        }
+
+        body { font-family: 'Segoe UI', system-ui; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
         
-        /* Forza i bottoni sulla stessa riga a destra */
-        td[data-label="Azioni"] { justify-content: flex-end; gap: 8px; }
-        .btn-pay { margin-top: 0 !important; flex: 0; }
-    }
-</style>
+        header { 
+            background: var(--primary); padding: 0 15px; display: flex; align-items: center; 
+            justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; 
+            border-bottom: 1px solid #ddd; box-sizing: border-box;
+        }
+        .logo { height: 25px; }
 
-<script>
-    // ... dentro la funzione caricaDati(), nella riga.innerHTML:
-    
-    /* Sostituisci solo l'ultimo <td> della riga: */
-    `
-    <td data-label="Azioni">
-        <div style="display:flex; gap:6px; align-items:center;">
-            <button class="btn-pay ${u.pagato ? '' : 'waiting'}" onclick="togglePagamento('${fid}', ${!u.pagato})">
-                ${u.pagato ? '<i class="fa-solid fa-check"></i> OK' : 'Paga'}
-            </button>
-            <button class="btn-delete" onclick="elimina('${fid}')">
-                <i class="fa-solid fa-trash" style="font-size: 12px;"></i>
-            </button>
+        .container { max-width: 1200px; margin: 15px auto; padding: 0 10px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        @media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+        
+        .stat-card { background: white; padding: 15px 10px; border-radius: 12px; border: 1px solid #ddd; text-align: center; }
+        .stat-card h4 { margin: 0; font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card p { margin: 5px 0 0 0; font-size: 1.1rem; font-weight: bold; color: var(--amazon); }
+        .stat-card.highlight { border-bottom: 4px solid var(--success); }
+
+        .main-content { display: flex; flex-direction: column; gap: 20px; }
+        @media (min-width: 900px) { .main-content { flex-direction: row; align-items: flex-start; } }
+
+        .sidebar { flex: 0 0 350px; }
+        .content { flex: 1; min-width: 0; }
+
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #ddd; }
+        h3 { margin-top: 0; font-size: 1.1rem; color: var(--amazon); display: flex; align-items: center; gap: 8px; }
+        
+        input, select, textarea { 
+            width: 100%; padding: 12px; margin: 5px 0 15px 0; border-radius: 8px; 
+            border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; outline: none;
+        }
+        label { font-size: 10px; font-weight: bold; color: #777; text-transform: uppercase; margin-left: 2px; }
+
+        button { 
+            background: var(--amazon); color: white; border: none; padding: 14px; 
+            border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; 
+            transition: 0.2s; font-size: 14px;
+        }
+        button:active { transform: scale(0.98); }
+        .btn-cancel { background: #eee; color: #333; margin-top: 8px; }
+
+        .table-wrapper { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8f9fa; color: #555; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+
+        /* TASTI RIDOTTI */
+        .btn-pay { background: var(--success); padding: 6px 12px; width: auto; font-size: 11px; border-radius: 6px; min-width: 60px; height: 32px; }
+        .btn-pay.waiting { background: var(--danger); }
+        .btn-trash { background: #f3f3f3; color: #888; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; margin: 0; }
+
+        @media (max-width: 600px) {
+            thead { display: none; }
+            tr { display: block; border-bottom: 5px solid #f3f3f3; padding: 8px 0; }
+            td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 4px 15px; text-align: right; }
+            td::before { content: attr(data-label); font-weight: bold; text-transform: uppercase; font-size: 10px; color: #888; text-align: left; }
+            
+            /* Azioni compatte su mobile */
+            td[data-label="Azioni"] { justify-content: flex-end; gap: 8px; }
+            .btn-pay { width: auto !important; margin-top: 0 !important; }
+        }
+
+        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; }
+        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--amazon); }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="admin-auth" class="login-overlay">
+    <div class="card" style="text-align: center; width: 100%; max-width: 320px;">
+        <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: var(--amazon); margin-bottom: 15px;"></i>
+        <h2 style="margin-bottom: 20px;">Master Access</h2>
+        <input type="password" id="master-pass" placeholder="Password Master" style="text-align: center; font-size: 18px;">
+        <button id="btn-login-master">ENTRA</button>
+    </div>
+</div>
+
+<header>
+    <img src="logo.png" alt="ShopyGO" class="logo">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-weight: bold; font-size: 10px; color: var(--danger);">ADMIN MODE</span>
+        <button onclick="logoutMaster()" style="width: auto; padding: 6px 12px; font-size: 10px; background: #333; margin: 0;">LOGOUT</button>
+    </div>
+</header>
+
+<div id="dashboard" class="container hidden">
+    <div class="stats-grid">
+        <div class="stat-card"><h4>Staff</h4><p id="stat-utenti">0</p></div>
+        <div class="stat-card"><h4>Lordo</h4><p id="stat-lordo">€ 0</p></div>
+        <div class="stat-card"><h4>Costi</h4><p id="stat-staff">€ 0</p></div>
+        <div class="stat-card highlight"><h4>Utile</h4><p id="stat-netto" style="color: var(--success)">€ 0</p></div>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <div class="card" id="modulo-user">
+                <h3 id="form-title"><i class="fa-solid fa-circle-plus"></i> Gestione Staff</h3>
+                <input type="hidden" id="u-firebase-id">
+                <label>Nome Completo</label>
+                <input type="text" id="u-nome" placeholder="Mario Rossi">
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1"><label>ID</label><input type="text" id="u-id" placeholder="SG001"></div>
+                    <div style="flex:1"><label>Tag</label><input type="text" id="u-tag" placeholder="tag-21"></div>
+                </div>
+                <label>Contatti</label>
+                <input type="email" id="u-email" placeholder="Email">
+                <input type="text" id="u-tel" placeholder="Cellulare">
+                <label>Pagamento</label>
+                <select id="u-metodo">
+                    <option value="PayPal">PayPal</option>
+                    <option value="Bonifico">Bonifico</option>
+                    <option value="Revolut">Revolut</option>
+                </select>
+                <textarea id="u-conto" rows="2" placeholder="Dati pagamento"></textarea>
+                <button id="btn-save-main" onclick="salvaUtente()">SALVA COLLABORATORE</button>
+                <button id="btn-cancel-edit" class="btn-cancel hidden" onclick="resetForm()">ANNULLA</button>
+            </div>
         </div>
-    </td>
-    `
+
+        <div class="content">
+            <div class="card" style="padding: 10px 0;">
+                <h3 style="padding: 0 20px;"><i class="fa-solid fa-list-check"></i> Report</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Info</th>
+                                <th>Lordo</th>
+                                <th>90%</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabella-staff"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<nav class="nav-bottom">
+    <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Shop</span></a>
+    <a href="generatore.html" class="nav-item"><i class="fa-solid fa-circle-plus"></i><span>Pubblica</span></a>
+    <a href="admin-master.html" class="nav-item active"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>
+</nav>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.onload = () => {
+        if(sessionStorage.getItem('master_logged') === 'true') {
+            document.getElementById('admin-auth').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            caricaDati();
+        }
+    };
+
+    document.getElementById('btn-login-master').onclick = () => {
+        if(document.getElementById('master-pass').value === "MASTER2026") {
+            sessionStorage.setItem('master_logged', 'true');
+            document.getElementById('admin-auth').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            caricaDati();
+        } else { alert("Password Master Errata"); }
+    };
+
+    window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
+
+    async function caricaDati() {
+        const snap = await getDocs(collection(db, "utenti_abilitati"));
+        const corpo = document.getElementById('tabella-staff');
+        corpo.innerHTML = "";
+        let lordoTot = 0, staffTot = 0, conteggio = 0;
+
+        snap.forEach((res) => {
+            const u = res.data();
+            const fid = res.id;
+            const lordo = parseFloat(u.guadagno_lordo || 0);
+            const quotaStaff = lordo * 0.90;
+            lordoTot += lordo; staffTot += quotaStaff; conteggio++;
+
+            const riga = document.createElement('tr');
+            riga.innerHTML = `
+                <td data-label="Staff" onclick="preparaModifica('${fid}', ${JSON.stringify(u).replace(/"/g, '&quot;')})">
+                    <div style="text-align:left"><strong>${u.nome}</strong></div>
+                </td>
+                <td data-label="Parametri"><code>${u.codice}</code> / <code>${u.tag}</code></td>
+                <td data-label="Lordo (€)">
+                    <input type="number" step="0.01" value="${lordo}" onchange="aggiornaCifra('${fid}', this.value)" style="width:70px; margin:0; padding:4px; border: 1px solid #ddd; text-align:center; font-size:12px;">
+                </td>
+                <td data-label="90%"><strong>€${quotaStaff.toFixed(2)}</strong></td>
+                <td data-label="Azioni">
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <button class="btn-pay ${u.pagato ? '' : 'waiting'}" onclick="togglePagamento('${fid}', ${!u.pagato})">
+                            ${u.pagato ? '<i class="fa-solid fa-check"></i>' : 'Paga'}
+                        </button>
+                        <button class="btn-trash" onclick="elimina('${fid}')"><i class="fa-solid fa-trash" style="font-size:11px;"></i></button>
+                    </div>
+                </td>
+            `;
+            corpo.appendChild(riga);
+        });
+
+        document.getElementById('stat-utenti').innerText = conteggio;
+        document.getElementById('stat-lordo').innerText = "€ " + lordoTot.toFixed(2);
+        document.getElementById('stat-staff').innerText = "€ " + staffTot.toFixed(2);
+        document.getElementById('stat-netto').innerText = "€ " + (lordoTot * 0.10).toFixed(2);
+    }
+
+    window.preparaModifica = function(fid, u) {
+        document.getElementById('u-firebase-id').value = fid;
+        document.getElementById('u-nome').value = u.nome;
+        document.getElementById('u-id').value = u.codice;
+        document.getElementById('u-tag').value = u.tag;
+        document.getElementById('u-email').value = u.email || "";
+        document.getElementById('u-tel').value = u.tel || "";
+        document.getElementById('u-metodo').value = u.metodo || "PayPal";
+        document.getElementById('u-conto').value = u.conto || "";
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-user-pen"></i> Modifica';
+        document.getElementById('btn-cancel-edit').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    window.resetForm = function() {
+        document.getElementById('u-firebase-id').value = "";
+        document.getElementById('modulo-user').querySelectorAll('input, textarea').forEach(i => i.value = "");
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-circle-plus"></i> Gestione Staff';
+        document.getElementById('btn-cancel-edit').classList.add('hidden');
+    }
+
+    window.salvaUtente = async function() {
+        const fid = document.getElementById('u-firebase-id').value;
+        const dati = {
+            nome: document.getElementById('u-nome').value,
+            codice: document.getElementById('u-id').value,
+            tag: document.getElementById('u-tag').value,
+            email: document.getElementById('u-email').value,
+            tel: document.getElementById('u-tel').value,
+            metodo: document.getElementById('u-metodo').value,
+            conto: document.getElementById('u-conto').value
+        };
+        if(!dati.nome || !dati.codice) return alert("Dati mancanti");
+        if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
+        else { dati.guadagno_lordo = 0; dati.pagato = false; await addDoc(collection(db, "utenti_abilitati"), dati); }
+        resetForm(); caricaDati();
+    }
+
+    window.aggiornaCifra = async function(id, val) {
+        await updateDoc(doc(db, "utenti_abilitati", id), { guadagno_lordo: parseFloat(val) });
+        caricaDati();
+    }
+
+    window.togglePagamento = async function(id, stato) {
+        await updateDoc(doc(db, "utenti_abilitati", id), { pagato: stato });
+        caricaDati();
+    }
+
+    window.elimina = async function(id) {
+        if(confirm("Eliminare?")) { await deleteDoc(doc(db, "utenti_abilitati", id)); caricaDati(); }
+    }
 </script>
+</body>
+</html>
