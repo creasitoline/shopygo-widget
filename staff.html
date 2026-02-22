@@ -45,10 +45,10 @@
         .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; }
         .hidden { display: none !important; }
 
-        /* NUOVI STILI PER AGGIUNTA DINAMICA */
         .input-group-custom { display: flex; gap: 5px; align-items: center; }
         .input-group-custom select { flex: 1; }
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
+        .btn-minus { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -103,24 +103,16 @@
             
             <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
             <div class="input-group-custom">
-                <select id="f-tipo">
-                    <option value="amazon">Amazon</option>
-                    <option value="nuovo">Nuovo</option>
-                    <option value="usato">Usato</option>
-                </select>
+                <select id="f-tipo"></select>
                 <button class="btn-plus" onclick="aggiungiOpzione('f-tipo', 'piattaforme')">+</button>
+                <button class="btn-minus" onclick="eliminaOpzione('f-tipo')">-</button>
             </div>
 
             <label style="font-size:11px; font-weight:bold; margin-top:5px; display:block;">Categoria</label>
             <div class="input-group-custom">
-                <select id="f-categoria">
-                    <option value="Elettronica">Elettronica</option>
-                    <option value="Informatica">Informatica</option>
-                    <option value="Casa">Casa</option>
-                    <option value="Moda">Moda</option>
-                    <option value="Sport">Sport</option>
-                </select>
+                <select id="f-categoria"></select>
                 <button class="btn-plus" onclick="aggiungiOpzione('f-categoria', 'categorie')">+</button>
+                <button class="btn-minus" onclick="eliminaOpzione('f-categoria')">-</button>
             </div>
 
             <input type="text" id="f-titolo" placeholder="Titolo">
@@ -168,32 +160,51 @@
     let utenteAttivo = null;
     let idDaEliminare = null;
 
-    // --- AGGIUNTA DINAMICA CATEGORIE/PIATTAFORME ---
-    window.aggiungiOpzione = async (selectId, tipo) => {
-        const nuovoValore = prompt("Inserisci il nuovo nome:");
-        if (nuovoValore) {
-            const sel = document.getElementById(selectId);
-            const opt = document.createElement('option');
-            opt.value = nuovoValore; opt.text = nuovoValore;
-            sel.add(opt);
-            sel.value = nuovoValore;
-            // Salva nel database config
-            await addDoc(collection(db, "app_config"), { nome: nuovoValore, tipo: tipo });
-        }
-    };
-
+    // --- CARICAMENTO CONFIGURAZIONI (SOLO DAL DB) ---
     async function caricaConfigurazioni() {
+        const selCat = document.getElementById('f-categoria');
+        const selTipo = document.getElementById('f-tipo');
+        selCat.innerHTML = "";
+        selTipo.innerHTML = "";
+
         const snap = await getDocs(collection(db, "app_config"));
         snap.forEach(d => {
             const data = d.data();
-            const sel = data.tipo === 'categorie' ? document.getElementById('f-categoria') : document.getElementById('f-tipo');
             const opt = document.createElement('option');
-            opt.value = data.nome; opt.text = data.nome;
-            sel.add(opt);
+            opt.value = data.nome;
+            opt.text = data.nome;
+            opt.dataset.id = d.id; // Salviamo l'ID del documento per eliminarlo dopo
+            if (data.tipo === 'categorie') selCat.add(opt);
+            else selTipo.add(opt);
         });
     }
 
-    // --- CARICAMENTO FOTO DA PC/MOBILE ---
+    // --- AGGIUNTA DINAMICA ---
+    window.aggiungiOpzione = async (selectId, tipo) => {
+        const nuovoValore = prompt("Inserisci il nuovo nome:");
+        if (nuovoValore) {
+            await addDoc(collection(db, "app_config"), { nome: nuovoValore, tipo: tipo });
+            await caricaConfigurazioni();
+            document.getElementById(selectId).value = nuovoValore;
+        }
+    };
+
+    // --- ELIMINAZIONE DINAMICA ---
+    window.eliminaOpzione = async (selectId) => {
+        const sel = document.getElementById(selectId);
+        const selectedOpt = sel.options[sel.selectedIndex];
+        if(!selectedOpt) return;
+        
+        if(confirm(`Vuoi davvero eliminare "${selectedOpt.value}" dalle opzioni?`)) {
+            const docId = selectedOpt.dataset.id;
+            if(docId) {
+                await deleteDoc(doc(db, "app_config", docId));
+                await caricaConfigurazioni();
+            }
+        }
+    };
+
+    // --- CARICAMENTO FOTO ---
     document.getElementById('file-input').onchange = (e) => {
         const file = e.target.files[0];
         if(!file) return;
@@ -202,7 +213,7 @@
         reader.readAsDataURL(file);
     };
 
-    // --- SESSIONE E DASHBOARD ---
+    // --- SESSIONE ---
     const sessione = localStorage.getItem('shopygo_user_session');
     if(sessione) { aggiornaDatiUtente(sessione); }
 
@@ -213,6 +224,8 @@
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
             mostraDashboard();
+        } else {
+            alert("ID non valido");
         }
     }
 
@@ -290,8 +303,8 @@
         document.getElementById('f-img').value = p.immagine;
         document.getElementById('f-link').value = p.link_amazon;
         document.getElementById('f-desc').value = p.descrizione || "";
-        document.getElementById('f-tipo').value = p.tipo || "amazon";
-        document.getElementById('f-categoria').value = p.categoria || "Elettronica";
+        document.getElementById('f-tipo').value = p.tipo;
+        document.getElementById('f-categoria').value = p.categoria;
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
