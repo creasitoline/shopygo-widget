@@ -115,6 +115,13 @@
                 <button class="btn-trash" onclick="chiediEliminaOpzione('f-categoria')"><i class="fa-solid fa-trash"></i></button>
             </div>
 
+            <label style="font-size:11px; font-weight:bold; margin-top:5px; display:block;">Stato Prodotto</label>
+            <div class="input-group-custom">
+                <select id="f-stato"></select>
+                <button class="btn-plus" onclick="apriPopupNuovo('stato')"><i class="fa-solid fa-plus"></i></button>
+                <button class="btn-trash" onclick="chiediEliminaOpzione('f-stato')"><i class="fa-solid fa-trash"></i></button>
+            </div>
+
             <input type="text" id="f-titolo" placeholder="Titolo">
             <div style="display:flex; gap:10px;">
                 <input type="text" id="f-prezzo" placeholder="Prezzo">
@@ -170,29 +177,34 @@
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
     
     let utenteAttivo = null;
-    let azioneConferma = null; // Per gestire cosa eliminare nella modale di conferma
-    let tipoConfigCorrente = ""; // categoria o piattaforma
+    let azioneConferma = null; 
+    let tipoConfigCorrente = ""; 
 
-    // --- CARICAMENTO CONFIGURAZIONI ---
+    // --- CARICAMENTO CONFIGURAZIONI (Aggiornato per lo Stato) ---
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
-        selCat.innerHTML = ""; selTipo.innerHTML = "";
+        const selStato = document.getElementById('f-stato'); // Nuovo riferimento
+        
+        selCat.innerHTML = ""; selTipo.innerHTML = ""; selStato.innerHTML = "";
 
         const snap = await getDocs(collection(db, "app_config"));
         snap.forEach(d => {
             const data = d.data();
             const opt = document.createElement('option');
             opt.value = data.nome; opt.text = data.nome; opt.dataset.id = d.id;
+            
             if (data.tipo === 'categorie') selCat.add(opt);
-            else selTipo.add(opt);
+            else if (data.tipo === 'piattaforme') selTipo.add(opt);
+            else if (data.tipo === 'stato') selStato.add(opt); // Nuovo controllo
         });
     }
 
-    // --- POPUP PERSONALIZZATO PER AGGIUNTA ---
+    // --- POPUP AGGIUNTA ---
     window.apriPopupNuovo = (tipo) => {
         tipoConfigCorrente = tipo;
-        document.getElementById('input-modal-title').innerText = "Aggiungi " + (tipo === 'categorie' ? "Categoria" : "Piattaforma");
+        let titoloModale = "Aggiungi " + (tipo === 'categorie' ? "Categoria" : (tipo === 'piattaforme' ? "Piattaforma" : "Stato"));
+        document.getElementById('input-modal-title').innerText = titoloModale;
         document.getElementById('nuovo-valore-input').value = "";
         document.getElementById('modal-input').classList.remove('hidden');
     };
@@ -206,7 +218,7 @@
         }
     };
 
-    // --- ELIMINAZIONE OPZIONI CON MODALE ---
+    // --- ELIMINAZIONE OPZIONI ---
     window.chiediEliminaOpzione = (selectId) => {
         const sel = document.getElementById(selectId);
         const selectedOpt = sel.options[sel.selectedIndex];
@@ -223,7 +235,7 @@
         };
     };
 
-    // --- ELIMINAZIONE PRODOTTI CON MODALE ---
+    // --- ELIMINAZIONE PRODOTTI ---
     window.eliminaP = (id) => {
         document.getElementById('confirm-title').innerText = "Elimina Annuncio?";
         document.getElementById('confirm-msg').innerText = "Sei sicuro di voler rimuovere questo prodotto dallo shop?";
@@ -236,10 +248,8 @@
         };
     };
 
-    // Gestore unico del tasto "ELIMINA" nella modale di conferma
     document.getElementById('confirm-delete-btn').onclick = () => { if(azioneConferma) azioneConferma(); };
 
-    // --- CARICAMENTO FOTO ---
     document.getElementById('file-input').onchange = (e) => {
         const file = e.target.files[0];
         if(!file) return;
@@ -248,7 +258,6 @@
         reader.readAsDataURL(file);
     };
 
-    // --- SESSIONE ---
     const sessione = localStorage.getItem('shopygo_user_session');
     if(sessione) { aggiornaDatiUtente(sessione); }
 
@@ -307,6 +316,7 @@
             link_amazon: document.getElementById('f-link').value, 
             tipo: document.getElementById('f-tipo').value,
             categoria: document.getElementById('f-categoria').value, 
+            stato: document.getElementById('f-stato').value, // SALVATAGGIO STATO
             tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
         };
         if(id) await updateDoc(doc(db, "prodotti", id), data);
@@ -325,6 +335,7 @@
         document.getElementById('f-desc').value = p.descrizione || "";
         document.getElementById('f-tipo').value = p.tipo;
         document.getElementById('f-categoria').value = p.categoria;
+        document.getElementById('f-stato').value = p.stato || ""; // CARICA STATO
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
@@ -344,6 +355,7 @@
         document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; 
         document.getElementById('f-prezzo').value = ""; document.getElementById('f-img').value = ""; 
         document.getElementById('f-link').value = ""; document.getElementById('f-desc').value = "";
+        document.getElementById('f-stato').value = "";
     }
     
     document.getElementById('btn-nuovo-manuale').onclick = () => { pulisci(); document.getElementById('modal-form').classList.remove('hidden'); };
