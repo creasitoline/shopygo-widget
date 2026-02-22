@@ -64,7 +64,6 @@
         th { background: #f8f9fa; color: #555; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        /* TASTI RIDOTTI */
         .btn-pay { background: var(--success); padding: 6px 12px; width: auto; font-size: 11px; border-radius: 6px; min-width: 60px; height: 32px; }
         .btn-pay.waiting { background: var(--danger); }
         .btn-trash { background: #f3f3f3; color: #888; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; margin: 0; }
@@ -74,8 +73,6 @@
             tr { display: block; border-bottom: 5px solid #f3f3f3; padding: 8px 0; }
             td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 4px 15px; text-align: right; }
             td::before { content: attr(data-label); font-weight: bold; text-transform: uppercase; font-size: 10px; color: #888; text-align: left; }
-            
-            /* Azioni compatte su mobile */
             td[data-label="Azioni"] { justify-content: flex-end; gap: 8px; }
             .btn-pay { width: auto !important; margin-top: 0 !important; }
         }
@@ -86,6 +83,12 @@
         .nav-item i { font-size: 1.3rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
         .hidden { display: none !important; }
+
+        /* Stile Tasto Biometrico Admin */
+        #btn-bio-master {
+            background: white; color: var(--amazon); border: 2px solid var(--amazon);
+            margin-top: 10px; display: none; /* Nascondi di default */
+        }
     </style>
 </head>
 <body>
@@ -96,6 +99,10 @@
         <h2 style="margin-bottom: 20px;">Master Access</h2>
         <input type="password" id="master-pass" placeholder="Password Master" style="text-align: center; font-size: 18px;">
         <button id="btn-login-master">ENTRA</button>
+        
+        <button id="btn-bio-master">
+            <i class="fa-solid fa-fingerprint"></i> Sblocca con Impronta
+        </button>
     </div>
 </div>
 
@@ -172,30 +179,57 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    
+    // 1. IMPORTA IL TUO FILE
+    import { attivaSensoreImpronta } from "./auth-biometric.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // 2. LOGICA BIOMETRICA PER ADMIN
+    const btnBioMaster = document.getElementById('btn-bio-master');
+    const masterPassConfig = "MASTER2026"; // La tua password master
+
     window.onload = () => {
+        // Se già loggato in sessione
         if(sessionStorage.getItem('master_logged') === 'true') {
-            document.getElementById('admin-auth').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            caricaDati();
+            loginSuccess();
+        } 
+        // Se non loggato ma ha già usato l'impronta in passato
+        else if(localStorage.getItem('master_bio_enabled') === 'true') {
+            btnBioMaster.style.display = 'block';
         }
     };
 
-    document.getElementById('btn-login-master').onclick = () => {
-        if(document.getElementById('master-pass').value === "MASTER2026") {
-            sessionStorage.setItem('master_logged', 'true');
-            document.getElementById('admin-auth').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            caricaDati();
-        } else { alert("Password Master Errata"); }
+    btnBioMaster.onclick = () => {
+        attivaSensoreImpronta("MASTER_ACCOUNT", () => {
+            loginSuccess();
+        });
     };
 
-    window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
+    document.getElementById('btn-login-master').onclick = () => {
+        if(document.getElementById('master-pass').value === masterPassConfig) {
+            localStorage.setItem('master_bio_enabled', 'true'); // Abilita impronta per la prossima volta
+            loginSuccess();
+        } else { 
+            alert("Password Master Errata"); 
+        }
+    };
 
+    function loginSuccess() {
+        sessionStorage.setItem('master_logged', 'true');
+        document.getElementById('admin-auth').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        caricaDati();
+    }
+
+    window.logoutMaster = () => { 
+        sessionStorage.removeItem('master_logged'); 
+        location.reload(); 
+    };
+
+    // --- FUNZIONI DASHBOARD ---
     async function caricaDati() {
         const snap = await getDocs(collection(db, "utenti_abilitati"));
         const corpo = document.getElementById('tabella-staff');
@@ -286,7 +320,10 @@
     }
 
     window.elimina = async function(id) {
-        if(confirm("Eliminare?")) { await deleteDoc(doc(db, "utenti_abilitati", id)); caricaDati(); }
+        if(confirm("Eliminare questo collaboratore?")) { 
+            await deleteDoc(doc(db, "utenti_abilitati", id)); 
+            caricaDati(); 
+        }
     }
 </script>
 </body>
