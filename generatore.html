@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ShopyGO - Staff</title>
+    
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #f3f3f3; --accent: #FFD814; --danger: #ff4757; --success: #28a745; }
@@ -138,7 +142,6 @@
     const sessione = localStorage.getItem('shopygo_user_session');
 
     if(sessione) {
-        // Ricarichiamo i dati freschi dal DB per vedere i guadagni aggiornati
         aggiornaDatiUtente(sessione);
     }
 
@@ -163,7 +166,6 @@
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
         
-        // Calcolo e visualizzazione Wallet
         const lordo = parseFloat(utenteAttivo.guadagno_lordo || 0);
         const nettoStaff = lordo * 0.90;
         document.getElementById('wallet-importo').innerText = "€ " + nettoStaff.toFixed(2);
@@ -180,7 +182,6 @@
         caricaProdotti();
     }
 
-    // --- LOGICA PRODOTTI (RESTANTE CODICE INVARIATO) ---
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
         container.innerHTML = "";
