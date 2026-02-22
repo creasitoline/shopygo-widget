@@ -49,9 +49,10 @@
         .input-group-custom select { flex: 1; }
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
         .btn-trash { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
-        
-        /* Stile per tasto Biometria */
-        .btn-biometric { background: #f0f0f0; color: #555; border: 1px solid #ddd; margin-top: 10px; display: none; }
+
+        /* Stile Biometria */
+        .btn-bio-login { background: #f8f9fa; color: #555; border: 1px solid #ddd; display: none; margin-top: 10px; }
+        .btn-bio-login i { color: var(--amazon); margin-right: 8px; }
     </style>
 </head>
 <body>
@@ -67,9 +68,17 @@
             <h2 style="margin: 0 0 10px 0;">Accesso Staff</h2>
             <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID (es. SG001)">
             <button id="btn-login">ENTRA</button>
-            <button id="btn-biometric-login" class="btn-biometric">
-                <i class="fa-solid fa-fingerprint"></i> Usa Impronta
-            </button>
+            <button id="btn-bio-trigger" class="btn-bio-login"><i class="fa-solid fa-fingerprint"></i> Usa Biometria</button>
+        </div>
+    </div>
+
+    <div id="modal-bio-setup" class="modal hidden">
+        <div class="modal-box" style="max-width:350px; text-align:center;">
+            <i class="fa-solid fa-fingerprint" style="font-size: 3rem; color: var(--amazon); margin-bottom: 15px;"></i>
+            <h3>Accesso Rapido</h3>
+            <p style="font-size: 14px; color: #666;">Vuoi abilitare l'impronta digitale o il FaceID per i prossimi accessi?</p>
+            <button id="btn-accetta-bio" style="background:var(--success);">ATTIVA ORA</button>
+            <button id="btn-rifiuta-bio" style="background:#eee; color:#333; margin-top:5px;">NON ORA</button>
         </div>
     </div>
 
@@ -186,33 +195,7 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- LOGICA BIOMETRIA ---
-    async function initBiometria() {
-        const hasBiometric = localStorage.getItem('sg_biometric_id');
-        const btnBio = document.getElementById('btn-biometric-login');
-        
-        // Se c'è un'impronta salvata e siamo su HTTPS/Mobile, mostra il tasto
-        if (hasBiometric && window.isSecureContext) {
-            btnBio.style.display = "block";
-            // Tenta login automatico
-            effettuaLoginBiometrico();
-        }
-    }
-
-    async function effettuaLoginBiometrico() {
-        // Nota: Qui usiamo una validazione sicura locale. 
-        // Per il FaceID/TouchID nativo serve HTTPS attivo.
-        const salvato = localStorage.getItem('sg_biometric_id');
-        if(salvato) {
-            console.log("Accesso biometrico avviato...");
-            aggiornaDatiUtente(salvato);
-        }
-    }
-
-    document.getElementById('btn-biometric-login').onclick = effettuaLoginBiometrico;
-
-    // --- FINE LOGICA BIOMETRIA ---
-
+    // --- CARICAMENTO CONFIGURAZIONI ---
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
@@ -232,68 +215,28 @@
         });
     }
 
-    window.apriPopupNuovo = (tipo) => {
-        tipoConfigCorrente = tipo;
-        let titoloModale = "Aggiungi " + (tipo === 'categorie' ? "Categoria" : (tipo === 'piattaforme' ? "Piattaforma" : "Stato"));
-        document.getElementById('input-modal-title').innerText = titoloModale;
-        document.getElementById('nuovo-valore-input').value = "";
-        document.getElementById('modal-input').classList.remove('hidden');
-    };
+    // --- LOGICA ACCESSO BIOMETRICO ---
+    const bioId = localStorage.getItem('sg_staff_bio_id');
+    const btnBioTrigger = document.getElementById('btn-bio-trigger');
 
-    document.getElementById('btn-conferma-input').onclick = async () => {
-        const val = document.getElementById('nuovo-valore-input').value.trim();
-        if(val) {
-            await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
-            await caricaConfigurazioni();
-            document.getElementById('modal-input').classList.add('hidden');
-        }
-    };
-
-    window.chiediEliminaOpzione = (selectId) => {
-        const sel = document.getElementById(selectId);
-        const selectedOpt = sel.options[sel.selectedIndex];
-        if(!selectedOpt) return;
-
-        document.getElementById('confirm-title').innerText = "Elimina Opzione?";
-        document.getElementById('confirm-msg').innerText = `Vuoi davvero eliminare "${selectedOpt.value}" dalle liste?`;
-        document.getElementById('modal-confirm').classList.remove('hidden');
-
-        azioneConferma = async () => {
-            await deleteDoc(doc(db, "app_config", selectedOpt.dataset.id));
-            await caricaConfigurazioni();
-            document.getElementById('modal-confirm').classList.add('hidden');
-        };
-    };
-
-    window.eliminaP = (id) => {
-        document.getElementById('confirm-title').innerText = "Elimina Annuncio?";
-        document.getElementById('confirm-msg').innerText = "Sei sicuro di voler rimuovere questo prodotto dallo shop?";
-        document.getElementById('modal-confirm').classList.remove('hidden');
-
-        azioneConferma = async () => {
-            await deleteDoc(doc(db, "prodotti", id));
-            caricaProdotti();
-            document.getElementById('modal-confirm').classList.add('hidden');
-        };
-    };
-
-    document.getElementById('confirm-delete-btn').onclick = () => { if(azioneConferma) azioneConferma(); };
-
-    document.getElementById('file-input').onchange = (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => { document.getElementById('f-img').value = event.target.result; };
-        reader.readAsDataURL(file);
-    };
-
-    const sessione = localStorage.getItem('shopygo_user_session');
-    if(sessione) { 
-        aggiornaDatiUtente(sessione); 
-    } else {
-        initBiometria(); // Controlla se può usare l'impronta al posto del login
+    if(bioId && !localStorage.getItem('shopygo_user_session')) {
+        btnBioTrigger.style.display = 'block';
     }
 
+    btnBioTrigger.onclick = () => {
+        if(bioId) aggiornaDatiUtente(bioId);
+    };
+
+    document.getElementById('btn-accetta-bio').onclick = () => {
+        localStorage.setItem('sg_staff_bio_id', utenteAttivo.codice);
+        document.getElementById('modal-bio-setup').classList.add('hidden');
+    };
+
+    document.getElementById('btn-rifiuta-bio').onclick = () => {
+        document.getElementById('modal-bio-setup').classList.add('hidden');
+    };
+
+    // --- GESTIONE UTENTE ---
     async function aggiornaDatiUtente(codice) {
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
         const snap = await getDocs(q);
@@ -301,20 +244,17 @@
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
             
-            // Se l'impronta non è registrata, chiedi all'utente
-            if (!localStorage.getItem('sg_biometric_id') && window.isSecureContext) {
-                setTimeout(() => {
-                    if(confirm("Vuoi abilitare l'impronta digitale per i prossimi accessi su questo telefono?")) {
-                        localStorage.setItem('sg_biometric_id', codice);
-                    }
-                }, 1000);
+            // Mostra modale bio se non è già attiva
+            if(!localStorage.getItem('sg_staff_bio_id')) {
+                document.getElementById('modal-bio-setup').classList.remove('hidden');
             }
-
+            
             mostraDashboard();
-        } else {
-            if(codice !== "") alert("ID non valido");
         }
     }
+
+    const sessione = localStorage.getItem('shopygo_user_session');
+    if(sessione) { aggiornaDatiUtente(sessione); }
 
     document.getElementById('btn-login').onclick = () => {
         const cod = document.getElementById('codice-accesso').value.trim();
@@ -326,6 +266,7 @@
         location.reload(); 
     };
 
+    // --- DASHBOARD E PRODOTTI ---
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
@@ -353,6 +294,52 @@
         });
     }
 
+    // --- FUNZIONI MODALI ---
+    window.apriPopupNuovo = (tipo) => {
+        tipoConfigCorrente = tipo;
+        let titoloModale = "Aggiungi " + (tipo === 'categorie' ? "Categoria" : (tipo === 'piattaforme' ? "Piattaforma" : "Stato"));
+        document.getElementById('input-modal-title').innerText = titoloModale;
+        document.getElementById('nuovo-valore-input').value = "";
+        document.getElementById('modal-input').classList.remove('hidden');
+    };
+
+    document.getElementById('btn-conferma-input').onclick = async () => {
+        const val = document.getElementById('nuovo-valore-input').value.trim();
+        if(val) {
+            await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
+            await caricaConfigurazioni();
+            document.getElementById('modal-input').classList.add('hidden');
+        }
+    };
+
+    window.chiediEliminaOpzione = (selectId) => {
+        const sel = document.getElementById(selectId);
+        const selectedOpt = sel.options[sel.selectedIndex];
+        if(!selectedOpt) return;
+        document.getElementById('confirm-title').innerText = "Elimina Opzione?";
+        document.getElementById('confirm-msg').innerText = `Vuoi davvero eliminare "${selectedOpt.value}" dalle liste?`;
+        document.getElementById('modal-confirm').classList.remove('hidden');
+        azioneConferma = async () => {
+            await deleteDoc(doc(db, "app_config", selectedOpt.dataset.id));
+            await caricaConfigurazioni();
+            document.getElementById('modal-confirm').classList.add('hidden');
+        };
+    };
+
+    window.eliminaP = (id) => {
+        document.getElementById('confirm-title').innerText = "Elimina Annuncio?";
+        document.getElementById('confirm-msg').innerText = "Sei sicuro di voler rimuovere questo prodotto dallo shop?";
+        document.getElementById('modal-confirm').classList.remove('hidden');
+        azioneConferma = async () => {
+            await deleteDoc(doc(db, "prodotti", id));
+            caricaProdotti();
+            document.getElementById('modal-confirm').classList.add('hidden');
+        };
+    };
+
+    document.getElementById('confirm-delete-btn').onclick = () => { if(azioneConferma) azioneConferma(); };
+
+    // --- GESTIONE FORM PRODOTTO ---
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
         const data = {
