@@ -45,7 +45,10 @@
         .image-container { width: 100%; height: 140px; padding: 10px; background: #fff; box-sizing: border-box; }
         .card img { width: 100%; height: 100%; object-fit: contain; }
         .info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
-        .info h4 { font-size: 0.8rem; margin: 0; min-height: 35px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        
+        /* MODIFICA: TITOLO PIU LUNGO (4 righe invece di 2) */
+        .info h4 { font-size: 0.85rem; margin: 0; min-height: 60px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
+        
         .price { color: #B12704; font-size: 0.95rem; font-weight: bold; margin: 5px 0; }
         .buy-btn { background: var(--accent); color: #000; padding: 8px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; font-weight: bold; text-align: center; border: 1px solid #f0c14b; margin-top: auto; }
 
@@ -59,9 +62,12 @@
         .filter-drawer.open { bottom: 0; }
         .filter-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2500; display: none; }
         .filter-group { margin-bottom: 20px; }
-        .price-inputs { display: flex; gap: 10px; align-items: center; }
-        .price-inputs input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
         
+        /* MODIFICA: STILE RANGE INPUT */
+        .price-range-wrapper { padding: 10px 0; }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--amazon); }
+        .range-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px; }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -91,12 +97,18 @@
     <div class="filter-overlay" id="overlay"></div>
     <div class="filter-drawer" id="drawer">
         <div style="width:40px; height:5px; background:#ddd; border-radius:10px; margin: -10px auto 20px auto;"></div>
+        
         <div class="filter-group">
-            <h3 style="font-size: 1rem; margin-bottom: 10px;">Prezzo massimo</h3>
-            <div class="price-inputs">
-                <input type="number" id="max-price" placeholder="Esempio: 50 €">
+            <h3 style="font-size: 1rem; margin-bottom: 5px;">Budget Massimo: <span id="price-value">5000</span></h3>
+            <div class="price-range-wrapper">
+                <input type="range" id="max-price-slider" min="0" max="5000" value="5000" step="10">
+                <div class="range-labels">
+                    <span>0</span>
+                    <span>5000</span>
+                </div>
             </div>
         </div>
+
         <div class="filter-group">
             <h3 style="font-size: 1rem; margin-bottom: 10px;">Tipo Prodotto</h3>
             <label><input type="checkbox" class="f-check filter-type" value="amazon"> Amazon</label><br>
@@ -140,17 +152,24 @@
     // UI Filtri
     const drawer = document.getElementById('drawer');
     const overlay = document.getElementById('overlay');
+    const priceSlider = document.getElementById('max-price-slider');
+    const priceValue = document.getElementById('price-value');
+
     document.getElementById('open-filters').onclick = () => { drawer.classList.add('open'); overlay.style.display = 'block'; };
     document.getElementById('close-filters').onclick = () => { drawer.classList.remove('open'); overlay.style.display = 'none'; };
     overlay.onclick = () => { drawer.classList.remove('open'); overlay.style.display = 'none'; };
+
+    // Gestione visualizzazione valore slider
+    priceSlider.oninput = () => {
+        priceValue.innerText = priceSlider.value;
+        renderGrid();
+    };
 
     async function carica() {
         try {
             const snap = await getDocs(collection(db, "prodotti"));
             tuttiProdotti = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Ordina per i più recenti
             tuttiProdotti.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-            
             renderSlider();
             renderGrid();
         } catch (e) { console.error("Errore caricamento prodotti:", e); }
@@ -159,7 +178,6 @@
     function renderSlider() {
         const slider = document.getElementById('slider-prodotti');
         slider.innerHTML = "";
-        // Prendi solo i primi 8 prodotti per lo slider novità
         tuttiProdotti.slice(0, 8).forEach(p => {
             const div = document.createElement('div');
             div.className = 'slider-item';
@@ -177,7 +195,9 @@
         const grid = document.getElementById('product-grid');
         const searchTerm = document.getElementById('main-search').value.toLowerCase();
         
-        const maxP = parseFloat(document.getElementById('max-price').value) || Infinity;
+        // Valore dal nuovo slider
+        const maxP = parseFloat(priceSlider.value) || 5000;
+        
         const selTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(c => c.value);
         const selCats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
 
@@ -213,9 +233,7 @@
         });
     }
 
-    // Event listeners per filtri istantanei
     document.getElementById('main-search').oninput = renderGrid;
-    document.getElementById('max-price').oninput = renderGrid;
     document.querySelectorAll('.f-check').forEach(check => {
         check.onchange = renderGrid;
     });
