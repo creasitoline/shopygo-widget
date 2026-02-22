@@ -1,40 +1,43 @@
-// auth-biometric.js
+// auth-biometric.js - Versione Corretta per Browser
 export async function attivaSensoreImpronta(codiceSalvato, callbackSuccesso) {
     if (!window.PublicKeyCredential) {
-        alert("Biometria non supportata su questo browser.");
+        alert("Il tuo browser non supporta la biometria o non sei in HTTPS.");
         return;
     }
 
     try {
-        // Generiamo una sfida casuale per "svegliare" il chip di sicurezza del Samsung
-        const challenge = Buffer.from(Math.random().toString()).buffer;
+        // Creiamo una sfida (challenge) casuale usando l'API di sistema
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        // Trasformiamo l'ID utente in un formato leggibile dal chip di sicurezza
+        const userId = new TextEncoder().encode(codiceSalvato);
 
         const options = {
             publicKey: {
                 challenge: challenge,
                 rp: { name: "ShopyGO" },
                 user: {
-                    id: Uint8Array.from(codiceSalvato, c => c.charCodeAt(0)),
+                    id: userId,
                     name: codiceSalvato,
                     displayName: codiceSalvato
                 },
                 pubKeyCredParams: [{ alg: -7, type: "public-key" }],
                 authenticatorSelection: {
                     authenticatorAttachment: "platform",
-                    userVerification: "required" // FORZA IL DITO
+                    userVerification: "required"
                 },
                 timeout: 60000
             }
         };
 
-        // Questo attiva il popup nativo del sistema operativo (Android/Samsung)
         const credential = await navigator.credentials.create(options);
         
         if(credential) {
             callbackSuccesso(codiceSalvato);
         }
     } catch (err) {
-        console.error("Errore sensore:", err);
-        // Se l'utente annulla, non succede nulla, rimane alla schermata di login
+        console.error("Errore sensore biometrico:", err);
+        // Se l'utente clicca fuori o annulla, non mostriamo errori fastidiosi
     }
 }
