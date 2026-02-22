@@ -10,7 +10,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #f3f3f3; --accent: #FFD814; }
+        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --offerta: #e67e22; --bg: #f3f3f3; --accent: #FFD814; }
         body { font-family: 'Segoe UI', system-ui; margin: 0; background: var(--bg); padding-bottom: 90px; color: var(--text); overflow-x: hidden; }
         
         header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; gap: 10px; }
@@ -29,17 +29,20 @@
         .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .arrow-left { left: 5px; }
         .arrow-right { right: 5px; }
-        @media (max-width: 768px) { .slider-arrow { display: none; } }
 
         .slider-item { min-width: 160px; max-width: 160px; background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .slider-item:hover { border-color: var(--accent); }
         .slider-item img { width: 100%; height: 100px; object-fit: contain; }
         .slider-item h5 { font-size: 0.8rem; margin: 5px 0; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
         .main-layout { max-width: 1400px; margin: auto; padding: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
         .card { background: white; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #ddd; position: relative; }
-        .badge { position: absolute; top: 8px; left: 8px; padding: 2px 6px; border-radius: 4px; color: white; font-size: 8px; font-weight: bold; text-transform: uppercase; z-index: 5; }
+        
+        /* Badge Stile Amazon */
+        .badge { position: absolute; top: 8px; padding: 3px 7px; border-radius: 4px; color: white; font-size: 8px; font-weight: bold; text-transform: uppercase; z-index: 5; }
+        .badge-left { left: 8px; background: var(--amazon); }
+        .badge-right { right: 8px; background: #666; }
+
         .image-container { width: 100%; height: 140px; padding: 10px; background: #fff; box-sizing: border-box; }
         .card img { width: 100%; height: 100%; object-fit: contain; }
         .info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
@@ -52,7 +55,6 @@
         .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
 
-        /* --- FILTRI PROFESSIONAL --- */
         .filter-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: white; z-index: 3000; border-radius: 25px 25px 0 0; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 20px 25px 40px 25px; max-height: 85vh; overflow-y: auto; }
         .filter-drawer.open { bottom: 0; }
         .filter-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; display: none; backdrop-filter: blur(2px); }
@@ -63,11 +65,9 @@
         .price-inputs input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; }
         
         .checkbox-container { display: flex; flex-wrap: wrap; gap: 10px; }
-        @media (min-width: 769px) { .checkbox-container { flex-direction: row; gap: 20px; } }
         @media (max-width: 768px) { .checkbox-container { flex-direction: column; gap: 8px; } }
 
         .f-check-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -102,9 +102,13 @@
             <h3 style="font-size: 1rem; margin: 0;">Fascia di Prezzo</h3>
             <div class="price-inputs">
                 <input type="number" id="min-price" placeholder="Min" min="0">
-                <span>-</span>
                 <input type="number" id="max-price" placeholder="Max" min="0">
             </div>
+        </div>
+
+        <div class="filter-group">
+            <h3 style="font-size: 1rem; margin-bottom: 12px;">Condizione Prodotto</h3>
+            <div id="status-list" class="checkbox-container"></div>
         </div>
 
         <div class="filter-group">
@@ -141,7 +145,6 @@
         document.getElementById('slider-prodotti').scrollBy({ left: amt, behavior: 'smooth' });
     };
 
-    // --- GESTIONE MENU FILTRI ---
     const drawer = document.getElementById('drawer');
     const overlay = document.getElementById('overlay');
     const closeX = document.getElementById('btn-x-close');
@@ -152,23 +155,32 @@
     document.getElementById('open-filters').onclick = openMenu;
     document.getElementById('close-filters').onclick = closeMenu;
     closeX.onclick = closeMenu;
-    overlay.onclick = closeMenu; // Chiude cliccando fuori
+    overlay.onclick = closeMenu;
 
-    // --- AGGIORNAMENTO DINAMICO FILTRI DAL DB ---
+    // --- AGGIORNAMENTO DINAMICO FILTRI (Piattaforme, Categorie, Stato) ---
     async function aggiornaMenuFiltri() {
         const snap = await getDocs(collection(db, "app_config"));
         const catList = document.getElementById('category-list');
         const typeList = document.getElementById('type-list');
-        catList.innerHTML = ""; typeList.innerHTML = "";
+        const statusList = document.getElementById('status-list');
+        
+        catList.innerHTML = ""; typeList.innerHTML = ""; statusList.innerHTML = "";
 
         snap.forEach(d => {
             const data = d.data();
             const label = document.createElement('label');
             label.className = "f-check-label";
-            const isCat = data.tipo === 'categorie';
-            label.innerHTML = `<input type="checkbox" class="f-check ${isCat ? 'filter-cat' : 'filter-type'}" value="${data.nome}"> ${data.nome}`;
-            if (isCat) catList.appendChild(label);
-            else typeList.appendChild(label);
+            
+            let classe = "";
+            if(data.tipo === 'categorie') classe = "filter-cat";
+            else if(data.tipo === 'piattaforme') classe = "filter-type";
+            else if(data.tipo === 'stato') classe = "filter-status";
+
+            label.innerHTML = `<input type="checkbox" class="f-check ${classe}" value="${data.nome}"> ${data.nome}`;
+            
+            if (data.tipo === 'categorie') catList.appendChild(label);
+            else if (data.tipo === 'piattaforme') typeList.appendChild(label);
+            else if (data.tipo === 'stato') statusList.appendChild(label);
         });
 
         document.querySelectorAll('.f-check').forEach(check => {
@@ -202,40 +214,49 @@
     function renderGrid() {
         const grid = document.getElementById('product-grid');
         const searchTerm = document.getElementById('main-search').value.toLowerCase();
-        
-        // Nuova logica prezzo min/max
         const minP = parseFloat(document.getElementById('min-price').value) || 0;
         const maxP = parseFloat(document.getElementById('max-price').value) || 999999;
         
         const selTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(c => c.value);
         const selCats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
+        const selStatus = Array.from(document.querySelectorAll('.filter-status:checked')).map(c => c.value);
 
         const filtrati = tuttiProdotti.filter(p => {
             const priceNum = parseFloat(p.prezzo?.toString().replace(',', '.') || 0);
             const matchesSearch = p.titolo.toLowerCase().includes(searchTerm);
             const matchesType = selTypes.length === 0 || selTypes.includes(p.tipo);
             const matchesCat = selCats.length === 0 || selCats.includes(p.categoria);
+            const matchesStatus = selStatus.length === 0 || selStatus.includes(p.stato);
             const matchesPrice = priceNum >= minP && priceNum <= maxP;
-            return matchesSearch && matchesType && matchesCat && matchesPrice;
+            return matchesSearch && matchesType && matchesCat && matchesStatus && matchesPrice;
         });
 
         grid.innerHTML = "";
-        if (filtrati.length === 0) {
-            grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:50px; opacity:0.6;'>Nessun risultato.</p>";
-            return;
-        }
-
         filtrati.forEach(p => {
-            let badgeCol = p.tipo === "nuovo" ? "var(--nuovo)" : (p.tipo === "usato" ? "var(--usato)" : "var(--amazon)");
+            // Colore dinamico per il badge di destra (Stato)
+            let sCol = "#666"; 
+            const s = (p.stato || "").toLowerCase();
+            if(s === "nuovo") sCol = "var(--nuovo)";
+            if(s === "usato") sCol = "var(--usato)";
+            if(s === "offerta" || s === "sale" || s === "saldo") sCol = "var(--offerta)";
+
+            // Testo e colore bottone
+            let btnText = "VEDI OFFERTA";
+            let btnCol = "var(--accent)";
+            if(p.tipo === "Marketplace" || p.tipo === "Annunci") { btnText = "CONTATTA ORA"; btnCol = "#2ecc71"; }
+
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <div class="badge" style="background:${badgeCol}">${p.tipo || 'Amazon'}</div>
+                <div class="badge badge-left">${p.tipo || 'Amazon'}</div>
+                ${p.stato ? `<div class="badge badge-right" style="background:${sCol}">${p.stato}</div>` : ''}
                 <div class="image-container"><img src="${p.immagine}"></div>
                 <div class="info">
                     <h4>${p.titolo}</h4>
                     <span class="price">${p.valuta || '€'} ${p.prezzo}</span>
-                    <a href="${p.link_amazon}" target="_blank" class="buy-btn">VEDI OFFERTA</a>
+                    <a href="${p.link_amazon}" target="_blank" class="buy-btn" style="background:${btnCol}; border-color:${btnCol}">
+                        ${btnText}
+                    </a>
                 </div>
             `;
             grid.appendChild(card);
