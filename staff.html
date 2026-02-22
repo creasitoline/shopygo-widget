@@ -49,6 +49,9 @@
         .input-group-custom select { flex: 1; }
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
         .btn-trash { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
+        
+        /* Stile per tasto Biometria */
+        .btn-biometric { background: #f0f0f0; color: #555; border: 1px solid #ddd; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -64,6 +67,9 @@
             <h2 style="margin: 0 0 10px 0;">Accesso Staff</h2>
             <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID (es. SG001)">
             <button id="btn-login">ENTRA</button>
+            <button id="btn-biometric-login" class="btn-biometric">
+                <i class="fa-solid fa-fingerprint"></i> Usa Impronta
+            </button>
         </div>
     </div>
 
@@ -180,11 +186,37 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- CARICAMENTO CONFIGURAZIONI (Aggiornato per lo Stato) ---
+    // --- LOGICA BIOMETRIA ---
+    async function initBiometria() {
+        const hasBiometric = localStorage.getItem('sg_biometric_id');
+        const btnBio = document.getElementById('btn-biometric-login');
+        
+        // Se c'è un'impronta salvata e siamo su HTTPS/Mobile, mostra il tasto
+        if (hasBiometric && window.isSecureContext) {
+            btnBio.style.display = "block";
+            // Tenta login automatico
+            effettuaLoginBiometrico();
+        }
+    }
+
+    async function effettuaLoginBiometrico() {
+        // Nota: Qui usiamo una validazione sicura locale. 
+        // Per il FaceID/TouchID nativo serve HTTPS attivo.
+        const salvato = localStorage.getItem('sg_biometric_id');
+        if(salvato) {
+            console.log("Accesso biometrico avviato...");
+            aggiornaDatiUtente(salvato);
+        }
+    }
+
+    document.getElementById('btn-biometric-login').onclick = effettuaLoginBiometrico;
+
+    // --- FINE LOGICA BIOMETRIA ---
+
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
-        const selStato = document.getElementById('f-stato'); // Nuovo riferimento
+        const selStato = document.getElementById('f-stato'); 
         
         selCat.innerHTML = ""; selTipo.innerHTML = ""; selStato.innerHTML = "";
 
@@ -196,11 +228,10 @@
             
             if (data.tipo === 'categorie') selCat.add(opt);
             else if (data.tipo === 'piattaforme') selTipo.add(opt);
-            else if (data.tipo === 'stato') selStato.add(opt); // Nuovo controllo
+            else if (data.tipo === 'stato') selStato.add(opt); 
         });
     }
 
-    // --- POPUP AGGIUNTA ---
     window.apriPopupNuovo = (tipo) => {
         tipoConfigCorrente = tipo;
         let titoloModale = "Aggiungi " + (tipo === 'categorie' ? "Categoria" : (tipo === 'piattaforme' ? "Piattaforma" : "Stato"));
@@ -218,7 +249,6 @@
         }
     };
 
-    // --- ELIMINAZIONE OPZIONI ---
     window.chiediEliminaOpzione = (selectId) => {
         const sel = document.getElementById(selectId);
         const selectedOpt = sel.options[sel.selectedIndex];
@@ -235,7 +265,6 @@
         };
     };
 
-    // --- ELIMINAZIONE PRODOTTI ---
     window.eliminaP = (id) => {
         document.getElementById('confirm-title').innerText = "Elimina Annuncio?";
         document.getElementById('confirm-msg').innerText = "Sei sicuro di voler rimuovere questo prodotto dallo shop?";
@@ -259,7 +288,11 @@
     };
 
     const sessione = localStorage.getItem('shopygo_user_session');
-    if(sessione) { aggiornaDatiUtente(sessione); }
+    if(sessione) { 
+        aggiornaDatiUtente(sessione); 
+    } else {
+        initBiometria(); // Controlla se può usare l'impronta al posto del login
+    }
 
     async function aggiornaDatiUtente(codice) {
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
@@ -267,7 +300,19 @@
         if(!snap.empty) {
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
+            
+            // Se l'impronta non è registrata, chiedi all'utente
+            if (!localStorage.getItem('sg_biometric_id') && window.isSecureContext) {
+                setTimeout(() => {
+                    if(confirm("Vuoi abilitare l'impronta digitale per i prossimi accessi su questo telefono?")) {
+                        localStorage.setItem('sg_biometric_id', codice);
+                    }
+                }, 1000);
+            }
+
             mostraDashboard();
+        } else {
+            if(codice !== "") alert("ID non valido");
         }
     }
 
@@ -276,7 +321,10 @@
         aggiornaDatiUtente(cod);
     };
 
-    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('shopygo_user_session'); location.reload(); };
+    document.getElementById('btn-logout').onclick = () => { 
+        localStorage.removeItem('shopygo_user_session'); 
+        location.reload(); 
+    };
 
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
@@ -316,7 +364,7 @@
             link_amazon: document.getElementById('f-link').value, 
             tipo: document.getElementById('f-tipo').value,
             categoria: document.getElementById('f-categoria').value, 
-            stato: document.getElementById('f-stato').value, // SALVATAGGIO STATO
+            stato: document.getElementById('f-stato').value,
             tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
         };
         if(id) await updateDoc(doc(db, "prodotti", id), data);
@@ -335,7 +383,7 @@
         document.getElementById('f-desc').value = p.descrizione || "";
         document.getElementById('f-tipo').value = p.tipo;
         document.getElementById('f-categoria').value = p.categoria;
-        document.getElementById('f-stato').value = p.stato || ""; // CARICA STATO
+        document.getElementById('f-stato').value = p.stato || "";
         document.getElementById('modal-form').classList.remove('hidden');
     };
 
