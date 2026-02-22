@@ -52,23 +52,21 @@
         .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
 
-        /* --- FILTRI RESPONSIVE --- */
-        .filter-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: white; z-index: 3000; border-radius: 25px 25px 0 0; transition: 0.4s; padding: 25px; max-height: 80vh; overflow-y: auto; }
+        /* --- FILTRI PROFESSIONAL --- */
+        .filter-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: white; z-index: 3000; border-radius: 25px 25px 0 0; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 20px 25px 40px 25px; max-height: 85vh; overflow-y: auto; }
         .filter-drawer.open { bottom: 0; }
-        .filter-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2500; display: none; }
-        .filter-group { margin-bottom: 20px; }
-        
-        .checkbox-container { display: flex; flex-wrap: wrap; gap: 10px; } /* Mobile default: vertical flow if small, but we force layout below */
-        
-        @media (min-width: 769px) {
-            .checkbox-container { flex-direction: row; gap: 20px; }
-        }
-        @media (max-width: 768px) {
-            .checkbox-container { flex-direction: column; gap: 8px; }
-        }
+        .filter-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; display: none; backdrop-filter: blur(2px); }
+        .close-x { position: absolute; top: 20px; right: 20px; font-size: 1.2rem; color: #888; cursor: pointer; }
 
-        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--amazon); }
-        .range-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px; }
+        .filter-group { margin-bottom: 25px; }
+        .price-inputs { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .price-inputs input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; }
+        
+        .checkbox-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        @media (min-width: 769px) { .checkbox-container { flex-direction: row; gap: 20px; } }
+        @media (max-width: 768px) { .checkbox-container { flex-direction: column; gap: 8px; } }
+
+        .f-check-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -97,29 +95,29 @@
 
     <div class="filter-overlay" id="overlay"></div>
     <div class="filter-drawer" id="drawer">
-        <div style="width:40px; height:5px; background:#ddd; border-radius:10px; margin: -10px auto 20px auto;"></div>
+        <div style="width:40px; height:5px; background:#e0e0e0; border-radius:10px; margin: -5px auto 15px auto;"></div>
+        <i class="fa-solid fa-xmark close-x" id="btn-x-close"></i>
         
         <div class="filter-group">
-            <h3 style="font-size: 1rem; margin-bottom: 5px;">Budget Massimo: <span id="price-value">300</span></h3>
-            <div class="price-range-wrapper">
-                <input type="range" id="max-price-slider" min="10" max="300" value="300" step="5">
-                <div class="range-labels"><span>10</span><span>300</span></div>
+            <h3 style="font-size: 1rem; margin: 0;">Fascia di Prezzo</h3>
+            <div class="price-inputs">
+                <input type="number" id="min-price" placeholder="Min" min="0">
+                <span>-</span>
+                <input type="number" id="max-price" placeholder="Max" min="0">
             </div>
         </div>
 
         <div class="filter-group">
-            <h3 style="font-size: 1rem; margin-bottom: 10px;">Tipo Prodotto</h3>
-            <div id="type-list" class="checkbox-container">
-                </div>
+            <h3 style="font-size: 1rem; margin-bottom: 12px;">Piattaforme</h3>
+            <div id="type-list" class="checkbox-container"></div>
         </div>
 
         <div class="filter-group">
-            <h3 style="font-size: 1rem; margin-bottom: 10px;">Categorie</h3>
-            <div id="category-list" class="checkbox-container">
-                </div>
+            <h3 style="font-size: 1rem; margin-bottom: 12px;">Categorie</h3>
+            <div id="category-list" class="checkbox-container"></div>
         </div>
         
-        <button id="close-filters" style="width:100%; background:var(--amazon); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px;">APPLICA FILTRI</button>
+        <button id="close-filters" style="width:100%; background:var(--amazon); color:white; border:none; padding:16px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1rem;">APPLICA FILTRI</button>
     </div>
 
     <nav class="nav-bottom">
@@ -143,36 +141,32 @@
         document.getElementById('slider-prodotti').scrollBy({ left: amt, behavior: 'smooth' });
     };
 
+    // --- GESTIONE MENU FILTRI ---
     const drawer = document.getElementById('drawer');
     const overlay = document.getElementById('overlay');
-    const priceSlider = document.getElementById('max-price-slider');
-    const priceValue = document.getElementById('price-value');
+    const closeX = document.getElementById('btn-x-close');
 
-    document.getElementById('open-filters').onclick = () => { drawer.classList.add('open'); overlay.style.display = 'block'; };
-    document.getElementById('close-filters').onclick = () => { drawer.classList.remove('open'); overlay.style.display = 'none'; };
-    overlay.onclick = () => { drawer.classList.remove('open'); overlay.style.display = 'none'; };
+    const openMenu = () => { drawer.classList.add('open'); overlay.style.display = 'block'; };
+    const closeMenu = () => { drawer.classList.remove('open'); overlay.style.display = 'none'; };
 
-    priceSlider.oninput = () => {
-        priceValue.innerText = priceSlider.value;
-        renderGrid();
-    };
+    document.getElementById('open-filters').onclick = openMenu;
+    document.getElementById('close-filters').onclick = closeMenu;
+    closeX.onclick = closeMenu;
+    overlay.onclick = closeMenu; // Chiude cliccando fuori
 
     // --- AGGIORNAMENTO DINAMICO FILTRI DAL DB ---
     async function aggiornaMenuFiltri() {
         const snap = await getDocs(collection(db, "app_config"));
         const catList = document.getElementById('category-list');
         const typeList = document.getElementById('type-list');
-        
-        catList.innerHTML = "";
-        typeList.innerHTML = "";
+        catList.innerHTML = ""; typeList.innerHTML = "";
 
         snap.forEach(d => {
             const data = d.data();
             const label = document.createElement('label');
-            label.style.display = "block";
+            label.className = "f-check-label";
             const isCat = data.tipo === 'categorie';
             label.innerHTML = `<input type="checkbox" class="f-check ${isCat ? 'filter-cat' : 'filter-type'}" value="${data.nome}"> ${data.nome}`;
-            
             if (isCat) catList.appendChild(label);
             else typeList.appendChild(label);
         });
@@ -208,7 +202,11 @@
     function renderGrid() {
         const grid = document.getElementById('product-grid');
         const searchTerm = document.getElementById('main-search').value.toLowerCase();
-        const maxP = parseFloat(priceSlider.value) || 300;
+        
+        // Nuova logica prezzo min/max
+        const minP = parseFloat(document.getElementById('min-price').value) || 0;
+        const maxP = parseFloat(document.getElementById('max-price').value) || 999999;
+        
         const selTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(c => c.value);
         const selCats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
 
@@ -217,7 +215,7 @@
             const matchesSearch = p.titolo.toLowerCase().includes(searchTerm);
             const matchesType = selTypes.length === 0 || selTypes.includes(p.tipo);
             const matchesCat = selCats.length === 0 || selCats.includes(p.categoria);
-            const matchesPrice = priceNum <= maxP;
+            const matchesPrice = priceNum >= minP && priceNum <= maxP;
             return matchesSearch && matchesType && matchesCat && matchesPrice;
         });
 
@@ -245,6 +243,8 @@
     }
 
     document.getElementById('main-search').oninput = renderGrid;
+    document.getElementById('min-price').oninput = renderGrid;
+    document.getElementById('max-price').oninput = renderGrid;
     carica();
 </script>
 </body>
