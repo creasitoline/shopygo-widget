@@ -52,11 +52,21 @@
         .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
 
+        /* --- FILTRI RESPONSIVE --- */
         .filter-drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: white; z-index: 3000; border-radius: 25px 25px 0 0; transition: 0.4s; padding: 25px; max-height: 80vh; overflow-y: auto; }
         .filter-drawer.open { bottom: 0; }
         .filter-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2500; display: none; }
         .filter-group { margin-bottom: 20px; }
         
+        .checkbox-container { display: flex; flex-wrap: wrap; gap: 10px; } /* Mobile default: vertical flow if small, but we force layout below */
+        
+        @media (min-width: 769px) {
+            .checkbox-container { flex-direction: row; gap: 20px; }
+        }
+        @media (max-width: 768px) {
+            .checkbox-container { flex-direction: column; gap: 8px; }
+        }
+
         input[type=range] { width: 100%; cursor: pointer; accent-color: var(--amazon); }
         .range-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px; }
         .hidden { display: none !important; }
@@ -90,32 +100,26 @@
         <div style="width:40px; height:5px; background:#ddd; border-radius:10px; margin: -10px auto 20px auto;"></div>
         
         <div class="filter-group">
-            <h3 style="font-size: 1rem; margin-bottom: 5px;">Budget Massimo: <span id="price-value">5000</span></h3>
+            <h3 style="font-size: 1rem; margin-bottom: 5px;">Budget Massimo: <span id="price-value">300</span></h3>
             <div class="price-range-wrapper">
-                <input type="range" id="max-price-slider" min="0" max="5000" value="5000" step="10">
-                <div class="range-labels"><span>0</span><span>5000</span></div>
+                <input type="range" id="max-price-slider" min="10" max="300" value="300" step="5">
+                <div class="range-labels"><span>10</span><span>300</span></div>
             </div>
         </div>
 
         <div class="filter-group">
             <h3 style="font-size: 1rem; margin-bottom: 10px;">Tipo Prodotto</h3>
-            <div id="type-list">
-                <label><input type="checkbox" class="f-check filter-type" value="amazon"> Amazon</label><br>
-                <label><input type="checkbox" class="f-check filter-type" value="nuovo"> Nuovo (Store)</label><br>
-                <label><input type="checkbox" class="f-check filter-type" value="usato"> Usato Garantito</label>
-            </div>
+            <div id="type-list" class="checkbox-container">
+                </div>
         </div>
 
         <div class="filter-group">
             <h3 style="font-size: 1rem; margin-bottom: 10px;">Categorie</h3>
-            <div id="category-list">
-                <label><input type="checkbox" class="f-check filter-cat" value="Elettronica"> Elettronica</label><br>
-                <label><input type="checkbox" class="f-check filter-cat" value="Informatica"> Informatica</label><br>
-                <label><input type="checkbox" class="f-check filter-cat" value="Casa"> Casa</label><br>
-                <label><input type="checkbox" class="f-check filter-cat" value="Moda"> Moda</label>
-            </div>
+            <div id="category-list" class="checkbox-container">
+                </div>
         </div>
-        <button id="close-filters" style="width:100%; background:var(--amazon); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer;">APPLICA FILTRI</button>
+        
+        <button id="close-filters" style="width:100%; background:var(--amazon); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px;">APPLICA FILTRI</button>
     </div>
 
     <nav class="nav-bottom">
@@ -158,22 +162,21 @@
         const snap = await getDocs(collection(db, "app_config"));
         const catList = document.getElementById('category-list');
         const typeList = document.getElementById('type-list');
+        
+        catList.innerHTML = "";
+        typeList.innerHTML = "";
 
         snap.forEach(d => {
             const data = d.data();
             const label = document.createElement('label');
+            label.style.display = "block";
             const isCat = data.tipo === 'categorie';
-            label.innerHTML = `<input type="checkbox" class="f-check ${isCat ? 'filter-cat' : 'filter-type'}" value="${data.nome}"> ${data.nome}<br>`;
+            label.innerHTML = `<input type="checkbox" class="f-check ${isCat ? 'filter-cat' : 'filter-type'}" value="${data.nome}"> ${data.nome}`;
             
-            // Verifica se esiste già per evitare duplicati
-            const esistente = Array.from(document.querySelectorAll('.f-check')).find(input => input.value === data.nome);
-            if (!esistente) {
-                if (isCat) catList.appendChild(label);
-                else typeList.appendChild(label);
-            }
+            if (isCat) catList.appendChild(label);
+            else typeList.appendChild(label);
         });
 
-        // Ricollega l'evento onchange ai nuovi checkbox
         document.querySelectorAll('.f-check').forEach(check => {
             check.onchange = renderGrid;
         });
@@ -181,13 +184,13 @@
 
     async function carica() {
         try {
-            await aggiornaMenuFiltri(); // Carica prima i filtri
+            await aggiornaMenuFiltri(); 
             const snap = await getDocs(collection(db, "prodotti"));
             tuttiProdotti = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             tuttiProdotti.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
             renderSlider();
             renderGrid();
-        } catch (e) { console.error("Errore caricamento prodotti:", e); }
+        } catch (e) { console.error("Errore:", e); }
     }
 
     function renderSlider() {
@@ -205,7 +208,7 @@
     function renderGrid() {
         const grid = document.getElementById('product-grid');
         const searchTerm = document.getElementById('main-search').value.toLowerCase();
-        const maxP = parseFloat(priceSlider.value) || 5000;
+        const maxP = parseFloat(priceSlider.value) || 300;
         const selTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(c => c.value);
         const selCats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
 
