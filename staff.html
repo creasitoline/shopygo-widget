@@ -34,7 +34,11 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
         .card-p { background: white; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; }
         .card-p img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 5px; }
-        .delete-btn { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        
+        /* Icone Posizionamento */
+        .delete-btn { position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .share-btn { position: absolute; top: 22px; right: -8px; background: #3498db; color: white; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+        .click-badge { position: absolute; top: -8px; left: -8px; background: white; color: var(--amazon); padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; }
 
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
         .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; }
@@ -130,12 +134,9 @@
             </div>
 
             <input type="text" id="f-img" placeholder="URL Immagine">
-            
             <button type="button" id="btn-carica-foto-nascosto" style="background:#f0f0f0; color:#333; font-size:12px; display:none;" onclick="document.getElementById('file-input').click()">Carica Foto</button>
             <input type="file" id="file-input" class="hidden" accept="image/*">
-            
             <textarea id="f-desc" rows="3" placeholder="Descrizione" style="display:none;"></textarea>
-            
             <input type="text" id="f-link" placeholder="Link finale" oninput="window.pulisciLinkManuale(this)">
             <input type="hidden" id="f-id">
             <button id="btn-salva-prodotto">PUBBLICA ORA</button>
@@ -186,17 +187,29 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
+    // FUNZIONE CONDIVISIONE
+    window.condividiProdotto = async (titolo, link) => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Offerta ShopyGO',
+                    text: titolo,
+                    url: link
+                });
+            } catch (err) { console.log("Errore condivisione:", err); }
+        } else {
+            // Fallback se il browser non supporta la condivisione nativa
+            navigator.clipboard.writeText(link);
+            alert("Link copiato negli appunti!");
+        }
+    };
+
     const btnBio = document.getElementById('btn-biometrico');
     const bioIdSalvato = localStorage.getItem('sg_staff_bio_id');
-
-    if(bioIdSalvato && !localStorage.getItem('shopygo_user_session')) {
-        btnBio.style.display = 'block';
-    }
+    if(bioIdSalvato && !localStorage.getItem('shopygo_user_session')) { btnBio.style.display = 'block'; }
 
     btnBio.onclick = () => {
-        attivaSensoreImpronta(bioIdSalvato, (codice) => {
-            aggiornaDatiUtente(codice); 
-        });
+        attivaSensoreImpronta(bioIdSalvato, (codice) => { aggiornaDatiUtente(codice); });
     };
 
     const sessione = localStorage.getItem('shopygo_user_session');
@@ -260,7 +273,12 @@
             const p = res.data();
             const div = document.createElement('div');
             div.className = 'card-p';
-            div.innerHTML = `<div class="delete-btn" onclick="event.stopPropagation(); window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div><img src="${p.immagine}"><p style="font-size:10px; font-weight:bold;">${p.valuta || '€'} ${p.prezzo}</p>`;
+            div.innerHTML = `
+                <div class="click-badge"><i class="fa-solid fa-eye"></i> ${p.click_count || 0}</div>
+                <div class="delete-btn" onclick="event.stopPropagation(); window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
+                <div class="share-btn" onclick="event.stopPropagation(); window.condividiProdotto('${p.titolo.replace(/'/g, "\\'")}', '${p.link_amazon}')"><i class="fa-solid fa-share-nodes"></i></div>
+                <img src="${p.immagine}">
+                <p style="font-size:10px; font-weight:bold;">${p.valuta || '€'} ${p.prezzo}</p>`;
             div.onclick = () => apriModifica(res.id, p);
             container.appendChild(div);
         });
@@ -271,9 +289,7 @@
         const pPieno = parseFloat(document.getElementById('f-prezzo-pieno').value) || 0;
         const pSconto = parseFloat(document.getElementById('f-prezzo').value) || 0;
         let perc = "";
-        if(pPieno > pSconto && pPieno > 0) {
-            perc = "-" + Math.round(((pPieno - pSconto) / pPieno) * 100) + "%";
-        }
+        if(pPieno > pSconto && pPieno > 0) { perc = "-" + Math.round(((pPieno - pSconto) / pPieno) * 100) + "%"; }
 
         const data = {
             titolo: document.getElementById('f-titolo').value, 
@@ -289,6 +305,9 @@
             stato: document.getElementById('f-stato').value,
             tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
         };
+        // Se è un nuovo prodotto, inizializziamo click_count a 0
+        if(!id) data.click_count = 0;
+
         if(id) await updateDoc(doc(db, "prodotti", id), data);
         else await addDoc(collection(db, "prodotti"), data);
         document.getElementById('modal-form').classList.add('hidden');
@@ -298,9 +317,7 @@
     function accorciaLinkAmazon(url) {
         if(!url.includes("amazon.")) return url;
         const asinMatch = url.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
-        if (asinMatch && asinMatch[1]) {
-            return `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`;
-        }
+        if (asinMatch && asinMatch[1]) { return `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`; }
         return url;
     }
 
