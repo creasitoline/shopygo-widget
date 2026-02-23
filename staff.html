@@ -32,17 +32,63 @@
         .btn-manual { background: var(--nuovo); margin-top: 5px; }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
-        .card-p { background: white; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; height: 160px; display: flex; flex-direction: column; justify-content: center; transition: transform 0.2s; }
-        .card-p img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 5px; }
         
-        /* NUOVO POSIZIONAMENTO CENTER-LATERAL */
-        .delete-btn { position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; width: 26px; height: 26px; border-radius: 50%; border: 2px solid white; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        /* CELLA PRODOTTO */
+        .card-p { 
+            background: white; 
+            padding: 8px; 
+            border-radius: 12px; 
+            text-align: center; 
+            border: 1px solid #eee; 
+            position: relative; 
+            cursor: pointer; 
+            height: 165px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start; 
+            transition: transform 0.2s; 
+            overflow: hidden; /* Garantisce che nulla esca dalla cella */
+        }
+        .card-p img { width: 100%; height: 85px; object-fit: contain; margin-top: 5px; }
         
-        /* Icona Share Centrata a Destra */
-        .share-btn { position: absolute; top: 50%; right: -10px; transform: translateY(-50%); background: #3498db; color: white; width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        /* BOTTONE ELIMINA (Top Right) */
+        .delete-btn { position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 11px; }
         
-        /* Badge Visite (Occhio) Centrato a Sinistra */
-        .click-badge { position: absolute; top: 50%; left: -10px; transform: translateY(-50%); background: white; color: var(--amazon); padding: 5px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; display: flex; align-items: center; gap: 4px; }
+        /* BOTTONE SHARE (Bottom Right - Dentro la cella) */
+        .share-btn { 
+            position: absolute; 
+            bottom: 8px; 
+            right: 8px; 
+            background: #3498db; 
+            color: white; 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 50%; 
+            z-index: 10; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 12px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        
+        /* BADGE VISITE (Bottom Left - Dentro la cella) */
+        .click-badge { 
+            position: absolute; 
+            bottom: 8px; 
+            left: 8px; 
+            background: #f8f9fa; 
+            color: var(--amazon); 
+            padding: 4px 7px; 
+            border-radius: 8px; 
+            font-size: 10px; 
+            font-weight: bold; 
+            border: 1px solid #eee; 
+            z-index: 10; 
+            display: flex; 
+            align-items: center; 
+            gap: 3px; 
+        }
 
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
         .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; }
@@ -190,7 +236,6 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // FUNZIONE CONDIVISIONE (USA IL LINK AMAZON SALVATO)
     window.condividiProdotto = async (titolo, link) => {
         if (navigator.share) {
             try {
@@ -280,7 +325,7 @@
                 <div class="click-badge"><i class="fa-solid fa-eye"></i> ${p.click_count || 0}</div>
                 <div class="share-btn" onclick="event.stopPropagation(); window.condividiProdotto('${p.titolo.replace(/'/g, "\\'")}', '${p.link_amazon}')"><i class="fa-solid fa-share-nodes"></i></div>
                 <img src="${p.immagine}">
-                <p style="font-size:10px; font-weight:bold; margin: 5px 0 0 0;">${p.valuta || '€'} ${p.prezzo}</p>`;
+                <p style="font-size:10px; font-weight:bold; margin: 8px 0 0 0;">${p.valuta || '€'} ${p.prezzo}</p>`;
             div.onclick = () => apriModifica(res.id, p);
             container.appendChild(div);
         });
