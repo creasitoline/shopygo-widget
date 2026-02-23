@@ -10,7 +10,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --offerta: #e67e22; --bg: #f3f3f3; --accent: #FFD814; }
+        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --offerta: #e67e22; --bg: #f3f3f3; --accent: #FFD814; --sconto: #CC0C39; }
         body { font-family: 'Segoe UI', system-ui; margin: 0; background: var(--bg); padding-bottom: 90px; color: var(--text); overflow-x: hidden; }
         
         header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; gap: 10px; }
@@ -48,7 +48,15 @@
         
         .info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
         .info h4 { font-size: 0.85rem; margin: 0; min-height: 60px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
-        .price { color: #B12704; font-size: 0.95rem; font-weight: bold; margin: 5px 0; }
+        
+        /* STILI PREZZO AGGIORNATI */
+        .price-container { display: flex; flex-direction: column; margin: 5px 0; }
+        .price-row { display: flex; align-items: center; gap: 5px; }
+        .perc-sconto { color: var(--sconto); font-size: 1.2rem; font-weight: 300; }
+        .price { color: #131921; font-size: 1.2rem; font-weight: bold; }
+        .old-price { color: #565959; text-decoration: line-through; font-size: 0.75rem; margin-top: -2px; }
+        .single-price { color: #B12704; font-size: 0.95rem; font-weight: bold; }
+
         .buy-btn { background: var(--accent); color: #000; padding: 8px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; font-weight: bold; text-align: center; border: 1px solid #f0c14b; margin-top: auto; }
 
         #lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; display: none; align-items: center; justify-content: center; }
@@ -219,7 +227,6 @@
         const slider = document.getElementById('slider-prodotti');
         slider.innerHTML = "";
         tuttiProdotti.slice(0, 8).forEach(p => {
-            // FIX LINK: Aggiunge https:// se manca
             let sLink = p.link_amazon || p.link || "#";
             if (sLink !== "#" && !sLink.startsWith('http')) sLink = 'https://' + sLink;
 
@@ -257,7 +264,6 @@
 
         grid.innerHTML = "";
         filtrati.forEach(p => {
-            // FIX LINK: Controllo e correzione automatica link per evitare errore 404 GitHub
             let finalLink = p.link_amazon || p.link || "#";
             if (finalLink !== "#" && !finalLink.startsWith('http')) {
                 finalLink = 'https://' + finalLink;
@@ -273,6 +279,20 @@
             let btnCol = "var(--accent)";
             if(p.tipo === "Marketplace" || p.tipo === "Annunci") { btnText = "CONTATTA ORA"; btnCol = "#2ecc71"; }
 
+            // LOGICA PREZZO: Mostra sconto solo se esiste prezzo_pieno
+            let htmlPrezzo = `<span class="single-price">${p.valuta || '€'} ${p.prezzo}</span>`;
+            if(p.prezzo_pieno && p.sconto_perc) {
+                htmlPrezzo = `
+                    <div class="price-container">
+                        <div class="price-row">
+                            <span class="perc-sconto">${p.sconto_perc}</span>
+                            <span class="price">${p.valuta || '€'}${p.prezzo}</span>
+                        </div>
+                        <span class="old-price">Prezzo: ${p.valuta || '€'}${p.prezzo_pieno}</span>
+                    </div>
+                `;
+            }
+
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
@@ -283,7 +303,7 @@
                 </div>
                 <div class="info">
                     <h4>${p.titolo}</h4>
-                    <span class="price">${p.valuta || '€'} ${p.prezzo}</span>
+                    ${htmlPrezzo}
                     <a href="${finalLink}" target="_blank" class="buy-btn" style="background:${btnCol}; border-color:${btnCol}">
                         ${btnText}
                     </a>
