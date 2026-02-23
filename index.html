@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ShopyGO - Shop</title>
     
+    <title>ShopyGO | Offerte Amazon, Marketplace e Annunci Selezionati</title>
+    <meta name="description" content="Scopri ShopyGO: la tua destinazione per le migliori offerte Amazon, sconti esclusivi e prodotti marketplace. Risparmia su tecnologia, casa, moda e usato garantito.">
+    <meta name="keywords" content="ShopyGO, offerte amazon, sconti smartphone, iPhone, Samsung, Xiaomi, telefoni, tablet, computer, notebook, HP, ASUS, Lenovo, elettronica, elettrodomestici, Dyson, Samsung TV, LG OLED, Sony, PlayStation 5, PS5, Xbox, Nintendo Switch, videogiochi, fotografia, Canon, Nikon, domotica, Philips Hue, arredamento, casa, cucina, LEGO, moda, abbigliamento, scarpe Nike, Adidas, offerte tempo libero, usato garantito, ricondizionati, warehouse, miglior prezzo, coupon, risparmio, Amazon Italia, Marketplace annunci">
+    <meta name="author" content="ShopyGO">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://shopygo.link/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://shopygo.link/">
+    <meta property="og:title" content="ShopyGO - Il meglio dello shopping online in un click">
+    <meta property="og:description" content="Non perdere le ultime novità e le offerte più calde selezionate dal nostro staff. Tutto quello che cerchi al miglior prezzo.">
+    <meta property="og:image" content="https://shopygo.link/icon.png">
+
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
 
@@ -49,7 +61,6 @@
         .info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
         .info h4 { font-size: 0.85rem; margin: 0; min-height: 60px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
         
-        /* STILI PREZZO AGGIORNATI CON SPAZIATURA */
         .price-container { display: flex; flex-direction: column; margin: 8px 0 12px 0; }
         .price-row { display: flex; align-items: center; gap: 5px; }
         .perc-sconto { color: var(--sconto); font-size: 1.2rem; font-weight: 300; }
@@ -83,6 +94,21 @@
     </style>
 </head>
 <body>
+
+    <div style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
+        <h2>Le migliori marche su ShopyGO</h2>
+        <p>Su ShopyGO trovi quotidianamente offerte su prodotti di elettronica dei brand leader: 
+           <strong>Apple</strong> (iPhone, iPad, MacBook), <strong>Samsung</strong> (Galaxy, Smart TV), 
+           <strong>Xiaomi</strong>, <strong>Huawei</strong>, <strong>Oppo</strong> e <strong>Realme</strong>. 
+           Per il gaming monitoriamo i prezzi di <strong>Sony PlayStation</strong>, <strong>Microsoft Xbox</strong> e <strong>Nintendo</strong>.</p>
+        <h2>Elettrodomestici e Casa</h2>
+        <p>Non mancano le occasioni per la casa con marchi come <strong>Dyson</strong>, <strong>iRobot Roomba</strong>, 
+           <strong>Philips</strong>, <strong>De'Longhi</strong> e <strong>Nespresso</strong>. Se cerchi informatica, 
+           troverai notebook <strong>HP</strong>, <strong>Lenovo</strong>, <strong>MSI</strong> e periferiche <strong>Logitech</strong>.</p>
+        <h2>Abbigliamento e Lifestyle</h2>
+        <p>Le ultime tendenze moda di <strong>Nike</strong>, <strong>Adidas</strong>, <strong>Levis</strong> e molto altro, 
+           direttamente dai migliori venditori del Marketplace e dalle offerte lampo Amazon.</p>
+    </div>
 
     <div id="lightbox">
         <span class="close-zoom">&times;</span>
@@ -279,7 +305,6 @@
             let btnCol = "var(--accent)";
             if(p.tipo === "Marketplace" || p.tipo === "Annunci") { btnText = "CONTATTA ORA"; btnCol = "#2ecc71"; }
 
-            // LOGICA PREZZO: Mostra sconto solo se esiste prezzo_pieno
             let htmlPrezzo = `<span class="single-price">${p.valuta || '€'} ${p.prezzo}</span>`;
             if(p.prezzo_pieno && p.sconto_perc) {
                 htmlPrezzo = `
