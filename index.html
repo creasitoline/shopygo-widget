@@ -176,13 +176,22 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    // AGGIORNATO: aggiunti updateDoc, doc, increment per i click
+    import { getFirestore, collection, getDocs, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     
     let tuttiProdotti = [];
+
+    // FUNZIONE NUOVA: Registra il click nel DB
+    window.registraClick = async (productId) => {
+        const prodRef = doc(db, "prodotti", productId);
+        try {
+            await updateDoc(prodRef, { click_count: increment(1) });
+        } catch (e) { console.error("Errore conteggio click:", e); }
+    };
 
     window.apriZoom = (url) => {
         document.getElementById('img-zoom').src = url;
@@ -260,7 +269,7 @@
             div.className = 'slider-item';
             div.innerHTML = `
                 <img src="${p.immagine}" onclick="window.apriZoom('${p.immagine}')">
-                <div onclick="window.open('${sLink}', '_blank')">
+                <div onclick="window.registraClick('${p.id}'); window.open('${sLink}', '_blank')">
                     <h5>${p.titolo}</h5>
                     <p class="price">${p.valuta || '€'} ${p.prezzo}</p>
                 </div>`;
@@ -329,7 +338,7 @@
                 <div class="info">
                     <h4>${p.titolo}</h4>
                     ${htmlPrezzo}
-                    <a href="${finalLink}" target="_blank" class="buy-btn" style="background:${btnCol}; border-color:${btnCol}">
+                    <a href="${finalLink}" target="_blank" class="buy-btn" onclick="window.registraClick('${p.id}')" style="background:${btnCol}; border-color:${btnCol}">
                         ${btnText}
                     </a>
                 </div>
