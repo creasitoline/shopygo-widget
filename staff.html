@@ -131,7 +131,7 @@
             <button type="button" style="background:#f0f0f0; color:#333; font-size:12px;" onclick="document.getElementById('file-input').click()">Carica Foto</button>
             <input type="file" id="file-input" class="hidden" accept="image/*">
             <textarea id="f-desc" rows="3" placeholder="Descrizione"></textarea>
-            <input type="text" id="f-link" placeholder="Link finale">
+            <input type="text" id="f-link" placeholder="Link finale" oninput="window.pulisciLinkManuale(this)">
             <input type="hidden" id="f-id">
             <button id="btn-salva-prodotto">PUBBLICA ORA</button>
             <button style="background: #eee; color: #333;" id="btn-close-modal">CHIUDI</button>
@@ -171,7 +171,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // --- IMPORTAZIONE FILE BIOMETRICO ---
     import { attivaSensoreImpronta } from "./auth-biometric.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
@@ -183,11 +182,9 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- GESTIONE BIOMETRIA ---
     const btnBio = document.getElementById('btn-biometrico');
     const bioIdSalvato = localStorage.getItem('sg_staff_bio_id');
 
-    // Mostra il tasto impronta se c'è una sessione precedente salvata
     if(bioIdSalvato && !localStorage.getItem('shopygo_user_session')) {
         btnBio.style.display = 'block';
     }
@@ -198,7 +195,6 @@
         });
     };
 
-    // --- LOGIN E DASHBOARD ---
     const sessione = localStorage.getItem('shopygo_user_session');
     if(sessione) { aggiornaDatiUtente(sessione); }
 
@@ -208,7 +204,7 @@
         if(!snap.empty) {
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
-            localStorage.setItem('sg_staff_bio_id', codice); // Salva ID per futuro uso biometrico
+            localStorage.setItem('sg_staff_bio_id', codice);
             mostraDashboard();
         } else {
             alert("ID non autorizzato.");
@@ -237,7 +233,6 @@
         caricaProdotti();
     }
 
-    // --- CARICAMENTO CONFIGURAZIONI ---
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
@@ -254,7 +249,6 @@
         });
     }
 
-    // --- GESTIONE PRODOTTI ---
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
         container.innerHTML = "";
@@ -290,19 +284,34 @@
         caricaProdotti();
     };
 
+    // --- FUNZIONE CORE: PULIZIA E ACCORCIAMENTO LINK ---
+    function accorciaLinkAmazon(url) {
+        if(!url.includes("amazon.")) return url;
+        const asinMatch = url.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
+        if (asinMatch && asinMatch[1]) {
+            return `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`;
+        }
+        return url;
+    }
+
+    window.pulisciLinkManuale = (el) => {
+        el.value = accorciaLinkAmazon(el.value);
+    };
+
     document.getElementById('btn-verifica').onclick = () => {
-        const url = document.getElementById('amazon-link').value;
-        if(!url) return;
-        fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: url}) })
+        const urlRaw = document.getElementById('amazon-link').value;
+        if(!urlRaw) return;
+        
+        fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: urlRaw}) })
         .then(r => r.json()).then(res => {
-            document.getElementById('f-titolo').value = res.title; 
-            document.getElementById('f-img').value = res.image;
-            document.getElementById('f-link').value = url.split("?")[0] + "?tag=" + utenteAttivo.tag;
+            document.getElementById('f-titolo').value = res.title || ""; 
+            document.getElementById('f-img').value = res.image || "";
+            // Usa la funzione di accorciamento qui
+            document.getElementById('f-link').value = accorciaLinkAmazon(urlRaw);
             document.getElementById('modal-form').classList.remove('hidden');
         });
     };
 
-    // --- FUNZIONI WINDOW (Globali per bottoni inline) ---
     window.apriModifica = (id, p) => {
         pulisci();
         document.getElementById('f-id').value = id; 
@@ -352,7 +361,6 @@
         document.getElementById('f-stato').value = "";
     }
 
-    // --- GESTIONE BOTTONI MODALI ---
     document.getElementById('btn-conferma-input').onclick = async () => {
         const val = document.getElementById('nuovo-valore-input').value.trim();
         if(val) {
