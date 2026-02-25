@@ -29,10 +29,9 @@
         input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; outline: none; }
         button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
-        .btn-manual { background: var(--nuovo); margin-top: 5px; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
         
+        /* GRID E CARDS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
         .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; height: 165px; display: flex; flex-direction: column; justify-content: flex-start; transition: transform 0.2s; overflow: hidden; }
         .card-p img { width: 100%; height: 85px; object-fit: contain; margin-top: 5px; }
         
@@ -54,11 +53,9 @@
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
         .btn-trash { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
         
-        /* Premium Popup Style */
-        .premium-popup { text-align: center; }
-        .premium-popup i { font-size: 4rem; color: #f1c40f; margin-bottom: 20px; }
-        .premium-popup h2 { color: var(--text); margin-bottom: 10px; }
-        .premium-popup p { color: #666; margin-bottom: 20px; line-height: 1.5; }
+        /* Stats e Counter */
+        .limit-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; font-weight: bold; color: #666; }
+        .count-tag { background: #eee; padding: 2px 8px; border-radius: 10px; color: var(--amazon); }
     </style>
 </head>
 <body>
@@ -74,9 +71,6 @@
             <h2 style="margin: 0 0 10px 0;">Accesso Staff</h2>
             <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID (es. SG001)">
             <button id="btn-login">ENTRA</button>
-            <button id="btn-biometrico" style="background:#f0f0f0; color:#333; margin-top:10px; display:none;">
-                <i class="fa-solid fa-fingerprint"></i> Usa Impronta
-            </button>
         </div>
     </div>
 
@@ -99,7 +93,10 @@
             </div>
 
             <div style="background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 25px;">
-                <h4 style="margin: 0 0 10px 0;"><i class="fa-brands fa-amazon"></i> Pubblica Prodotto</h4>
+                <div class="limit-info">
+                    <span><i class="fa-brands fa-amazon"></i> Pubblica Prodotto</span>
+                    <span class="count-tag" id="label-limite">Annunci: 0 / 2</span>
+                </div>
                 <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui...">
                 <button id="btn-verifica"><i class="fa-solid fa-wand-magic-sparkles"></i> VERIFICA E CARICA</button>
             </div>
@@ -110,12 +107,12 @@
     </div>
 
     <div id="modal-premium" class="modal hidden">
-        <div class="modal-box premium-popup">
-            <i class="fa-solid fa-crown"></i>
-            <h2>Limite Raggiunto</h2>
-            <p>Hai raggiunto il limite di 2 annunci gratuiti. Per pubblicare nuovi prodotti senza limiti, passa alla versione Premium.</p>
-            <button onclick="window.location.href='upgrade.html'" style="background: #f1c40f; color: #000;">PASSA A PREMIUM</button>
-            <button onclick="document.getElementById('modal-premium').classList.add('hidden')" style="background: transparent; color: #777; margin-top: 5px;">Magari più tardi</button>
+        <div class="modal-box" style="text-align:center;">
+            <i class="fa-solid fa-crown" style="font-size: 4rem; color: #f1c40f; margin-bottom: 20px;"></i>
+            <h2>Passa a Premium</h2>
+            <p>Hai raggiunto il limite di 2 annunci gratuiti.<br>Aggiorna il tuo profilo per pubblicare prodotti illimitati!</p>
+            <button onclick="window.location.href='upgrade.html'" style="background: #f1c40f; color: #000; margin-top:10px;">DIVENTA PREMIUM</button>
+            <button onclick="document.getElementById('modal-premium').classList.add('hidden')" style="background: #eee; color: #333; margin-top: 10px;">ANNULLA</button>
         </div>
     </div>
 
@@ -198,7 +195,7 @@
     let utenteAttivo = null;
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
-    let conteggioAnnunci = 0;
+    let annunciCount = 0;
 
     window.condividiProdotto = async (titolo, link) => {
         if (navigator.share) {
@@ -236,7 +233,6 @@
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
-        // Mostriamo il guadagno calcolato (90%) senza indicare la quota percentuale nel testo
         document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_lordo || 0) * 0.90).toFixed(2);
         
         const statusDiv = document.getElementById('wallet-status');
@@ -269,7 +265,8 @@
         container.innerHTML = "";
         const q = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
         const snap = await getDocs(q);
-        conteggioAnnunci = snap.size; // Aggiorna il numero di annunci creati
+        annunciCount = snap.size;
+        document.getElementById('label-limite').innerText = `Annunci: ${annunciCount} / 2`;
         
         snap.forEach((res) => {
             const p = res.data();
@@ -298,8 +295,8 @@
     window.pulisciLinkManuale = (el) => { el.value = accorciaLinkAmazon(el.value); };
 
     document.getElementById('btn-verifica').onclick = () => {
-        // Controllo Limite 2 Annunci
-        if (conteggioAnnunci >= 2) {
+        // BLOCCO LIMITE 2 ANNUNCI
+        if(annunciCount >= 2) {
             document.getElementById('modal-premium').classList.remove('hidden');
             return;
         }
@@ -394,7 +391,7 @@
         document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; 
         document.getElementById('f-prezzo').value = ""; document.getElementById('f-prezzo-pieno').value = "";
         document.getElementById('f-img').value = ""; document.getElementById('f-link').value = ""; 
-        document.getElementById('f-desc').value = ""; document.getElementById('amazon-link').value = "";
+        document.getElementById('amazon-link').value = "";
     }
 
     document.getElementById('btn-conferma-input').onclick = async () => {
