@@ -128,9 +128,12 @@
                 </div>
 
                 <div style="display:flex; gap:10px;">
-                    <div style="flex:1"><label>Quota Staff (%)</label><input type="number" id="u-perc" value="90"></div>
+                    <div style="flex:1"><label>Quota Staff %</label><input type="number" id="u-perc" value="90"></div>
                     <div style="flex:1"><label>Limite Annunci</label><input type="number" id="u-limite" value="2"></div>
                 </div>
+
+                <label>Limite Click Totali (Vuoto = Illimitati)</label>
+                <input type="number" id="u-click-limit" placeholder="es. 50">
 
                 <label>Contatti</label>
                 <input type="email" id="u-email" placeholder="Email">
@@ -222,6 +225,7 @@
             const lordo = parseFloat(u.guadagno_lordo || 0);
             const perc = parseFloat(u.percentuale || 90);
             const quotaStaff = (lordo * perc) / 100;
+            const clickLimit = u.limite_click || "∞";
             
             lordoTot += lordo; staffTot += quotaStaff; conteggio++;
 
@@ -230,7 +234,11 @@
                 <td data-label="Staff" onclick='preparaModifica("${fid}", ${JSON.stringify(u).replace(/"/g, '&quot;')})'>
                     <strong>${u.nome}</strong>
                 </td>
-                <td data-label="Parametri"><code>${u.codice}</code><br><small>Lim: ${u.limite_annunci || 2}</small></td>
+                <td data-label="Parametri">
+                    <code>${u.codice}</code><br>
+                    <small>Annunci: ${u.limite_annunci || 2}</small><br>
+                    <small>Click: ${clickLimit}</small>
+                </td>
                 <td data-label="Lordo (€)">
                     <input type="number" step="0.01" value="${lordo}" onchange="aggiornaCifra('${fid}', this.value)" style="width:70px; padding:4px; text-align:center;">
                 </td>
@@ -254,20 +262,29 @@
 
     window.salvaUtente = async function() {
         const fid = document.getElementById('u-firebase-id').value;
+        const clickLimitVal = document.getElementById('u-click-limit').value;
+        
         const dati = {
             nome: document.getElementById('u-nome').value,
             codice: document.getElementById('u-id').value,
             tag: document.getElementById('u-tag').value,
             percentuale: parseFloat(document.getElementById('u-perc').value) || 90,
             limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
+            limite_click: clickLimitVal ? parseInt(clickLimitVal) : 0,
             email: document.getElementById('u-email').value,
             tel: document.getElementById('u-tel').value,
             metodo: document.getElementById('u-metodo').value,
             conto: document.getElementById('u-conto').value
         };
+        
         if(!dati.nome || !dati.codice) return alert("Dati mancanti");
         if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
-        else { dati.guadagno_lordo = 0; dati.pagato = false; await addDoc(collection(db, "utenti_abilitati"), dati); }
+        else { 
+            dati.guadagno_lordo = 0; 
+            dati.pagato = false; 
+            dati.click_attuali = 0; // Inizializza contatore click per i nuovi utenti
+            await addDoc(collection(db, "utenti_abilitati"), dati); 
+        }
         resetForm(); caricaDati();
     };
 
@@ -278,6 +295,7 @@
         document.getElementById('u-tag').value = u.tag;
         document.getElementById('u-perc').value = u.percentuale || 90;
         document.getElementById('u-limite').value = u.limite_annunci || 2;
+        document.getElementById('u-click-limit').value = u.limite_click || "";
         document.getElementById('u-email').value = u.email || "";
         document.getElementById('u-tel').value = u.tel || "";
         document.getElementById('u-metodo').value = u.metodo || "PayPal";
