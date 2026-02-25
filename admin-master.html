@@ -36,20 +36,23 @@
         .stat-card p { margin: 5px 0 0 0; font-size: 1.1rem; font-weight: bold; color: var(--amazon); }
 
         /* Cards & Forms */
-        .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        input, select, textarea { width: 100%; padding: 12px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
+        label { font-size: 10px; font-weight: bold; color: #777; text-transform: uppercase; margin-left: 2px; }
+        input, select, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px;}
         button { background: var(--amazon); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 
         /* Tables */
         .table-wrapper { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #555; }
-        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #f8f9fa; padding: 10px; text-align: left; font-size: 10px; text-transform: uppercase; color: #555; }
+        td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        .prod-img { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; background: #f9f9f9; }
+        .prod-img { width: 45px; height: 45px; object-fit: contain; border-radius: 5px; background: #f9f9f9; }
         .badge-staff { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
         
-        .btn-trash { background: #f3f3f3; color: var(--danger); width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0; }
+        .btn-pay { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 5px; font-size: 10px; cursor: pointer;}
+        .btn-pay.waiting { background: var(--danger); }
+        .btn-trash { background: #f3f3f3; color: var(--danger); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin: 0; border: none; }
         
         .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000; }
 
@@ -77,36 +80,65 @@
 
 <div id="dashboard-content" class="hidden">
     <div class="admin-tabs">
-        <button class="tab-btn active" onclick="switchTab('stats')">STATISTICHE</button>
-        <button class="tab-btn" onclick="switchTab('staff')">STAFF</button>
+        <button class="tab-btn active" onclick="switchTab('stats')">STATS</button>
+        <button class="tab-btn" onclick="switchTab('staff')">GESTIONE STAFF</button>
         <button class="tab-btn" onclick="switchTab('products')">PRODOTTI</button>
     </div>
 
     <div class="container">
         <div id="tab-stats" class="tab-content">
             <div class="stats-grid">
-                <div class="stat-card"><h4>Collaboratori</h4><p id="stat-utenti">0</p></div>
-                <div class="stat-card"><h4>Prodotti Totali</h4><p id="stat-prodotti-count">0</p></div>
-                <div class="stat-card"><h4>Lordo Totale</h4><p id="stat-lordo">€ 0</p></div>
+                <div class="stat-card"><h4>Staff</h4><p id="stat-utenti">0</p></div>
+                <div class="stat-card"><h4>Articoli</h4><p id="stat-prodotti-count">0</p></div>
+                <div class="stat-card"><h4>Lordo</h4><p id="stat-lordo">€ 0</p></div>
                 <div class="stat-card"><h4>Costi Staff</h4><p id="stat-staff">€ 0</p></div>
             </div>
         </div>
 
         <div id="tab-staff" class="tab-content hidden">
             <div class="card" id="modulo-user">
-                <h3 id="form-title">Gestione Staff</h3>
+                <h3 id="form-title" style="margin-top:0"><i class="fa-solid fa-user-gear"></i> Gestione Staff</h3>
                 <input type="hidden" id="u-firebase-id">
-                <input type="text" id="u-nome" placeholder="Nome Completo">
+                
+                <label>Nome Completo</label>
+                <input type="text" id="u-nome" placeholder="Mario Rossi">
+
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="u-id" placeholder="Codice (es SG001)">
-                    <input type="text" id="u-tag" placeholder="Tag (es tag-21)">
+                    <div style="flex:1"><label>ID (SG000)</label><input type="text" id="u-id" placeholder="SG001"></div>
+                    <div style="flex:1"><label>Tag Amazon</label><input type="text" id="u-tag" placeholder="tag-21"></div>
                 </div>
+
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1"><label>Quota Staff %</label><input type="number" id="u-perc" value="90"></div>
+                    <div style="flex:1"><label>Limite Annunci</label><input type="number" id="u-limite" value="2"></div>
+                </div>
+
+                <label>Limite Click Totali (Vuoto = Illimitati)</label>
+                <input type="number" id="u-click-limit" placeholder="es. 50">
+
+                <label>Pagamento</label>
+                <select id="u-metodo">
+                    <option value="PayPal">PayPal</option>
+                    <option value="Bonifico">Bonifico</option>
+                    <option value="Revolut">Revolut</option>
+                </select>
+                <textarea id="u-conto" rows="2" placeholder="Dati pagamento (Email o IBAN)"></textarea>
+
                 <button onclick="salvaUtente()">SALVA COLLABORATORE</button>
                 <button onclick="resetForm()" class="hidden" id="btn-cancel-edit" style="background:#eee; color:#333; margin-top:5px;">ANNULLA</button>
             </div>
+
             <div class="table-wrapper">
                 <table>
-                    <thead><tr><th>Staff</th><th>Tag</th><th>Lordo</th><th>Azioni</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Staff</th>
+                            <th>Parametri</th>
+                            <th>Lordo</th>
+                            <th>Saldo</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
                     <tbody id="tabella-staff"></tbody>
                 </table>
             </div>
@@ -119,7 +151,7 @@
                     <thead>
                         <tr>
                             <th>Prodotto</th>
-                            <th>Info</th>
+                            <th>Prezzo</th>
                             <th>Autore</th>
                             <th>Azioni</th>
                         </tr>
@@ -147,7 +179,7 @@
 
     const masterPass = "MASTER2026";
 
-    // AUTH
+    // LOGIN
     document.getElementById('btn-login-master').onclick = () => {
         if(document.getElementById('master-pass').value === masterPass) {
             sessionStorage.setItem('master_logged', 'true');
@@ -160,9 +192,7 @@
         document.getElementById('dashboard-content').classList.remove('hidden');
         caricaTutto();
     }
-
     if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
-
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
     // TABS
@@ -173,66 +203,90 @@
         event.currentTarget.classList.add('active');
     };
 
-    // CARICAMENTO DATI
+    // CARICAMENTO TOTALE
     async function caricaTutto() {
         const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
         const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
         
-        // Staff Table & Stats
+        // TABELLA STAFF
         const corpoStaff = document.getElementById('tabella-staff');
         corpoStaff.innerHTML = "";
-        let lordoTot = 0, staffTot = 0;
+        let lordoTot = 0, costsTot = 0;
         
         snapStaff.forEach(res => {
             const u = res.data();
             const fid = res.id;
-            lordoTot += parseFloat(u.guadagno_lordo || 0);
-            staffTot += (parseFloat(u.guadagno_lordo || 0) * 0.9);
+            const lordo = parseFloat(u.guadagno_lordo || 0);
+            const perc = parseFloat(u.percentuale || 90);
+            const saldo = (lordo * perc) / 100;
+            const clickLim = u.limite_click || "∞";
+            
+            lordoTot += lordo; costsTot += saldo;
             
             const riga = document.createElement('tr');
             riga.innerHTML = `
-                <td onclick="preparaModificaStaff('${fid}', ${JSON.stringify(u).replace(/"/g, '&quot;')})"><b>${u.nome}</b><br><small>${u.codice}</small></td>
-                <td><code>${u.tag}</code></td>
-                <td>€${parseFloat(u.guadagno_lordo || 0).toFixed(2)}</td>
-                <td><button class="btn-trash" onclick="eliminaStaff('${fid}')"><i class="fa-solid fa-trash"></i></button></td>
+                <td id="td-name-${fid}" style="cursor:pointer"><b>${u.nome}</b></td>
+                <td><small>Annunci: ${u.limite_annunci || 2}<br>Click: ${clickLim}</small></td>
+                <td>€${lordo.toFixed(2)}</td>
+                <td><b>€${saldo.toFixed(2)}</b><br><small>${perc}%</small></td>
+                <td>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-pay ${u.pagato ? '' : 'waiting'}" id="pay-${fid}">${u.pagato ? 'OK' : 'Paga'}</button>
+                        <button class="btn-trash" id="del-${fid}"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
             `;
             corpoStaff.appendChild(riga);
+
+            // Eventi sicuri
+            document.getElementById(`td-name-${fid}`).onclick = () => preparaModificaStaff(fid, u);
+            document.getElementById(`pay-${fid}`).onclick = () => togglePagamento(fid, !u.pagato);
+            document.getElementById(`del-${fid}`).onclick = () => eliminaStaff(fid);
         });
 
-        // Prodotti Table
+        // TABELLA PRODOTTI
         const corpoProd = document.getElementById('tabella-prodotti-admin');
         corpoProd.innerHTML = "";
-        document.getElementById('stat-prodotti-count').innerText = snapProd.size;
-
         snapProd.forEach(res => {
             const p = res.data();
-            const pid = res.id;
             const riga = document.createElement('tr');
             riga.innerHTML = `
                 <td><img src="${p.immagine}" class="prod-img"></td>
-                <td><div style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.titolo}</div>
-                    <b>${p.valuta || '€'} ${p.prezzo}</b></td>
-                <td><span class="badge-staff">${p.autore || 'N.D.'}</span><br><small>${p.tag}</small></td>
-                <td><button class="btn-trash" onclick="eliminaProdotto('${pid}')"><i class="fa-solid fa-trash"></i></button></td>
+                <td><b>${p.valuta || '€'} ${p.prezzo}</b></td>
+                <td><span class="badge-staff">${p.autore || 'N.D.'}</span></td>
+                <td><button class="btn-trash" onclick="eliminaProdotto('${res.id}')"><i class="fa-solid fa-trash"></i></button></td>
             `;
             corpoProd.appendChild(riga);
         });
 
+        // STATS
         document.getElementById('stat-utenti').innerText = snapStaff.size;
+        document.getElementById('stat-prodotti-count').innerText = snapProd.size;
         document.getElementById('stat-lordo').innerText = "€ " + lordoTot.toFixed(2);
-        document.getElementById('stat-staff').innerText = "€ " + staffTot.toFixed(2);
+        document.getElementById('stat-staff').innerText = "€ " + costsTot.toFixed(2);
     }
 
-    // AZIONI STAFF
+    // SALVATAGGIO
     window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
+        const clickVal = document.getElementById('u-click-limit').value;
         const dati = {
             nome: document.getElementById('u-nome').value,
             codice: document.getElementById('u-id').value,
-            tag: document.getElementById('u-tag').value
+            tag: document.getElementById('u-tag').value,
+            percentuale: parseFloat(document.getElementById('u-perc').value) || 90,
+            limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
+            limite_click: clickVal ? parseInt(clickVal) : 0,
+            metodo: document.getElementById('u-metodo').value,
+            conto: document.getElementById('u-conto').value
         };
+
+        if(!dati.nome || !dati.codice) return alert("Inserire Nome e ID");
+
         if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
-        else await addDoc(collection(db, "utenti_abilitati"), {...dati, guadagno_lordo: 0, pagato: false});
+        else {
+            await addDoc(collection(db, "utenti_abilitati"), {...dati, guadagno_lordo: 0, pagato: false, click_attuali: 0});
+        }
         resetForm(); caricaTutto();
     };
 
@@ -241,27 +295,25 @@
         document.getElementById('u-nome').value = u.nome;
         document.getElementById('u-id').value = u.codice;
         document.getElementById('u-tag').value = u.tag;
+        document.getElementById('u-perc').value = u.percentuale || 90;
+        document.getElementById('u-limite').value = u.limite_annunci || 2;
+        document.getElementById('u-click-limit').value = u.limite_click || "";
+        document.getElementById('u-metodo').value = u.metodo || "PayPal";
+        document.getElementById('u-conto').value = u.conto || "";
         document.getElementById('btn-cancel-edit').classList.remove('hidden');
-        switchTab('staff');
+        document.getElementById('form-title').innerText = "Modifica Staff";
     };
 
     window.resetForm = () => {
         document.getElementById('u-firebase-id').value = "";
-        document.getElementById('u-nome').value = "";
-        document.getElementById('u-id').value = "";
-        document.getElementById('u-tag').value = "";
+        document.getElementById('modulo-user').querySelectorAll('input, textarea').forEach(i => i.value = "");
         document.getElementById('btn-cancel-edit').classList.add('hidden');
+        document.getElementById('form-title').innerText = "Gestione Staff";
     };
 
-    window.eliminaStaff = async (id) => { if(confirm("Eliminare collaboratore?")) { await deleteDoc(doc(db, "utenti_abilitati", id)); caricaTutto(); } };
-
-    // AZIONI PRODOTTI
-    window.eliminaProdotto = async (id) => {
-        if(confirm("Vuoi eliminare definitivamente questo annuncio?")) {
-            await deleteDoc(doc(db, "prodotti", id));
-            caricaTutto();
-        }
-    };
+    window.togglePagamento = async (id, stato) => { await updateDoc(doc(db, "utenti_abilitati", id), { pagato: stato }); caricaTutto(); };
+    window.eliminaStaff = async (id) => { if(confirm("Eliminare definitivamente collaboratore?")) { await deleteDoc(doc(db, "utenti_abilitati", id)); caricaTutto(); } };
+    window.eliminaProdotto = async (id) => { if(confirm("Eliminare definitivamente questo annuncio?")) { await deleteDoc(doc(db, "prodotti", id)); caricaTutto(); } };
 
 </script>
 </body>
