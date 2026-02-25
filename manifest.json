@@ -1,0 +1,21 @@
+{
+  "name": "ShopyGO Offerte",
+  "short_name": "ShopyGO",
+  "description": "Le migliori offerte Amazon e Marketplace",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007185",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
