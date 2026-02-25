@@ -4,20 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <title>Master - ShopyGO</title>
-    
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-
+    <title>Master Admin - ShopyGO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
             --primary: #ffffff; --text: #131921; --amazon: #007185; --bg: #f3f3f3; 
-            --accent: #FFD814; --danger: #ff4757; --success: #2ecc71; 
-            --master: #e67e22; --edit: #3498db; 
+            --accent: #FFD814; --danger: #ff4757; --success: #2ecc71; --edit: #3498db;
         }
 
-        body { font-family: 'Segoe UI', system-ui; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', system-ui; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
         
         header { 
             background: var(--primary); padding: 0 15px; display: flex; align-items: center; 
@@ -26,147 +21,111 @@
         }
         .logo { height: 25px; }
 
+        /* Tabs Navigation */
+        .admin-tabs { display: flex; background: white; border-bottom: 1px solid #ddd; position: sticky; top: 60px; z-index: 999; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; color: #666; cursor: pointer; font-size: 13px; transition: 0.3s; }
+        .tab-btn.active { color: var(--amazon); border-bottom: 3px solid var(--amazon); }
+
         .container { max-width: 1200px; margin: 15px auto; padding: 0 10px; }
-        
+        .hidden { display: none !important; }
+
+        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        @media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
-        
         .stat-card { background: white; padding: 15px 10px; border-radius: 12px; border: 1px solid #ddd; text-align: center; }
-        .stat-card h4 { margin: 0; font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card h4 { margin: 0; font-size: 0.65rem; color: #666; text-transform: uppercase; }
         .stat-card p { margin: 5px 0 0 0; font-size: 1.1rem; font-weight: bold; color: var(--amazon); }
-        .stat-card.highlight { border-bottom: 4px solid var(--success); }
 
-        .main-content { display: flex; flex-direction: column; gap: 20px; }
-        @media (min-width: 900px) { .main-content { flex-direction: row; align-items: flex-start; } }
+        /* Cards & Forms */
+        .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        input, select, textarea { width: 100%; padding: 12px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: var(--amazon); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 
-        .sidebar { flex: 0 0 350px; }
-        .content { flex: 1; min-width: 0; }
-
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #ddd; }
-        h3 { margin-top: 0; font-size: 1.1rem; color: var(--amazon); display: flex; align-items: center; gap: 8px; }
-        
-        input, select, textarea { 
-            width: 100%; padding: 12px; margin: 5px 0 15px 0; border-radius: 8px; 
-            border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; outline: none;
-        }
-        label { font-size: 10px; font-weight: bold; color: #777; text-transform: uppercase; margin-left: 2px; }
-
-        button { 
-            background: var(--amazon); color: white; border: none; padding: 14px; 
-            border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; 
-            transition: 0.2s; font-size: 14px;
-        }
-        button:active { transform: scale(0.98); }
-        .btn-cancel { background: #eee; color: #333; margin-top: 8px; }
-
-        .table-wrapper { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; }
+        /* Tables */
+        .table-wrapper { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: #f8f9fa; color: #555; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #555; }
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        .btn-pay { background: var(--success); padding: 6px 12px; width: auto; font-size: 11px; border-radius: 6px; min-width: 60px; height: 32px; }
-        .btn-pay.waiting { background: var(--danger); }
-        .btn-trash { background: #f3f3f3; color: #888; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; margin: 0; }
+        .prod-img { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; background: #f9f9f9; }
+        .badge-staff { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        
+        .btn-trash { background: #f3f3f3; color: var(--danger); width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0; }
+        
+        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000; }
 
-        @media (max-width: 600px) {
-            thead { display: none; }
-            tr { display: block; border-bottom: 5px solid #f3f3f3; padding: 8px 0; }
-            td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 4px 15px; text-align: right; }
-            td::before { content: attr(data-label); font-weight: bold; text-transform: uppercase; font-size: 10px; color: #888; text-align: left; }
-            td[data-label="Azioni"] { justify-content: flex-end; gap: 8px; }
-            .btn-pay { width: auto !important; margin-top: 0 !important; }
-        }
-
-        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box; }
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
         .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; }
         .nav-item i { font-size: 1.3rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
-        .hidden { display: none !important; }
-
-        #btn-bio-master { background: white; color: var(--amazon); border: 2px solid var(--amazon); margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
 <div id="admin-auth" class="login-overlay">
-    <div class="card" style="text-align: center; width: 100%; max-width: 320px;">
+    <div class="card" style="text-align: center; width: 300px;">
         <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: var(--amazon); margin-bottom: 15px;"></i>
-        <h2 style="margin-bottom: 20px;">Master Access</h2>
-        <input type="password" id="master-pass" placeholder="Password Master" style="text-align: center; font-size: 18px;">
+        <h2>Master Access</h2>
+        <input type="password" id="master-pass" placeholder="Password Master" style="text-align: center;">
         <button id="btn-login-master">ENTRA</button>
-        <button id="btn-bio-master"><i class="fa-solid fa-fingerprint"></i> Sblocca con Impronta</button>
     </div>
 </div>
 
 <header>
     <img src="logo.png" alt="ShopyGO" class="logo">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-weight: bold; font-size: 10px; color: var(--danger);">ADMIN MODE</span>
-        <button onclick="logoutMaster()" style="width: auto; padding: 6px 12px; font-size: 10px; background: #333; margin: 0;">LOGOUT</button>
-    </div>
+    <button onclick="logoutMaster()" style="width: auto; padding: 6px 12px; font-size: 10px; background: #333;">LOGOUT</button>
 </header>
 
-<div id="dashboard" class="container hidden">
-    <div class="stats-grid">
-        <div class="stat-card"><h4>Staff</h4><p id="stat-utenti">0</p></div>
-        <div class="stat-card"><h4>Lordo</h4><p id="stat-lordo">€ 0</p></div>
-        <div class="stat-card"><h4>Costi</h4><p id="stat-staff">€ 0</p></div>
-        <div class="stat-card highlight"><h4>Utile</h4><p id="stat-netto" style="color: var(--success)">€ 0</p></div>
+<div id="dashboard-content" class="hidden">
+    <div class="admin-tabs">
+        <button class="tab-btn active" onclick="switchTab('stats')">STATISTICHE</button>
+        <button class="tab-btn" onclick="switchTab('staff')">STAFF</button>
+        <button class="tab-btn" onclick="switchTab('products')">PRODOTTI</button>
     </div>
 
-    <div class="main-content">
-        <div class="sidebar">
-            <div class="card" id="modulo-user">
-                <h3 id="form-title"><i class="fa-solid fa-circle-plus"></i> Gestione Staff</h3>
-                <input type="hidden" id="u-firebase-id">
-                <label>Nome Completo</label>
-                <input type="text" id="u-nome" placeholder="Mario Rossi">
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1"><label>ID</label><input type="text" id="u-id" placeholder="SG001"></div>
-                    <div style="flex:1"><label>Tag</label><input type="text" id="u-tag" placeholder="tag-21"></div>
-                </div>
-
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1"><label>Quota Staff %</label><input type="number" id="u-perc" value="90"></div>
-                    <div style="flex:1"><label>Limite Annunci</label><input type="number" id="u-limite" value="2"></div>
-                </div>
-
-                <label>Limite Click Totali (Vuoto = Illimitati)</label>
-                <input type="number" id="u-click-limit" placeholder="es. 50">
-
-                <label>Contatti</label>
-                <input type="email" id="u-email" placeholder="Email">
-                <input type="text" id="u-tel" placeholder="Cellulare">
-                <label>Pagamento</label>
-                <select id="u-metodo">
-                    <option value="PayPal">PayPal</option>
-                    <option value="Bonifico">Bonifico</option>
-                    <option value="Revolut">Revolut</option>
-                </select>
-                <textarea id="u-conto" rows="2" placeholder="Dati pagamento"></textarea>
-                <button id="btn-save-main" onclick="salvaUtente()">SALVA COLLABORATORE</button>
-                <button id="btn-cancel-edit" class="btn-cancel hidden" onclick="resetForm()">ANNULLA</button>
+    <div class="container">
+        <div id="tab-stats" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card"><h4>Collaboratori</h4><p id="stat-utenti">0</p></div>
+                <div class="stat-card"><h4>Prodotti Totali</h4><p id="stat-prodotti-count">0</p></div>
+                <div class="stat-card"><h4>Lordo Totale</h4><p id="stat-lordo">€ 0</p></div>
+                <div class="stat-card"><h4>Costi Staff</h4><p id="stat-staff">€ 0</p></div>
             </div>
         </div>
 
-        <div class="content">
-            <div class="card" style="padding: 10px 0;">
-                <h3 style="padding: 0 20px;"><i class="fa-solid fa-list-check"></i> Report</h3>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Staff</th>
-                                <th>Parametri</th>
-                                <th>Lordo</th>
-                                <th>Saldo Staff</th>
-                                <th>Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabella-staff"></tbody>
-                    </table>
+        <div id="tab-staff" class="tab-content hidden">
+            <div class="card" id="modulo-user">
+                <h3 id="form-title">Gestione Staff</h3>
+                <input type="hidden" id="u-firebase-id">
+                <input type="text" id="u-nome" placeholder="Nome Completo">
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="u-id" placeholder="Codice (es SG001)">
+                    <input type="text" id="u-tag" placeholder="Tag (es tag-21)">
                 </div>
+                <button onclick="salvaUtente()">SALVA COLLABORATORE</button>
+                <button onclick="resetForm()" class="hidden" id="btn-cancel-edit" style="background:#eee; color:#333; margin-top:5px;">ANNULLA</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Staff</th><th>Tag</th><th>Lordo</th><th>Azioni</th></tr></thead>
+                    <tbody id="tabella-staff"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-products" class="tab-content hidden">
+            <h3><i class="fa-solid fa-boxes-stacked"></i> Controllo Annunci</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Prodotto</th>
+                            <th>Info</th>
+                            <th>Autore</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabella-prodotti-admin"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -174,153 +133,136 @@
 
 <nav class="nav-bottom">
     <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Shop</span></a>
-    <a href="staff.html" class="nav-item"><i class="fa-solid fa-circle-plus"></i><span>Staff</span></a>
+    <a href="staff.html" class="nav-item"><i class="fa-solid fa-circle-plus"></i><span>Pubblica</span></a>
     <a href="admin-master.html" class="nav-item active"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>
 </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { attivaSensoreImpronta } from "./auth-biometric.js";
+    import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const btnBioMaster = document.getElementById('btn-bio-master');
-    const masterPassConfig = "MASTER2026";
+    const masterPass = "MASTER2026";
 
-    window.onload = () => {
-        if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
-        else if(localStorage.getItem('master_bio_enabled') === 'true') btnBioMaster.style.display = 'block';
-    };
-
-    btnBioMaster.onclick = () => { attivaSensoreImpronta("MASTER_ACCOUNT", loginSuccess); };
-
+    // AUTH
     document.getElementById('btn-login-master').onclick = () => {
-        if(document.getElementById('master-pass').value === masterPassConfig) {
-            localStorage.setItem('master_bio_enabled', 'true');
+        if(document.getElementById('master-pass').value === masterPass) {
+            sessionStorage.setItem('master_logged', 'true');
             loginSuccess();
-        } else alert("Password Master Errata");
+        } else alert("Accesso Negato");
     };
 
     function loginSuccess() {
-        sessionStorage.setItem('master_logged', 'true');
         document.getElementById('admin-auth').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        caricaDati();
+        document.getElementById('dashboard-content').classList.remove('hidden');
+        caricaTutto();
     }
+
+    if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
 
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
-    async function caricaDati() {
-        const snap = await getDocs(collection(db, "utenti_abilitati"));
-        const corpo = document.getElementById('tabella-staff');
-        corpo.innerHTML = "";
-        let lordoTot = 0, staffTot = 0, conteggio = 0;
+    // TABS
+    window.switchTab = (tab) => {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+        event.currentTarget.classList.add('active');
+    };
 
-        snap.forEach((res) => {
+    // CARICAMENTO DATI
+    async function caricaTutto() {
+        const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
+        const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
+        
+        // Staff Table & Stats
+        const corpoStaff = document.getElementById('tabella-staff');
+        corpoStaff.innerHTML = "";
+        let lordoTot = 0, staffTot = 0;
+        
+        snapStaff.forEach(res => {
             const u = res.data();
             const fid = res.id;
+            lordoTot += parseFloat(u.guadagno_lordo || 0);
+            staffTot += (parseFloat(u.guadagno_lordo || 0) * 0.9);
             
-            const lordo = parseFloat(u.guadagno_lordo || 0);
-            const perc = parseFloat(u.percentuale || 90);
-            const quotaStaff = (lordo * perc) / 100;
-            const clickLimit = u.limite_click || "∞";
-            
-            lordoTot += lordo; staffTot += quotaStaff; conteggio++;
-
             const riga = document.createElement('tr');
             riga.innerHTML = `
-                <td data-label="Staff" id="td-${fid}" style="cursor:pointer">
-                    <strong>${u.nome}</strong>
-                </td>
-                <td data-label="Parametri">
-                    <code>${u.codice}</code><br>
-                    <small>Annunci: ${u.limite_annunci || 2}</small><br>
-                    <small>Click: ${clickLimit}</small>
-                </td>
-                <td data-label="Lordo (€)">
-                    <input type="number" step="0.01" value="${lordo}" onchange="aggiornaCifra('${fid}', this.value)" style="width:70px; padding:4px; text-align:center;">
-                </td>
-                <td data-label="Saldo Staff"><strong>€${quotaStaff.toFixed(2)}</strong><br><small>${perc}%</small></td>
-                <td data-label="Azioni">
-                    <div style="display:flex; gap:5px; justify-content:flex-end;">
-                        <button class="btn-pay ${u.pagato ? '' : 'waiting'}" id="pay-${fid}">
-                            ${u.pagato ? '<i class="fa-solid fa-check"></i>' : 'Paga'}
-                        </button>
-                        <button class="btn-trash" id="del-${fid}"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </td>`;
-            
-            corpo.appendChild(riga);
-
-            // AGGANCIO EVENTI (Risolve il problema D'Onofrio e altri caratteri speciali)
-            document.getElementById(`td-${fid}`).onclick = () => preparaModifica(fid, u);
-            document.getElementById(`pay-${fid}`).onclick = () => togglePagamento(fid, !u.pagato);
-            document.getElementById(`del-${fid}`).onclick = () => elimina(fid);
+                <td onclick="preparaModificaStaff('${fid}', ${JSON.stringify(u).replace(/"/g, '&quot;')})"><b>${u.nome}</b><br><small>${u.codice}</small></td>
+                <td><code>${u.tag}</code></td>
+                <td>€${parseFloat(u.guadagno_lordo || 0).toFixed(2)}</td>
+                <td><button class="btn-trash" onclick="eliminaStaff('${fid}')"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            corpoStaff.appendChild(riga);
         });
 
-        document.getElementById('stat-utenti').innerText = conteggio;
+        // Prodotti Table
+        const corpoProd = document.getElementById('tabella-prodotti-admin');
+        corpoProd.innerHTML = "";
+        document.getElementById('stat-prodotti-count').innerText = snapProd.size;
+
+        snapProd.forEach(res => {
+            const p = res.data();
+            const pid = res.id;
+            const riga = document.createElement('tr');
+            riga.innerHTML = `
+                <td><img src="${p.immagine}" class="prod-img"></td>
+                <td><div style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.titolo}</div>
+                    <b>${p.valuta || '€'} ${p.prezzo}</b></td>
+                <td><span class="badge-staff">${p.autore || 'N.D.'}</span><br><small>${p.tag}</small></td>
+                <td><button class="btn-trash" onclick="eliminaProdotto('${pid}')"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            corpoProd.appendChild(riga);
+        });
+
+        document.getElementById('stat-utenti').innerText = snapStaff.size;
         document.getElementById('stat-lordo').innerText = "€ " + lordoTot.toFixed(2);
         document.getElementById('stat-staff').innerText = "€ " + staffTot.toFixed(2);
-        document.getElementById('stat-netto').innerText = "€ " + (lordoTot - staffTot).toFixed(2);
     }
 
-    window.salvaUtente = async function() {
+    // AZIONI STAFF
+    window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
-        const clickLimitVal = document.getElementById('u-click-limit').value;
-        
         const dati = {
             nome: document.getElementById('u-nome').value,
             codice: document.getElementById('u-id').value,
-            tag: document.getElementById('u-tag').value,
-            percentuale: parseFloat(document.getElementById('u-perc').value) || 90,
-            limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
-            limite_click: clickLimitVal ? parseInt(clickLimitVal) : 0,
-            email: document.getElementById('u-email').value,
-            tel: document.getElementById('u-tel').value,
-            metodo: document.getElementById('u-metodo').value,
-            conto: document.getElementById('u-conto').value
+            tag: document.getElementById('u-tag').value
         };
-        
-        if(!dati.nome || !dati.codice) return alert("Dati mancanti");
         if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
-        else { 
-            dati.guadagno_lordo = 0; 
-            dati.pagato = false; 
-            dati.click_attuali = 0;
-            await addDoc(collection(db, "utenti_abilitati"), dati); 
-        }
-        resetForm(); caricaDati();
+        else await addDoc(collection(db, "utenti_abilitati"), {...dati, guadagno_lordo: 0, pagato: false});
+        resetForm(); caricaTutto();
     };
 
-    window.preparaModifica = function(fid, u) {
+    window.preparaModificaStaff = (fid, u) => {
         document.getElementById('u-firebase-id').value = fid;
         document.getElementById('u-nome').value = u.nome;
         document.getElementById('u-id').value = u.codice;
         document.getElementById('u-tag').value = u.tag;
-        document.getElementById('u-perc').value = u.percentuale || 90;
-        document.getElementById('u-limite').value = u.limite_annunci || 2;
-        document.getElementById('u-click-limit').value = u.limite_click || "";
-        document.getElementById('u-email').value = u.email || "";
-        document.getElementById('u-tel').value = u.tel || "";
-        document.getElementById('u-metodo').value = u.metodo || "PayPal";
-        document.getElementById('u-conto').value = u.conto || "";
-        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-user-pen"></i> Modifica';
         document.getElementById('btn-cancel-edit').classList.remove('hidden');
+        switchTab('staff');
     };
 
     window.resetForm = () => {
         document.getElementById('u-firebase-id').value = "";
-        document.getElementById('modulo-user').querySelectorAll('input, textarea').forEach(i => i.value = "");
-        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-circle-plus"></i> Gestione Staff';
+        document.getElementById('u-nome').value = "";
+        document.getElementById('u-id').value = "";
+        document.getElementById('u-tag').value = "";
         document.getElementById('btn-cancel-edit').classList.add('hidden');
     };
 
-    window.aggiornaCifra = async (id, val) => { await updateDoc(doc(db, "utenti_abilitati", id), { guadagno_lordo: parseFloat(val) }); caricaDati(); };
-    window.togglePagamento = async (id, stato) => { await updateDoc(doc(db, "utenti_abilitati", id), { pagato: stato }); caricaDati(); };
-    window.elimina = async (id) => { if(confirm("Eliminare collaboratore?")) { await deleteDoc(doc(db, "utenti_abilitati", id)); caricaDati(); } };
+    window.eliminaStaff = async (id) => { if(confirm("Eliminare collaboratore?")) { await deleteDoc(doc(db, "utenti_abilitati", id)); caricaTutto(); } };
+
+    // AZIONI PRODOTTI
+    window.eliminaProdotto = async (id) => {
+        if(confirm("Vuoi eliminare definitivamente questo annuncio?")) {
+            await deleteDoc(doc(db, "prodotti", id));
+            caricaTutto();
+        }
+    };
+
 </script>
 </body>
 </html>
