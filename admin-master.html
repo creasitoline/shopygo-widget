@@ -167,7 +167,7 @@
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Img</th><th>Info</th><th>Autore</th><th>Stato/Elimina</th></tr>
+                        <tr><th>Img</th><th>Dettagli Prodotto</th><th>Autore</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-prodotti-admin"></tbody>
                 </table>
@@ -194,7 +194,6 @@
     let currentDeleteId = null;
     let currentDeleteType = '';
 
-    // LOGIN
     document.getElementById('btn-login-master').onclick = () => {
         if(document.getElementById('master-pass').value === masterPass) {
             sessionStorage.setItem('master_logged', 'true');
@@ -210,7 +209,6 @@
     if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
-    // TABS
     window.switchTab = (tab) => {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -218,13 +216,11 @@
         event.currentTarget.classList.add('active');
     };
 
-    // LIGHTBOX
     window.showImage = (src) => {
         document.getElementById('lightbox-img').src = src;
         document.getElementById('lightbox').classList.remove('hidden');
     };
 
-    // MODAL CONFERMA
     window.openConfirm = (id, type) => {
         currentDeleteId = id;
         currentDeleteType = type;
@@ -238,18 +234,15 @@
         caricaTutto();
     };
 
-    // TOGGLE PRODOTTO (Attiva/Disattiva nello shop)
     window.toggleProdotto = async (id, statoAttuale) => {
         await updateDoc(doc(db, "prodotti", id), { attivo: !statoAttuale });
         caricaTutto();
     };
 
-    // CARICAMENTO DATI
     async function caricaTutto() {
         const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
         const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
         
-        // STAFF
         const corpoStaff = document.getElementById('tabella-staff');
         corpoStaff.innerHTML = "";
         let lordoTot = 0, costsTot = 0;
@@ -275,16 +268,19 @@
             corpoStaff.appendChild(riga);
         });
 
-        // PRODOTTI
         const corpoProd = document.getElementById('tabella-prodotti-admin');
         corpoProd.innerHTML = "";
         snapProd.forEach(res => {
             const p = res.data();
             const idp = res.id;
+            const valuta = p.valuta || '€'; // Prende CHF o € dal database
             const riga = document.createElement('tr');
             riga.innerHTML = `
                 <td><img src="${p.immagine}" class="prod-img" onclick="showImage('${p.immagine}')"></td>
-                <td><b>${p.prezzo}€</b><br><small>${p.codice_prodotto || 'SG'}</small></td>
+                <td style="max-width: 150px;">
+                    <div style="font-weight:bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.titolo || 'Senza Titolo'}</div>
+                    <small>${valuta} ${p.prezzo} - <b>${p.codice_prodotto || 'SG'}</b></small>
+                </td>
                 <td><span class="badge-staff">${p.autore || '??'}</span></td>
                 <td><div class="action-btns">
                     <button class="btn-icon btn-toggle ${p.attivo === false ? 'off' : ''}" onclick="toggleProdotto('${idp}', ${p.attivo !== false})">
@@ -302,7 +298,6 @@
         document.getElementById('stat-utile').innerText = "€ " + (lordoTot - costsTot).toFixed(2);
     }
 
-    // GESTIONE FORM STAFF
     window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
         const dati = {
