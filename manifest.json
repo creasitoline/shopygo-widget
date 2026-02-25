@@ -1,8 +1,7 @@
 {
-  "name": "ShopyGO Offerte",
+  "name": "ShopyGO App",
   "short_name": "ShopyGO",
-  "description": "Le migliori offerte Amazon e Marketplace",
-  "start_url": "/index.html",
+  "start_url": "index.html?v=1",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007185",
