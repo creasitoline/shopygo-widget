@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <title>ShopyGO | Offerte Amazon, Marketplace e Annunci Selezionati</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007185">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log("PWA: Service Worker Registrato"))
+                .catch((err) => console.log("PWA: Errore", err));
+        }
+    </script>
+
     <meta name="description" content="Scopri ShopyGO: la tua destinazione per le migliori offerte Amazon, sconti esclusivi e prodotti marketplace. Risparmia su tecnologia, casa, moda e usato garantito.">
     <meta name="keywords" content="ShopyGO, offerte amazon, sconti smartphone, iPhone, Samsung, Xiaomi, telefoni, tablet, computer, notebook, HP, ASUS, Lenovo, elettronica, elettrodomestici, Dyson, Samsung TV, LG OLED, Sony, PlayStation 5, PS5, Xbox, Nintendo Switch, videogiochi, fotografia, Canon, Nikon, domotica, Philips Hue, arredamento, casa, cucina, LEGO, moda, abbigliamento, scarpe Nike, Adidas, offerte tempo libero, usato garantito, ricondizionati, warehouse, miglior prezzo, coupon, risparmio, Amazon Italia, Marketplace annunci">
     <meta name="author" content="ShopyGO">
@@ -176,7 +187,6 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    // AGGIORNATO: aggiunti updateDoc, doc, increment per i click
     import { getFirestore, collection, getDocs, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
@@ -185,7 +195,6 @@
     
     let tuttiProdotti = [];
 
-    // FUNZIONE NUOVA: Registra il click nel DB
     window.registraClick = async (productId) => {
         const prodRef = doc(db, "prodotti", productId);
         try {
