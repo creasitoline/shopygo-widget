@@ -12,7 +12,7 @@
             --accent: #FFD814; --danger: #ff4757; --success: #2ecc71; --edit: #3498db;
         }
 
-        body { font-family: 'Segoe UI', system-ui; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+        body { font-family: 'Segoe UI', system-ui; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
         
         header { 
             background: var(--primary); padding: 0 15px; display: flex; align-items: center; 
@@ -36,7 +36,7 @@
         .stat-card.profit { border: 2px solid var(--success); }
         .stat-card.profit p { color: var(--success); }
 
-        /* Cards & Forms */
+        /* Forms */
         .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
         label { font-size: 10px; font-weight: bold; color: #777; text-transform: uppercase; margin-left: 2px; }
         input, select, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px;}
@@ -48,13 +48,25 @@
         th { background: #f8f9fa; padding: 10px; text-align: left; font-size: 10px; text-transform: uppercase; color: #555; }
         td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        .prod-img { width: 45px; height: 45px; object-fit: contain; border-radius: 5px; background: #f9f9f9; }
+        .prod-img { width: 45px; height: 45px; object-fit: contain; border-radius: 5px; background: #f9f9f9; cursor: zoom-in; }
         .badge-staff { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
         
         .btn-pay { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 5px; font-size: 10px; cursor: pointer;}
         .btn-pay.waiting { background: var(--danger); }
-        .btn-trash { background: #f3f3f3; color: var(--danger); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin: 0; border: none; }
         
+        /* Action Buttons */
+        .action-btns { display: flex; gap: 5px; justify-content: flex-end; }
+        .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-trash { background: #fff1f2; color: var(--danger); }
+        .btn-toggle { background: #f0f9ff; color: var(--amazon); }
+        .btn-toggle.off { background: #eee; color: #999; }
+
+        /* Modal / Overlay */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
+        .modal-card { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
+        .modal-card i { font-size: 3rem; color: var(--danger); margin-bottom: 15px; }
+        .modal-img { max-width: 100%; max-height: 80vh; border-radius: 10px; object-fit: contain; }
+
         .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000; }
 
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
@@ -64,6 +76,22 @@
     </style>
 </head>
 <body>
+
+<div id="lightbox" class="modal-overlay hidden" onclick="this.classList.add('hidden')">
+    <img src="" id="lightbox-img" class="modal-img">
+</div>
+
+<div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <h3>Sei sicuro?</h3>
+        <p>L'azione non può essere annullata.</p>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button id="modal-confirm-btn" style="background: var(--danger);">ELIMINA</button>
+            <button onclick="closeConfirm()" style="background: #eee; color: #333;">ANNULLA</button>
+        </div>
+    </div>
+</div>
 
 <div id="admin-auth" class="login-overlay">
     <div class="card" style="text-align: center; width: 300px;">
@@ -101,25 +129,20 @@
             <div class="card" id="modulo-user">
                 <h3 id="form-title" style="margin-top:0"><i class="fa-solid fa-user-gear"></i> Gestione Staff</h3>
                 <input type="hidden" id="u-firebase-id">
-                
                 <label>Nome Completo</label>
                 <input type="text" id="u-nome" placeholder="Mario Rossi">
-
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1"><label>ID (SG000)</label><input type="text" id="u-id" placeholder="SG001"></div>
                     <div style="flex:1"><label>Tag Amazon</label><input type="text" id="u-tag" placeholder="tag-21"></div>
                 </div>
-
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1"><label>Quota Staff %</label><input type="number" id="u-perc" value="90"></div>
                     <div style="flex:1"><label>Lordo Maturato (€)</label><input type="number" id="u-lordo-manuale" step="0.01" value="0.00"></div>
                 </div>
-
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1"><label>Limite Annunci</label><input type="number" id="u-limite" value="2"></div>
                     <div style="flex:1"><label>Limite Click</label><input type="number" id="u-click-limit" placeholder="∞"></div>
                 </div>
-
                 <label>Metodo Pagamento</label>
                 <select id="u-metodo">
                     <option value="PayPal">PayPal</option>
@@ -127,21 +150,13 @@
                     <option value="Revolut">Revolut</option>
                 </select>
                 <textarea id="u-conto" rows="2" placeholder="Dati pagamento (Email o IBAN)"></textarea>
-
                 <button onclick="salvaUtente()">SALVA COLLABORATORE</button>
                 <button onclick="resetForm()" class="hidden" id="btn-cancel-edit" style="background:#eee; color:#333; margin-top:5px;">ANNULLA</button>
             </div>
-
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Staff</th>
-                            <th>Parametri</th>
-                            <th>Lordo</th>
-                            <th>Saldo</th>
-                            <th>Azioni</th>
-                        </tr>
+                        <tr><th>Staff</th><th>Parametri</th><th>Lordo</th><th>Saldo</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-staff"></tbody>
                 </table>
@@ -149,16 +164,10 @@
         </div>
 
         <div id="tab-products" class="tab-content hidden">
-            <h3><i class="fa-solid fa-boxes-stacked"></i> Controllo Annunci</h3>
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Prodotto</th>
-                            <th>Prezzo</th>
-                            <th>Autore</th>
-                            <th>Azioni</th>
-                        </tr>
+                        <tr><th>Img</th><th>Info</th><th>Autore</th><th>Stato/Elimina</th></tr>
                     </thead>
                     <tbody id="tabella-prodotti-admin"></tbody>
                 </table>
@@ -182,7 +191,10 @@
     const db = getFirestore(app);
 
     const masterPass = "MASTER2026";
+    let currentDeleteId = null;
+    let currentDeleteType = '';
 
+    // LOGIN
     document.getElementById('btn-login-master').onclick = () => {
         if(document.getElementById('master-pass').value === masterPass) {
             sessionStorage.setItem('master_logged', 'true');
@@ -198,6 +210,7 @@
     if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
+    // TABS
     window.switchTab = (tab) => {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -205,10 +218,38 @@
         event.currentTarget.classList.add('active');
     };
 
+    // LIGHTBOX
+    window.showImage = (src) => {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').classList.remove('hidden');
+    };
+
+    // MODAL CONFERMA
+    window.openConfirm = (id, type) => {
+        currentDeleteId = id;
+        currentDeleteType = type;
+        document.getElementById('confirm-modal').classList.remove('hidden');
+    };
+    window.closeConfirm = () => { document.getElementById('confirm-modal').classList.add('hidden'); };
+    document.getElementById('modal-confirm-btn').onclick = async () => {
+        if(currentDeleteType === 'staff') await deleteDoc(doc(db, "utenti_abilitati", currentDeleteId));
+        else await deleteDoc(doc(db, "prodotti", currentDeleteId));
+        closeConfirm();
+        caricaTutto();
+    };
+
+    // TOGGLE PRODOTTO (Attiva/Disattiva nello shop)
+    window.toggleProdotto = async (id, statoAttuale) => {
+        await updateDoc(doc(db, "prodotti", id), { attivo: !statoAttuale });
+        caricaTutto();
+    };
+
+    // CARICAMENTO DATI
     async function caricaTutto() {
         const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
         const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
         
+        // STAFF
         const corpoStaff = document.getElementById('tabella-staff');
         corpoStaff.innerHTML = "";
         let lordoTot = 0, costsTot = 0;
@@ -219,42 +260,38 @@
             const lordo = parseFloat(u.guadagno_lordo || 0);
             const perc = parseFloat(u.percentuale || 90);
             const saldoStaff = (lordo * perc) / 100;
-            const clickLim = u.limite_click || "∞";
-            
-            lordoTot += lordo; 
-            costsTot += saldoStaff;
+            lordoTot += lordo; costsTot += saldoStaff;
             
             const riga = document.createElement('tr');
             riga.innerHTML = `
-                <td id="td-name-${fid}" style="cursor:pointer"><b>${u.nome}</b><br><small>${u.codice}</small></td>
-                <td><small>Annunci: ${u.limite_annunci || 2}<br>Click: ${clickLim}</small></td>
+                <td onclick="preparaModificaStaff('${fid}', ${JSON.stringify(u).replace(/"/g, '&quot;')})"><b>${u.nome}</b></td>
+                <td><small>${u.limite_annunci || 2} Ann.<br>${u.limite_click || '∞'} Cl.</small></td>
                 <td>€${lordo.toFixed(2)}</td>
-                <td><b>€${saldoStaff.toFixed(2)}</b><br><small>${perc}%</small></td>
-                <td>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn-pay ${u.pagato ? '' : 'waiting'}" id="pay-${fid}">${u.pagato ? 'OK' : 'Paga'}</button>
-                        <button class="btn-trash" id="del-${fid}"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </td>
-            `;
+                <td><b>€${saldoStaff.toFixed(2)}</b></td>
+                <td><div class="action-btns">
+                    <button class="btn-pay ${u.pagato ? '' : 'waiting'}" onclick="togglePagamento('${fid}', ${!u.pagato})">${u.pagato ? 'OK' : 'Paga'}</button>
+                    <button class="btn-icon btn-trash" onclick="openConfirm('${fid}', 'staff')"><i class="fa-solid fa-trash"></i></button>
+                </div></td>`;
             corpoStaff.appendChild(riga);
-
-            document.getElementById(`td-name-${fid}`).onclick = () => preparaModificaStaff(fid, u);
-            document.getElementById(`pay-${fid}`).onclick = () => togglePagamento(fid, !u.pagato);
-            document.getElementById(`del-${fid}`).onclick = () => eliminaStaff(fid);
         });
 
+        // PRODOTTI
         const corpoProd = document.getElementById('tabella-prodotti-admin');
         corpoProd.innerHTML = "";
         snapProd.forEach(res => {
             const p = res.data();
+            const idp = res.id;
             const riga = document.createElement('tr');
             riga.innerHTML = `
-                <td><img src="${p.immagine}" class="prod-img"></td>
-                <td><b>${p.valuta || '€'} ${p.prezzo}</b></td>
-                <td><span class="badge-staff">${p.autore || 'N.D.'}</span></td>
-                <td><button class="btn-trash" onclick="eliminaProdotto('${res.id}')"><i class="fa-solid fa-trash"></i></button></td>
-            `;
+                <td><img src="${p.immagine}" class="prod-img" onclick="showImage('${p.immagine}')"></td>
+                <td><b>${p.prezzo}€</b><br><small>${p.codice_prodotto || 'SG'}</small></td>
+                <td><span class="badge-staff">${p.autore || '??'}</span></td>
+                <td><div class="action-btns">
+                    <button class="btn-icon btn-toggle ${p.attivo === false ? 'off' : ''}" onclick="toggleProdotto('${idp}', ${p.attivo !== false})">
+                        <i class="fa-solid ${p.attivo === false ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                    </button>
+                    <button class="btn-icon btn-trash" onclick="openConfirm('${idp}', 'prod')"><i class="fa-solid fa-trash"></i></button>
+                </div></td>`;
             corpoProd.appendChild(riga);
         });
 
@@ -265,28 +302,22 @@
         document.getElementById('stat-utile').innerText = "€ " + (lordoTot - costsTot).toFixed(2);
     }
 
+    // GESTIONE FORM STAFF
     window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
-        const lordoInput = parseFloat(document.getElementById('u-lordo-manuale').value) || 0;
-        
         const dati = {
             nome: document.getElementById('u-nome').value,
             codice: document.getElementById('u-id').value,
             tag: document.getElementById('u-tag').value,
             percentuale: parseFloat(document.getElementById('u-perc').value) || 90,
-            guadagno_lordo: lordoInput, // Aggiorna il lordo basandosi sull'input admin
+            guadagno_lordo: parseFloat(document.getElementById('u-lordo-manuale').value) || 0,
             limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
             limite_click: parseInt(document.getElementById('u-click-limit').value) || 0,
             metodo: document.getElementById('u-metodo').value,
             conto: document.getElementById('u-conto').value
         };
-
-        if(!dati.nome || !dati.codice) return alert("Inserire Nome e ID");
-
         if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
-        else {
-            await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
-        }
+        else await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
         resetForm(); caricaTutto();
     };
 
@@ -309,16 +340,11 @@
     window.resetForm = () => {
         document.getElementById('u-firebase-id').value = "";
         document.getElementById('modulo-user').querySelectorAll('input, textarea').forEach(i => i.value = "");
-        document.getElementById('u-perc').value = 90;
-        document.getElementById('u-lordo-manuale').value = 0;
         document.getElementById('btn-cancel-edit').classList.add('hidden');
         document.getElementById('form-title').innerText = "Gestione Staff";
     };
 
     window.togglePagamento = async (id, stato) => { await updateDoc(doc(db, "utenti_abilitati", id), { pagato: stato }); caricaTutto(); };
-    window.eliminaStaff = async (id) => { if(confirm("Eliminare definitivamente collaboratore?")) { await deleteDoc(doc(db, "utenti_abilitati", id)); caricaTutto(); } };
-    window.eliminaProdotto = async (id) => { if(confirm("Eliminare definitivamente questo annuncio?")) { await deleteDoc(doc(db, "prodotti", id)); caricaTutto(); } };
-
 </script>
 </body>
 </html>
