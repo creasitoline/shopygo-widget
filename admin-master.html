@@ -222,6 +222,7 @@
         snap.forEach((res) => {
             const u = res.data();
             const fid = res.id;
+            
             const lordo = parseFloat(u.guadagno_lordo || 0);
             const perc = parseFloat(u.percentuale || 90);
             const quotaStaff = (lordo * perc) / 100;
@@ -231,7 +232,7 @@
 
             const riga = document.createElement('tr');
             riga.innerHTML = `
-                <td data-label="Staff" onclick='preparaModifica("${fid}", ${JSON.stringify(u).replace(/"/g, '&quot;')})'>
+                <td data-label="Staff" id="td-${fid}" style="cursor:pointer">
                     <strong>${u.nome}</strong>
                 </td>
                 <td data-label="Parametri">
@@ -245,13 +246,19 @@
                 <td data-label="Saldo Staff"><strong>€${quotaStaff.toFixed(2)}</strong><br><small>${perc}%</small></td>
                 <td data-label="Azioni">
                     <div style="display:flex; gap:5px; justify-content:flex-end;">
-                        <button class="btn-pay ${u.pagato ? '' : 'waiting'}" onclick="togglePagamento('${fid}', ${!u.pagato})">
+                        <button class="btn-pay ${u.pagato ? '' : 'waiting'}" id="pay-${fid}">
                             ${u.pagato ? '<i class="fa-solid fa-check"></i>' : 'Paga'}
                         </button>
-                        <button class="btn-trash" onclick="elimina('${fid}')"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn-trash" id="del-${fid}"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </td>`;
+            
             corpo.appendChild(riga);
+
+            // AGGANCIO EVENTI (Risolve il problema D'Onofrio e altri caratteri speciali)
+            document.getElementById(`td-${fid}`).onclick = () => preparaModifica(fid, u);
+            document.getElementById(`pay-${fid}`).onclick = () => togglePagamento(fid, !u.pagato);
+            document.getElementById(`del-${fid}`).onclick = () => elimina(fid);
         });
 
         document.getElementById('stat-utenti').innerText = conteggio;
@@ -282,7 +289,7 @@
         else { 
             dati.guadagno_lordo = 0; 
             dati.pagato = false; 
-            dati.click_attuali = 0; // Inizializza contatore click per i nuovi utenti
+            dati.click_attuali = 0;
             await addDoc(collection(db, "utenti_abilitati"), dati); 
         }
         resetForm(); caricaDati();
