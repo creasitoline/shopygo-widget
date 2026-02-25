@@ -21,7 +21,6 @@
         }
         .logo { height: 25px; }
 
-        /* Tabs Navigation */
         .admin-tabs { display: flex; background: white; border-bottom: 1px solid #ddd; position: sticky; top: 60px; z-index: 999; }
         .tab-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; color: #666; cursor: pointer; font-size: 13px; transition: 0.3s; }
         .tab-btn.active { color: var(--amazon); border-bottom: 3px solid var(--amazon); }
@@ -34,6 +33,8 @@
         .stat-card { background: white; padding: 15px 10px; border-radius: 12px; border: 1px solid #ddd; text-align: center; }
         .stat-card h4 { margin: 0; font-size: 0.65rem; color: #666; text-transform: uppercase; }
         .stat-card p { margin: 5px 0 0 0; font-size: 1.1rem; font-weight: bold; color: var(--amazon); }
+        .stat-card.profit { border: 2px solid var(--success); }
+        .stat-card.profit p { color: var(--success); }
 
         /* Cards & Forms */
         .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
@@ -90,8 +91,9 @@
             <div class="stats-grid">
                 <div class="stat-card"><h4>Staff</h4><p id="stat-utenti">0</p></div>
                 <div class="stat-card"><h4>Articoli</h4><p id="stat-prodotti-count">0</p></div>
-                <div class="stat-card"><h4>Lordo</h4><p id="stat-lordo">€ 0</p></div>
-                <div class="stat-card"><h4>Costi Staff</h4><p id="stat-staff">€ 0</p></div>
+                <div class="stat-card"><h4>Lordo Totale</h4><p id="stat-lordo">€ 0.00</p></div>
+                <div class="stat-card"><h4>Costi Staff</h4><p id="stat-staff">€ 0.00</p></div>
+                <div class="stat-card profit" style="grid-column: span 2;"><h4>Mio Utile Netto</h4><p id="stat-utile">€ 0.00</p></div>
             </div>
         </div>
 
@@ -110,13 +112,15 @@
 
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1"><label>Quota Staff %</label><input type="number" id="u-perc" value="90"></div>
-                    <div style="flex:1"><label>Limite Annunci</label><input type="number" id="u-limite" value="2"></div>
+                    <div style="flex:1"><label>Lordo Maturato (€)</label><input type="number" id="u-lordo-manuale" step="0.01" value="0.00"></div>
                 </div>
 
-                <label>Limite Click Totali (Vuoto = Illimitati)</label>
-                <input type="number" id="u-click-limit" placeholder="es. 50">
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1"><label>Limite Annunci</label><input type="number" id="u-limite" value="2"></div>
+                    <div style="flex:1"><label>Limite Click</label><input type="number" id="u-click-limit" placeholder="∞"></div>
+                </div>
 
-                <label>Pagamento</label>
+                <label>Metodo Pagamento</label>
                 <select id="u-metodo">
                     <option value="PayPal">PayPal</option>
                     <option value="Bonifico">Bonifico</option>
@@ -179,7 +183,6 @@
 
     const masterPass = "MASTER2026";
 
-    // LOGIN
     document.getElementById('btn-login-master').onclick = () => {
         if(document.getElementById('master-pass').value === masterPass) {
             sessionStorage.setItem('master_logged', 'true');
@@ -195,7 +198,6 @@
     if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
-    // TABS
     window.switchTab = (tab) => {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -203,12 +205,10 @@
         event.currentTarget.classList.add('active');
     };
 
-    // CARICAMENTO TOTALE
     async function caricaTutto() {
         const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
         const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
         
-        // TABELLA STAFF
         const corpoStaff = document.getElementById('tabella-staff');
         corpoStaff.innerHTML = "";
         let lordoTot = 0, costsTot = 0;
@@ -218,17 +218,18 @@
             const fid = res.id;
             const lordo = parseFloat(u.guadagno_lordo || 0);
             const perc = parseFloat(u.percentuale || 90);
-            const saldo = (lordo * perc) / 100;
+            const saldoStaff = (lordo * perc) / 100;
             const clickLim = u.limite_click || "∞";
             
-            lordoTot += lordo; costsTot += saldo;
+            lordoTot += lordo; 
+            costsTot += saldoStaff;
             
             const riga = document.createElement('tr');
             riga.innerHTML = `
-                <td id="td-name-${fid}" style="cursor:pointer"><b>${u.nome}</b></td>
+                <td id="td-name-${fid}" style="cursor:pointer"><b>${u.nome}</b><br><small>${u.codice}</small></td>
                 <td><small>Annunci: ${u.limite_annunci || 2}<br>Click: ${clickLim}</small></td>
                 <td>€${lordo.toFixed(2)}</td>
-                <td><b>€${saldo.toFixed(2)}</b><br><small>${perc}%</small></td>
+                <td><b>€${saldoStaff.toFixed(2)}</b><br><small>${perc}%</small></td>
                 <td>
                     <div style="display:flex; gap:5px;">
                         <button class="btn-pay ${u.pagato ? '' : 'waiting'}" id="pay-${fid}">${u.pagato ? 'OK' : 'Paga'}</button>
@@ -238,13 +239,11 @@
             `;
             corpoStaff.appendChild(riga);
 
-            // Eventi sicuri
             document.getElementById(`td-name-${fid}`).onclick = () => preparaModificaStaff(fid, u);
             document.getElementById(`pay-${fid}`).onclick = () => togglePagamento(fid, !u.pagato);
             document.getElementById(`del-${fid}`).onclick = () => eliminaStaff(fid);
         });
 
-        // TABELLA PRODOTTI
         const corpoProd = document.getElementById('tabella-prodotti-admin');
         corpoProd.innerHTML = "";
         snapProd.forEach(res => {
@@ -259,24 +258,25 @@
             corpoProd.appendChild(riga);
         });
 
-        // STATS
         document.getElementById('stat-utenti').innerText = snapStaff.size;
         document.getElementById('stat-prodotti-count').innerText = snapProd.size;
         document.getElementById('stat-lordo').innerText = "€ " + lordoTot.toFixed(2);
         document.getElementById('stat-staff').innerText = "€ " + costsTot.toFixed(2);
+        document.getElementById('stat-utile').innerText = "€ " + (lordoTot - costsTot).toFixed(2);
     }
 
-    // SALVATAGGIO
     window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
-        const clickVal = document.getElementById('u-click-limit').value;
+        const lordoInput = parseFloat(document.getElementById('u-lordo-manuale').value) || 0;
+        
         const dati = {
             nome: document.getElementById('u-nome').value,
             codice: document.getElementById('u-id').value,
             tag: document.getElementById('u-tag').value,
             percentuale: parseFloat(document.getElementById('u-perc').value) || 90,
+            guadagno_lordo: lordoInput, // Aggiorna il lordo basandosi sull'input admin
             limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
-            limite_click: clickVal ? parseInt(clickVal) : 0,
+            limite_click: parseInt(document.getElementById('u-click-limit').value) || 0,
             metodo: document.getElementById('u-metodo').value,
             conto: document.getElementById('u-conto').value
         };
@@ -285,7 +285,7 @@
 
         if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
         else {
-            await addDoc(collection(db, "utenti_abilitati"), {...dati, guadagno_lordo: 0, pagato: false, click_attuali: 0});
+            await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
         }
         resetForm(); caricaTutto();
     };
@@ -296,17 +296,21 @@
         document.getElementById('u-id').value = u.codice;
         document.getElementById('u-tag').value = u.tag;
         document.getElementById('u-perc').value = u.percentuale || 90;
+        document.getElementById('u-lordo-manuale').value = u.guadagno_lordo || 0;
         document.getElementById('u-limite').value = u.limite_annunci || 2;
         document.getElementById('u-click-limit').value = u.limite_click || "";
         document.getElementById('u-metodo').value = u.metodo || "PayPal";
         document.getElementById('u-conto').value = u.conto || "";
         document.getElementById('btn-cancel-edit').classList.remove('hidden');
         document.getElementById('form-title').innerText = "Modifica Staff";
+        window.scrollTo(0,0);
     };
 
     window.resetForm = () => {
         document.getElementById('u-firebase-id').value = "";
         document.getElementById('modulo-user').querySelectorAll('input, textarea').forEach(i => i.value = "");
+        document.getElementById('u-perc').value = 90;
+        document.getElementById('u-lordo-manuale').value = 0;
         document.getElementById('btn-cancel-edit').classList.add('hidden');
         document.getElementById('form-title').innerText = "Gestione Staff";
     };
