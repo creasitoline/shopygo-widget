@@ -23,7 +23,6 @@
         .container { max-width: 1200px; margin: 15px auto; padding: 0 10px; }
         .hidden { display: none !important; }
 
-        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px 10px; border-radius: 12px; border: 1px solid #ddd; text-align: center; }
         .stat-card h4 { margin: 0; font-size: 0.65rem; color: #666; text-transform: uppercase; }
@@ -31,17 +30,14 @@
         .stat-card.profit { border: 2px solid var(--success); }
         .stat-card.profit p { color: var(--success); }
 
-        /* Forms */
         .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
         label { font-size: 10px; font-weight: bold; color: #777; text-transform: uppercase; margin-left: 2px; }
         input, select, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px;}
         button { background: var(--amazon); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 
-        /* Preview Saldo */
         .saldo-preview { background: #f0f9ff; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px dashed var(--amazon); }
         .saldo-preview span { font-weight: bold; color: var(--amazon); font-size: 1.1rem; }
 
-        /* Tables */
         .table-wrapper { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { background: #f8f9fa; padding: 10px; text-align: left; font-size: 10px; text-transform: uppercase; color: #555; }
@@ -56,6 +52,8 @@
         .action-btns { display: flex; gap: 5px; justify-content: flex-end; }
         .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: 0.2s; }
         .btn-trash { background: #fff1f2; color: var(--danger); }
+        .btn-view { background: #f0f9ff; color: var(--edit); }
+        .btn-view.off { color: #ccc; }
 
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
         .modal-card { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
@@ -164,7 +162,7 @@
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Img</th><th>Dettagli</th><th>Autore</th><th>Azioni</th></tr>
+                        <tr><th>Img</th><th>Dettagli Prodotto</th><th>Autore</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-prodotti-admin"></tbody>
                 </table>
@@ -206,7 +204,6 @@
     if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
-    // Logica Matematica Real-time
     const inputLordo = document.getElementById('u-lordo-manuale');
     const inputPerc = document.getElementById('u-perc');
     const previewSaldo = document.getElementById('preview-calcolato');
@@ -221,7 +218,6 @@
     inputLordo.oninput = ricalcola;
     inputPerc.oninput = ricalcola;
 
-    // Salva Staff con calcolo incluso
     window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
         const lordo = parseFloat(inputLordo.value) || 0;
@@ -248,7 +244,6 @@
         caricaTutto();
     };
 
-    // Caricamento con FIX per lo zero in tabella
     async function caricaTutto() {
         const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
         const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
@@ -260,8 +255,6 @@
         snapStaff.forEach(res => {
             const u = res.data();
             const fid = res.id;
-            
-            // FIX: Se guadagno_netto non esiste nel DB, calcolalo qui per la visualizzazione
             const lordo = parseFloat(u.guadagno_lordo || 0);
             const perc = parseFloat(u.percentuale || 90);
             const netto = u.guadagno_netto !== undefined ? parseFloat(u.guadagno_netto) : (lordo * perc) / 100;
@@ -287,12 +280,21 @@
         corpoProd.innerHTML = "";
         snapProd.forEach(res => {
             const p = res.data();
+            const visibile = p.visibile !== false; // Default true
             const riga = document.createElement('tr');
             riga.innerHTML = `
                 <td><img src="${p.immagine}" class="prod-img" onclick="showImage('${p.immagine}')"></td>
-                <td><b>${p.titolo?.substring(0,15)}..</b><br><small>€${p.prezzo}</small></td>
+                <td style="max-width: 150px; line-height: 1.2;">
+                    <div style="font-weight: bold; font-size: 11px;">${p.titolo}</div>
+                    <small style="color:var(--amazon)">€${p.prezzo}</small>
+                </td>
                 <td><span class="badge-staff">${p.autore}</span></td>
-                <td><button class="btn-icon btn-trash" onclick="openConfirm('${res.id}', 'prod')"><i class="fa-solid fa-trash"></i></button></td>`;
+                <td><div class="action-btns">
+                    <button class="btn-icon btn-view ${visibile ? '' : 'off'}" onclick="toggleVisibilita('${res.id}', ${visibile})">
+                        <i class="fa-solid ${visibile ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                    </button>
+                    <button class="btn-icon btn-trash" onclick="openConfirm('${res.id}', 'prod')"><i class="fa-solid fa-trash"></i></button>
+                </div></td>`;
             corpoProd.appendChild(riga);
         });
 
@@ -302,6 +304,11 @@
         document.getElementById('stat-staff').innerText = "€ " + costsTot.toFixed(2);
         document.getElementById('stat-utile').innerText = "€ " + (lordoTot - costsTot).toFixed(2);
     }
+
+    window.toggleVisibilita = async (id, statoCorrente) => {
+        await updateDoc(doc(db, "prodotti", id), { visibile: !statoCorrente });
+        caricaTutto();
+    };
 
     window.preparaModificaStaff = (fid, u) => {
         document.getElementById('u-firebase-id').value = fid;
