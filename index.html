@@ -110,15 +110,7 @@
         <h2>Le migliori marche su ShopyGO</h2>
         <p>Su ShopyGO trovi quotidianamente offerte su prodotti di elettronica dei brand leader: 
            <strong>Apple</strong> (iPhone, iPad, MacBook), <strong>Samsung</strong> (Galaxy, Smart TV), 
-           <strong>Xiaomi</strong>, <strong>Huawei</strong>, <strong>Oppo</strong> e <strong>Realme</strong>. 
-           Per il gaming monitoriamo i prezzi di <strong>Sony PlayStation</strong>, <strong>Microsoft Xbox</strong> e <strong>Nintendo</strong>.</p>
-        <h2>Elettrodomestici e Casa</h2>
-        <p>Non mancano le occasioni per la casa con marchi come <strong>Dyson</strong>, <strong>iRobot Roomba</strong>, 
-           <strong>Philips</strong>, <strong>De'Longhi</strong> e <strong>Nespresso</strong>. Se cerchi informatica, 
-           troverai notebook <strong>HP</strong>, <strong>Lenovo</strong>, <strong>MSI</strong> e periferiche <strong>Logitech</strong>.</p>
-        <h2>Abbigliamento e Lifestyle</h2>
-        <p>Le ultime tendenze moda di <strong>Nike</strong>, <strong>Adidas</strong>, <strong>Levis</strong> e molto altro, 
-           direttamente dai migliori venditori del Marketplace e dalle offerte lampo Amazon.</p>
+           <strong>Xiaomi</strong>, <strong>Huawei</strong>, <strong>Oppo</strong> e <strong>Realme</strong>.</p>
     </div>
 
     <div id="lightbox">
@@ -151,7 +143,6 @@
     <div class="filter-drawer" id="drawer">
         <div style="width:40px; height:5px; background:#e0e0e0; border-radius:10px; margin: -5px auto 15px auto;"></div>
         <i class="fa-solid fa-xmark close-x" id="btn-x-close"></i>
-        
         <div class="filter-group">
             <h3 style="font-size: 1rem; margin: 0;">Fascia di Prezzo</h3>
             <div class="price-inputs">
@@ -159,22 +150,18 @@
                 <input type="number" id="max-price" placeholder="Max" min="0">
             </div>
         </div>
-
         <div class="filter-group">
             <h3 style="font-size: 1rem; margin-bottom: 12px;">Condizione Prodotto</h3>
             <div id="status-list" class="checkbox-container"></div>
         </div>
-
         <div class="filter-group">
             <h3 style="font-size: 1rem; margin-bottom: 12px;">Piattaforme</h3>
             <div id="type-list" class="checkbox-container"></div>
         </div>
-
         <div class="filter-group">
             <h3 style="font-size: 1rem; margin-bottom: 12px;">Categorie</h3>
             <div id="category-list" class="checkbox-container"></div>
         </div>
-        
         <button id="close-filters" style="width:100%; background:var(--amazon); color:white; border:none; padding:16px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1rem;">APPLICA FILTRI</button>
     </div>
 
@@ -197,9 +184,7 @@
 
     window.registraClick = async (productId) => {
         const prodRef = doc(db, "prodotti", productId);
-        try {
-            await updateDoc(prodRef, { click_count: increment(1) });
-        } catch (e) { console.error("Errore conteggio click:", e); }
+        try { await updateDoc(prodRef, { click_count: increment(1) }); } catch (e) { console.error("Errore click:", e); }
     };
 
     window.apriZoom = (url) => {
@@ -210,20 +195,16 @@
     document.querySelector('.close-zoom').onclick = () => document.getElementById('lightbox').style.display = 'none';
     document.getElementById('lightbox').onclick = (e) => { if(e.target.id === 'lightbox') document.getElementById('lightbox').style.display = 'none'; };
 
-    window.scrollSlider = (amt) => {
-        document.getElementById('slider-prodotti').scrollBy({ left: amt, behavior: 'smooth' });
-    };
+    window.scrollSlider = (amt) => { document.getElementById('slider-prodotti').scrollBy({ left: amt, behavior: 'smooth' }); };
 
     const drawer = document.getElementById('drawer');
     const overlay = document.getElementById('overlay');
-    const closeX = document.getElementById('btn-x-close');
-
     const openMenu = () => { drawer.classList.add('open'); overlay.style.display = 'block'; };
     const closeMenu = () => { drawer.classList.remove('open'); overlay.style.display = 'none'; };
 
     document.getElementById('open-filters').onclick = openMenu;
     document.getElementById('close-filters').onclick = closeMenu;
-    closeX.onclick = closeMenu;
+    document.getElementById('btn-x-close').onclick = closeMenu;
     overlay.onclick = closeMenu;
 
     async function aggiornaMenuFiltri() {
@@ -231,29 +212,18 @@
         const catList = document.getElementById('category-list');
         const typeList = document.getElementById('type-list');
         const statusList = document.getElementById('status-list');
-        
         catList.innerHTML = ""; typeList.innerHTML = ""; statusList.innerHTML = "";
-
         snap.forEach(d => {
             const data = d.data();
             const label = document.createElement('label');
             label.className = "f-check-label";
-            
-            let classe = "";
-            if(data.tipo === 'categorie') classe = "filter-cat";
-            else if(data.tipo === 'piattaforme') classe = "filter-type";
-            else if(data.tipo === 'stato') classe = "filter-status";
-
+            let classe = data.tipo === 'categorie' ? "filter-cat" : (data.tipo === 'piattaforme' ? "filter-type" : "filter-status");
             label.innerHTML = `<input type="checkbox" class="f-check ${classe}" value="${data.nome}"> ${data.nome}`;
-            
             if (data.tipo === 'categorie') catList.appendChild(label);
             else if (data.tipo === 'piattaforme') typeList.appendChild(label);
             else if (data.tipo === 'stato') statusList.appendChild(label);
         });
-
-        document.querySelectorAll('.f-check').forEach(check => {
-            check.onchange = renderGrid;
-        });
+        document.querySelectorAll('.f-check').forEach(check => { check.onchange = renderGrid; });
     }
 
     async function carica() {
@@ -270,20 +240,16 @@
     function renderSlider() {
         const slider = document.getElementById('slider-prodotti');
         slider.innerHTML = "";
-        // MODIFICA: Filtro per i prodotti visibili anche nello slider
-        const visibiliPerSlider = tuttiProdotti.filter(p => p.visibile !== false);
-        
-        visibiliPerSlider.slice(0, 8).forEach(p => {
+        // Filtro sicuro: nasconde solo se visibile è esplicitamente false
+        const visibili = tuttiProdotti.filter(p => p.visibile !== false);
+        visibili.slice(0, 8).forEach(p => {
             let sLink = p.link_amazon || p.link || "#";
             if (sLink !== "#" && !sLink.startsWith('http')) sLink = 'https://' + sLink;
-
             const div = document.createElement('div');
             div.className = 'slider-item';
-            div.innerHTML = `
-                <img src="${p.immagine}" onclick="window.apriZoom('${p.immagine}')">
+            div.innerHTML = `<img src="${p.immagine}" onclick="window.apriZoom('${p.immagine}')">
                 <div onclick="window.registraClick('${p.id}'); window.open('${sLink}', '_blank')">
-                    <h5>${p.titolo}</h5>
-                    <p class="price">${p.valuta || '€'} ${p.prezzo}</p>
+                    <h5>${p.titolo}</h5><p class="price">${p.valuta || '€'} ${p.prezzo}</p>
                 </div>`;
             slider.appendChild(div);
         });
@@ -294,15 +260,12 @@
         const searchTerm = document.getElementById('main-search').value.toLowerCase();
         const minP = parseFloat(document.getElementById('min-price').value) || 0;
         const maxP = parseFloat(document.getElementById('max-price').value) || 999999;
-        
         const selTypes = Array.from(document.querySelectorAll('.filter-type:checked')).map(c => c.value);
         const selCats = Array.from(document.querySelectorAll('.filter-cat:checked')).map(c => c.value);
         const selStatus = Array.from(document.querySelectorAll('.filter-status:checked')).map(c => c.value);
 
         const filtrati = tuttiProdotti.filter(p => {
-            // MODIFICA: Salta il prodotto se è disattivato dall'admin
-            if (p.visibile === false) return false;
-
+            if (p.visibile === false) return false; // Nasconde solo se disattivato
             const priceNum = parseFloat(p.prezzo?.toString().replace(',', '.') || 0);
             const matchesSearch = p.titolo.toLowerCase().includes(searchTerm);
             const matchesType = selTypes.length === 0 || selTypes.includes(p.tipo);
@@ -315,21 +278,27 @@
         grid.innerHTML = "";
         filtrati.forEach(p => {
             let finalLink = p.link_amazon || p.link || "#";
-            if (finalLink !== "#" && !finalLink.startsWith('http')) {
-                finalLink = 'https://' + finalLink;
-            }
+            if (finalLink !== "#" && !finalLink.startsWith('http')) finalLink = 'https://' + finalLink;
+            let sCol = (p.stato || "").toLowerCase() === "nuovo" ? "var(--nuovo)" : ((p.stato || "").toLowerCase() === "usato" ? "var(--usato)" : "var(--offerta)");
+            let btnText = (p.tipo === "Marketplace" || p.tipo === "Annunci") ? "CONTATTA ORA" : "VEDI OFFERTA";
+            let btnCol = (p.tipo === "Marketplace" || p.tipo === "Annunci") ? "#2ecc71" : "var(--accent)";
+            let htmlPrezzo = p.prezzo_pieno ? `<div class="price-container"><div class="price-row"><span class="perc-sconto">${p.sconto_perc}</span><span class="price">${p.valuta || '€'}${p.prezzo}</span></div><span class="old-price">Prezzo: ${p.valuta || '€'}${p.prezzo_pieno}</span></div>` : `<span class="single-price">${p.valuta || '€'} ${p.prezzo}</span>`;
 
-            let sCol = "#666"; 
-            const s = (p.stato || "").toLowerCase();
-            if(s === "nuovo") sCol = "var(--nuovo)";
-            if(s === "usato") sCol = "var(--usato)";
-            if(s === "offerta" || s === "sale" || s === "saldo") sCol = "var(--offerta)";
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `<div class="badge badge-left">${p.tipo || 'Amazon'}</div>
+                ${p.stato ? `<div class="badge badge-right" style="background:${sCol}">${p.stato}</div>` : ''}
+                <div class="image-container" onclick="window.apriZoom('${p.immagine}')"><img src="${p.immagine}"></div>
+                <div class="info"><h4>${p.titolo}</h4>${htmlPrezzo}
+                <a href="${finalLink}" target="_blank" class="buy-btn" onclick="window.registraClick('${p.id}')" style="background:${btnCol}; border-color:${btnCol}">${btnText}</a></div>`;
+            grid.appendChild(card);
+        });
+    }
 
-            let btnText = "VEDI OFFERTA";
-            let btnCol = "var(--accent)";
-            if(p.tipo === "Marketplace" || p.tipo === "Annunci") { btnText = "CONTATTA ORA"; btnCol = "#2ecc71"; }
-
-            let htmlPrezzo = `<span class="single-price">${p.valuta || '€'} ${p.prezzo}</span>`;
-            if(p.prezzo_pieno && p.sconto_perc) {
-                htmlPrezzo = `
-                    <div class="price-container">
+    document.getElementById('main-search').oninput = renderGrid;
+    document.getElementById('min-price').oninput = renderGrid;
+    document.getElementById('max-price').oninput = renderGrid;
+    carica();
+</script>
+</body>
+</html>
