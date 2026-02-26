@@ -56,11 +56,9 @@
         .action-btns { display: flex; gap: 5px; justify-content: flex-end; }
         .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: 0.2s; }
         .btn-trash { background: #fff1f2; color: var(--danger); }
-        .btn-toggle { background: #f0f9ff; color: var(--amazon); }
 
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
         .modal-card { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
-        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000; }
 
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
         .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; }
@@ -86,7 +84,7 @@
     </div>
 </div>
 
-<div id="admin-auth" class="login-overlay">
+<div id="admin-auth" class="login-overlay" style="position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000;">
     <div class="card" style="text-align: center; width: 300px;">
         <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: var(--amazon); margin-bottom: 15px;"></i>
         <h2>Master Access</h2>
@@ -120,7 +118,7 @@
 
         <div id="tab-staff" class="tab-content hidden">
             <div class="card" id="modulo-user">
-                <h3 id="form-title" style="margin-top:0"><i class="fa-solid fa-user-gear"></i> Nuovo Staff</h3>
+                <h3 id="form-title" style="margin-top:0"><i class="fa-solid fa-user-gear"></i> Gestione Staff</h3>
                 <input type="hidden" id="u-firebase-id">
                 
                 <label>Nome Completo</label>
@@ -137,7 +135,7 @@
                 </div>
 
                 <div class="saldo-preview">
-                    Saldo Finale Staff: <span id="preview-calcolato">€ 0.00</span>
+                    Saldo Netto Calcolato: <span id="preview-calcolato">€ 0.00</span>
                 </div>
 
                 <div style="display:flex; gap:10px;">
@@ -145,8 +143,8 @@
                     <div style="flex:1"><label>Limite Click</label><input type="number" id="u-click-limit" value="1000"></div>
                 </div>
 
-                <label>Dati Pagamento</label>
-                <textarea id="u-conto" rows="2" placeholder="IBAN o Email PayPal"></textarea>
+                <label>Metodo & Conto Pagamento</label>
+                <textarea id="u-conto" rows="2" placeholder="PayPal: email@esempio.it oppure IBAN..."></textarea>
                 
                 <button onclick="salvaUtente()">SALVA COLLABORATORE</button>
                 <button onclick="resetForm()" class="hidden" id="btn-cancel-edit" style="background:#eee; color:#333; margin-top:5px;">ANNULLA</button>
@@ -166,7 +164,7 @@
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Img</th><th>Prodotto</th><th>Autore</th><th>Azioni</th></tr>
+                        <tr><th>Img</th><th>Dettagli</th><th>Autore</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-prodotti-admin"></tbody>
                 </table>
@@ -193,7 +191,6 @@
     let currentDeleteId = null;
     let currentDeleteType = '';
 
-    // Login Master
     document.getElementById('btn-login-master').onclick = () => {
         if(document.getElementById('master-pass').value === masterPass) {
             sessionStorage.setItem('master_logged', 'true');
@@ -209,7 +206,7 @@
     if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
-    // Gestione Anteprima Saldo (Matematica Lordo - Quota)
+    // Logica Matematica Real-time
     const inputLordo = document.getElementById('u-lordo-manuale');
     const inputPerc = document.getElementById('u-perc');
     const previewSaldo = document.getElementById('preview-calcolato');
@@ -224,12 +221,12 @@
     inputLordo.oninput = ricalcola;
     inputPerc.oninput = ricalcola;
 
-    // Salvataggio Staff
+    // Salva Staff con calcolo incluso
     window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
         const lordo = parseFloat(inputLordo.value) || 0;
         const perc = parseFloat(inputPerc.value) || 90;
-        const netto = (lordo * perc) / 100; // CALCOLO SALDO FINALE
+        const netto = (lordo * perc) / 100;
 
         const dati = {
             nome: document.getElementById('u-nome').value,
@@ -237,7 +234,7 @@
             tag: document.getElementById('u-tag').value,
             percentuale: perc,
             guadagno_lordo: lordo,
-            guadagno_netto: netto, // QUESTO È IL SALDO CHE VEDRÀ LO STAFF
+            guadagno_netto: netto,
             limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
             limite_click: parseInt(document.getElementById('u-click-limit').value) || 1000,
             conto: document.getElementById('u-conto').value,
@@ -247,11 +244,11 @@
         if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
         else await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
         
-        alert("Staff Salvato con successo!");
         resetForm(); 
         caricaTutto();
     };
 
+    // Caricamento con FIX per lo zero in tabella
     async function caricaTutto() {
         const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
         const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
@@ -263,9 +260,14 @@
         snapStaff.forEach(res => {
             const u = res.data();
             const fid = res.id;
+            
+            // FIX: Se guadagno_netto non esiste nel DB, calcolalo qui per la visualizzazione
             const lordo = parseFloat(u.guadagno_lordo || 0);
-            const netto = parseFloat(u.guadagno_netto || 0);
-            lordoTot += lordo; costsTot += netto;
+            const perc = parseFloat(u.percentuale || 90);
+            const netto = u.guadagno_netto !== undefined ? parseFloat(u.guadagno_netto) : (lordo * perc) / 100;
+
+            lordoTot += lordo; 
+            costsTot += netto;
             
             const riga = document.createElement('tr');
             riga.innerHTML = `
@@ -281,7 +283,6 @@
             corpoStaff.appendChild(riga);
         });
 
-        // Tabella Prodotti
         const corpoProd = document.getElementById('tabella-prodotti-admin');
         corpoProd.innerHTML = "";
         snapProd.forEach(res => {
@@ -307,10 +308,10 @@
         document.getElementById('u-nome').value = u.nome;
         document.getElementById('u-id').value = u.codice;
         document.getElementById('u-tag').value = u.tag;
-        document.getElementById('u-perc').value = u.percentuale;
-        document.getElementById('u-lordo-manuale').value = u.guadagno_lordo;
-        document.getElementById('u-limite').value = u.limite_annunci;
-        document.getElementById('u-click-limit').value = u.limite_click;
+        document.getElementById('u-perc').value = u.percentuale || 90;
+        document.getElementById('u-lordo-manuale').value = u.guadagno_lordo || 0;
+        document.getElementById('u-limite').value = u.limite_annunci || 2;
+        document.getElementById('u-click-limit').value = u.limite_click || 1000;
         document.getElementById('u-conto').value = u.conto || "";
         ricalcola();
         document.getElementById('btn-cancel-edit').classList.remove('hidden');
