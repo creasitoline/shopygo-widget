@@ -150,7 +150,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
@@ -160,6 +160,7 @@
     let utenteAttivo = null;
     let annunciCount = 0;
     let tipoConfigCorrente = "";
+    let unsubscribeUser = null;
 
     // LOGIN
     const sessione = localStorage.getItem('shopygo_user_session');
@@ -174,43 +175,56 @@
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
         const snap = await getDocs(q);
         if(!snap.empty) {
-            utenteAttivo = snap.docs[0].data();
+            const userDoc = snap.docs[0];
             localStorage.setItem('shopygo_user_session', codice);
-            mostraDashboard();
+            
+            // ASCOLTO REAL-TIME DEI DATI UTENTE (Saldo, Limiti, ecc.)
+            if(unsubscribeUser) unsubscribeUser();
+            unsubscribeUser = onSnapshot(doc(db, "utenti_abilitati", userDoc.id), (doc) => {
+                utenteAttivo = doc.data();
+                aggiornaInterfaccia();
+            });
+
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('main-container').classList.remove('hidden');
+            
+            caricaProdotti();
+            caricaConfigurazioni();
         } else { alert("ID non autorizzato."); }
     }
 
-    async function mostraDashboard() {
-        const qP = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
-        const snapP = await getDocs(qP);
-        annunciCount = snapP.size;
-
+    function aggiornaInterfaccia() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
-        // MOSTRA SALDO (guadagno_netto dall'admin)
-        document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_netto || 0)).toFixed(2);
+        
+        // MOSTRA SALDO AGGIORNATO (Legge 'guadagno_netto' calcolato dall'admin)
+        const saldo = parseFloat(utenteAttivo.guadagno_netto || 0);
+        document.getElementById('wallet-importo').innerText = "€ " + saldo.toFixed(2);
         
         const statusDiv = document.getElementById('wallet-status');
-        statusDiv.innerHTML = utenteAttivo.pagato ? '<span class="status-badge status-paid">Pagato</span>' : '<span class="status-badge status-pending">In Attesa</span>';
+        statusDiv.innerHTML = utenteAttivo.pagato ? 
+            '<span class="status-badge status-paid">Pagato</span>' : 
+            '<span class="status-badge status-pending">In Attesa</span>';
         
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('main-container').classList.remove('hidden');
-
         checkLimiti();
-        caricaProdotti();
-        caricaConfigurazioni();
     }
 
     function checkLimiti() {
         const alertBox = document.getElementById('alert-limiti');
         const uploadBox = document.getElementById('upload-box');
         let bloccato = false;
+        
         if(utenteAttivo.limite_annunci && annunciCount >= utenteAttivo.limite_annunci) bloccato = true;
-        if(utenteAttivo.limite_click && utenteAttivo.click_attuali >= utenteAttivo.limite_click) bloccato = true;
+        if(utenteAttivo.limite_click && (utenteAttivo.click_attuali || 0) >= utenteAttivo.limite_click) bloccato = true;
+        
         if(bloccato) {
             alertBox.classList.remove('hidden');
             uploadBox.style.opacity = "0.5";
             uploadBox.style.pointerEvents = "none";
+        } else {
+            alertBox.classList.add('hidden');
+            uploadBox.style.opacity = "1";
+            uploadBox.style.pointerEvents = "auto";
         }
     }
 
@@ -219,6 +233,8 @@
         container.innerHTML = "";
         const q = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
         const snap = await getDocs(q);
+        annunciCount = snap.size; // Aggiorna il conteggio per i limiti
+        
         snap.forEach((res) => {
             const p = res.data();
             const div = document.createElement('div');
@@ -231,8 +247,10 @@
                 <p style="font-size:10px; font-weight:bold; margin-top:5px;">${p.valuta || '€'} ${p.prezzo}</p>`;
             container.appendChild(div);
         });
+        checkLimiti();
     }
 
+    // --- LOGICA AMAZON E MODALI (Invariata) ---
     window.apriModificaP = async (id) => {
         const docRef = doc(db, "prodotti", id);
         const docSnap = await getDoc(docRef);
@@ -328,21 +346,24 @@
         const selectedOption = select.options[select.selectedIndex];
         if(!selectedOption) return;
         const docId = selectedOption.dataset.id;
-        // POPUP BELLO E CHIARO RIPRISTINATO
-        if(confirm(`⚠️ ATTENZIONE: Sei sicuro di voler eliminare definitivamente "${selectedOption.value}" dalla lista ${tipo}?`)) {
+        if(confirm(`⚠️ ATTENZIONE: Vuoi eliminare "${selectedOption.value}"?`)) {
             await deleteDoc(doc(db, "app_config", docId));
             caricaConfigurazioni();
         }
     };
 
     window.eliminaP = async (id) => {
-        if(confirm("Sei sicuro di voler eliminare definitivamente questo annuncio?")) {
+        if(confirm("Eliminare definitivamente questo annuncio?")) {
             await deleteDoc(doc(db, "prodotti", id));
             location.reload();
         }
     };
 
-    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('shopygo_user_session'); location.reload(); };
+    document.getElementById('btn-logout').onclick = () => { 
+        if(unsubscribeUser) unsubscribeUser();
+        localStorage.removeItem('shopygo_user_session'); 
+        location.reload(); 
+    };
 </script>
 </body>
 </html>
