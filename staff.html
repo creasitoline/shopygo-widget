@@ -75,7 +75,7 @@
 
             <div class="wallet-card">
                 <div class="wallet-info">
-                    <h5>Il tuo guadagno</h5>
+                    <h5>Il tuo saldo</h5>
                     <p id="wallet-importo">€ 0.00</p>
                 </div>
                 <div id="wallet-status"></div>
@@ -95,7 +95,9 @@
     <div id="modal-form" class="modal hidden">
         <div class="modal-box">
             <h3 id="modal-title">Configura Prodotto</h3>
-            <input type="hidden" id="f-id"> <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
+            <input type="hidden" id="f-id">
+            
+            <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
             <div class="input-group-custom">
                 <select id="f-tipo"></select>
                 <button class="btn-trash-config" onclick="eliminaConfigCorrente('f-tipo', 'piattaforme')"><i class="fa-solid fa-trash"></i></button>
@@ -185,7 +187,8 @@
 
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
-        document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_lordo || 0)).toFixed(2);
+        // MOSTRA SALDO (guadagno_netto dall'admin)
+        document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_netto || 0)).toFixed(2);
         
         const statusDiv = document.getElementById('wallet-status');
         statusDiv.innerHTML = utenteAttivo.pagato ? '<span class="status-badge status-paid">Pagato</span>' : '<span class="status-badge status-pending">In Attesa</span>';
@@ -211,7 +214,6 @@
         }
     }
 
-    // CARICA PRODOTTI E MODIFICA
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
         container.innerHTML = "";
@@ -221,7 +223,7 @@
             const p = res.data();
             const div = document.createElement('div');
             div.className = 'card-p';
-            div.onclick = () => window.apriModificaP(res.id); // Funzione di modifica ripristinata
+            div.onclick = () => window.apriModificaP(res.id);
             div.innerHTML = `
                 <div class="delete-btn" onclick="event.stopPropagation(); window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
                 <div class="click-badge"><i class="fa-solid fa-eye"></i> ${p.click_count || 0}</div>
@@ -256,7 +258,7 @@
         if(!urlRaw) return;
         fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: urlRaw}) })
         .then(r => r.json()).then(res => {
-            document.getElementById('f-id').value = ""; // Reset ID per nuovo prodotto
+            document.getElementById('f-id').value = ""; 
             document.getElementById('f-titolo').value = res.title || ""; 
             document.getElementById('f-img').value = res.image || "";
             const asinMatch = urlRaw.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
@@ -286,17 +288,11 @@
             timestamp: serverTimestamp(),
             attivo: true
         };
-
-        if(idEsistente) {
-            await updateDoc(doc(db, "prodotti", idEsistente), data);
-        } else {
-            data.click_count = 0;
-            await addDoc(collection(db, "prodotti"), data);
-        }
+        if(idEsistente) { await updateDoc(doc(db, "prodotti", idEsistente), data); } 
+        else { data.click_count = 0; await addDoc(collection(db, "prodotti"), data); }
         location.reload();
     };
 
-    // CONFIGURAZIONI (Tasti Elimina/Aggiungi)
     async function caricaConfigurazioni() {
         const selectors = { 'categorie': 'f-categoria', 'piattaforme': 'f-tipo', 'stato': 'f-stato' };
         Object.values(selectors).forEach(id => document.getElementById(id).innerHTML = "");
@@ -332,7 +328,8 @@
         const selectedOption = select.options[select.selectedIndex];
         if(!selectedOption) return;
         const docId = selectedOption.dataset.id;
-        if(confirm(`Sei sicuro di voler eliminare "${selectedOption.value}" dalle ${tipo}?`)) {
+        // POPUP BELLO E CHIARO RIPRISTINATO
+        if(confirm(`⚠️ ATTENZIONE: Sei sicuro di voler eliminare definitivamente "${selectedOption.value}" dalla lista ${tipo}?`)) {
             await deleteDoc(doc(db, "app_config", docId));
             caricaConfigurazioni();
         }
