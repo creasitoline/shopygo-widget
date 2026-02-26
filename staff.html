@@ -172,12 +172,13 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- SISTEMA DI AUTO-LOGIN ---
+    // --- SISTEMA DI AUTO-LOGIN E RIPRISTINO BIOMETRICO ---
     const sessioneSalvata = localStorage.getItem('shopygo_user_session');
+    
+    // Se c'è una sessione salvata, mostra il tasto impronta e prova il login
     if (sessioneSalvata) {
-        // Se c'è una sessione, proviamo il login automatico
-        aggiornaDatiUtente(sessioneSalvata);
         document.getElementById('btn-biometrico').style.display = 'block';
+        aggiornaDatiUtente(sessioneSalvata);
     }
 
     async function aggiornaDatiUtente(codice) {
@@ -188,9 +189,8 @@
             localStorage.setItem('shopygo_user_session', codice.toUpperCase());
             mostraDashboard();
         } else { 
-            // Se il codice salvato non è valido, puliamo tutto
+            // Se il codice non è valido, puliamo la sessione
             localStorage.removeItem('shopygo_user_session');
-            alert("Sessione scaduta o ID non valido."); 
         }
     }
 
@@ -206,37 +206,18 @@
 
     // --- LOGOUT ---
     document.getElementById('btn-logout').onclick = () => { 
-        localStorage.removeItem('shopygo_user_session'); 
+        // NON eliminiamo shopygo_user_session per permettere il tasto impronta al prossimo rientro
+        // Se invece vuoi resettare tutto, usa localStorage.clear()
         location.reload(); 
     };
 
-    // --- RESTO DEL CODICE INVARIATO ---
-    window.condividiProdotto = async (titolo, link) => {
-        if (navigator.share) {
-            try { await navigator.share({ title: 'Offerta ShopyGO', text: titolo, url: link }); } 
-            catch (err) { console.log("Errore condivisione:", err); }
-        } else {
-            navigator.clipboard.writeText(link);
-            alert("Link copiato negli appunti!");
-        }
-    };
-
-    function accorciaLinkAmazon(url) {
-        if(!url.includes("amazon.")) return url;
-        const asinMatch = url.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
-        if (asinMatch && asinMatch[1]) { 
-            return `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`; 
-        }
-        return url;
-    }
-
-    window.pulisciLinkManuale = (el) => { el.value = accorciaLinkAmazon(el.value); };
-
+    // --- LOGICA LOGIN MANUALE ---
     document.getElementById('btn-login').onclick = () => {
         const cod = document.getElementById('codice-accesso').value.trim();
         if(cod) aggiornaDatiUtente(cod);
     };
 
+    // --- TUTTO IL RESTO RIMANE INVARIATO ---
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
@@ -288,6 +269,27 @@
             container.appendChild(div);
         });
     }
+
+    window.condividiProdotto = async (titolo, link) => {
+        if (navigator.share) {
+            try { await navigator.share({ title: 'Offerta ShopyGO', text: titolo, url: link }); } 
+            catch (err) { console.log("Errore condivisione:", err); }
+        } else {
+            navigator.clipboard.writeText(link);
+            alert("Link copiato negli appunti!");
+        }
+    };
+
+    function accorciaLinkAmazon(url) {
+        if(!url.includes("amazon.")) return url;
+        const asinMatch = url.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
+        if (asinMatch && asinMatch[1]) { 
+            return `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`; 
+        }
+        return url;
+    }
+
+    window.pulisciLinkManuale = (el) => { el.value = accorciaLinkAmazon(el.value); };
 
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
