@@ -172,13 +172,18 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- SISTEMA DI AUTO-LOGIN E RIPRISTINO BIOMETRICO ---
+    // --- LOGICA DI ACCESSO INTELLIGENTE ---
     const sessioneSalvata = localStorage.getItem('shopygo_user_session');
-    
-    // Se c'è una sessione salvata, mostra il tasto impronta e prova il login
+    const appenaUscito = sessionStorage.getItem('shopygo_logged_out');
+
     if (sessioneSalvata) {
+        // Mostra sempre il tasto biometrico se abbiamo un ID in memoria
         document.getElementById('btn-biometrico').style.display = 'block';
-        aggiornaDatiUtente(sessioneSalvata);
+        
+        // Esegui il login automatico SOLO se non ha appena premuto "Esci"
+        if (!appenaUscito) {
+            aggiornaDatiUtente(sessioneSalvata);
+        }
     }
 
     async function aggiornaDatiUtente(codice) {
@@ -187,12 +192,20 @@
         if(!snap.empty) {
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice.toUpperCase());
+            sessionStorage.removeItem('shopygo_logged_out'); // Reset flag logout se l'utente entra
             mostraDashboard();
         } else { 
-            // Se il codice non è valido, puliamo la sessione
+            alert("ID non valido.");
             localStorage.removeItem('shopygo_user_session');
         }
     }
+
+    // --- LOGOUT ---
+    document.getElementById('btn-logout').onclick = () => { 
+        // Impostiamo un flag temporaneo per la sessione corrente
+        sessionStorage.setItem('shopygo_logged_out', 'true');
+        location.reload(); 
+    };
 
     // --- BIOMETRIA ---
     document.getElementById('btn-biometrico').onclick = async () => {
@@ -204,20 +217,13 @@
         }
     };
 
-    // --- LOGOUT ---
-    document.getElementById('btn-logout').onclick = () => { 
-        // NON eliminiamo shopygo_user_session per permettere il tasto impronta al prossimo rientro
-        // Se invece vuoi resettare tutto, usa localStorage.clear()
-        location.reload(); 
-    };
-
-    // --- LOGICA LOGIN MANUALE ---
+    // --- LOGIN MANUALE ---
     document.getElementById('btn-login').onclick = () => {
         const cod = document.getElementById('codice-accesso').value.trim();
         if(cod) aggiornaDatiUtente(cod);
     };
 
-    // --- TUTTO IL RESTO RIMANE INVARIATO ---
+    // --- DASHBOARD E PRODOTTI ---
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
