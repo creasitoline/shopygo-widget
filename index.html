@@ -270,7 +270,10 @@
     function renderSlider() {
         const slider = document.getElementById('slider-prodotti');
         slider.innerHTML = "";
-        tuttiProdotti.slice(0, 8).forEach(p => {
+        // MODIFICA: Filtro per i prodotti visibili anche nello slider
+        const visibiliPerSlider = tuttiProdotti.filter(p => p.visibile !== false);
+        
+        visibiliPerSlider.slice(0, 8).forEach(p => {
             let sLink = p.link_amazon || p.link || "#";
             if (sLink !== "#" && !sLink.startsWith('http')) sLink = 'https://' + sLink;
 
@@ -297,6 +300,9 @@
         const selStatus = Array.from(document.querySelectorAll('.filter-status:checked')).map(c => c.value);
 
         const filtrati = tuttiProdotti.filter(p => {
+            // MODIFICA: Salta il prodotto se è disattivato dall'admin
+            if (p.visibile === false) return false;
+
             const priceNum = parseFloat(p.prezzo?.toString().replace(',', '.') || 0);
             const matchesSearch = p.titolo.toLowerCase().includes(searchTerm);
             const matchesType = selTypes.length === 0 || selTypes.includes(p.tipo);
@@ -327,39 +333,3 @@
             if(p.prezzo_pieno && p.sconto_perc) {
                 htmlPrezzo = `
                     <div class="price-container">
-                        <div class="price-row">
-                            <span class="perc-sconto">${p.sconto_perc}</span>
-                            <span class="price">${p.valuta || '€'}${p.prezzo}</span>
-                        </div>
-                        <span class="old-price">Prezzo: ${p.valuta || '€'}${p.prezzo_pieno}</span>
-                    </div>
-                `;
-            }
-
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="badge badge-left">${p.tipo || 'Amazon'}</div>
-                ${p.stato ? `<div class="badge badge-right" style="background:${sCol}">${p.stato}</div>` : ''}
-                <div class="image-container" onclick="window.apriZoom('${p.immagine}')">
-                    <img src="${p.immagine}">
-                </div>
-                <div class="info">
-                    <h4>${p.titolo}</h4>
-                    ${htmlPrezzo}
-                    <a href="${finalLink}" target="_blank" class="buy-btn" onclick="window.registraClick('${p.id}')" style="background:${btnCol}; border-color:${btnCol}">
-                        ${btnText}
-                    </a>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-    }
-
-    document.getElementById('main-search').oninput = renderGrid;
-    document.getElementById('min-price').oninput = renderGrid;
-    document.getElementById('max-price').oninput = renderGrid;
-    carica();
-</script>
-</body>
-</html>
