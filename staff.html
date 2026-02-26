@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ShopyGO - Staff</title>
+    <title>ShopyGO - Console Staff</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #f3f3f3; --accent: #FFD814; --danger: #ff4757; --success: #28a745; }
@@ -29,31 +29,28 @@
         input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; outline: none; }
         button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
-        .btn-manual { background: var(--nuovo); margin-top: 5px; }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
-        .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; height: 165px; display: flex; flex-direction: column; justify-content: flex-start; transition: transform 0.2s; overflow: hidden; }
-        .card-p img { width: 100%; height: 85px; object-fit: contain; margin-top: 5px; }
+        .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; height: 165px; display: flex; flex-direction: column; overflow: hidden; }
+        .card-p img { width: 100%; height: 85px; object-fit: contain; }
         
         .delete-btn { position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 11px; }
-        .share-btn { position: absolute; bottom: 8px; right: 8px; background: #3498db; color: white; width: 28px; height: 28px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .click-badge { position: absolute; bottom: 8px; left: 8px; background: #f8f9fa; color: var(--amazon); padding: 4px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid #eee; z-index: 10; display: flex; align-items: center; gap: 3px; }
+        .share-btn { position: absolute; bottom: 8px; right: 8px; background: #3498db; color: white; width: 28px; height: 28px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .click-badge { position: absolute; bottom: 8px; left: 8px; background: #f8f9fa; color: var(--amazon); padding: 4px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid #eee; }
 
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
-        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; }
         .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
 
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 15px; }
-        .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; position: relative; max-height: 90vh; overflow-y: auto; }
         .hidden { display: none !important; }
 
-        .input-group-custom { display: flex; gap: 5px; align-items: center; }
-        .input-group-custom select { flex: 1; }
+        .input-group-custom { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; }
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
-        .btn-trash { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
-        
-        /* Pop-up Limiti */
+        .btn-trash-config { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
+
         .limit-alert { background: #fff5f5; border: 2px solid var(--danger); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
@@ -67,7 +64,7 @@
     <div id="login-section">
         <div class="login-card">
             <i class="fa-solid fa-user-shield" style="font-size: 3rem; color: var(--amazon); margin-bottom: 15px;"></i>
-            <h2 style="margin: 0 0 10px 0;">Accesso Staff</h2>
+            <h2>Accesso Staff</h2>
             <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID (es. SG001)">
             <button id="btn-login">ENTRA</button>
         </div>
@@ -109,22 +106,29 @@
 
     <div id="modal-form" class="modal hidden">
         <div class="modal-box">
-            <h3 id="modal-title">Configura Prodotto</h3>
+            <h3>Configura Prodotto</h3>
+            
             <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
             <div class="input-group-custom">
                 <select id="f-tipo"></select>
+                <button class="btn-trash-config" onclick="eliminaConfigCorrente('f-tipo', 'piattaforme')"><i class="fa-solid fa-trash"></i></button>
                 <button class="btn-plus" onclick="apriPopupNuovo('piattaforme')"><i class="fa-solid fa-plus"></i></button>
             </div>
-            <label style="font-size:11px; font-weight:bold; margin-top:5px; display:block;">Categoria</label>
+
+            <label style="font-size:11px; font-weight:bold;">Categoria</label>
             <div class="input-group-custom">
                 <select id="f-categoria"></select>
+                <button class="btn-trash-config" onclick="eliminaConfigCorrente('f-categoria', 'categorie')"><i class="fa-solid fa-trash"></i></button>
                 <button class="btn-plus" onclick="apriPopupNuovo('categorie')"><i class="fa-solid fa-plus"></i></button>
             </div>
-            <label style="font-size:11px; font-weight:bold; margin-top:5px; display:block;">Stato Prodotto</label>
+
+            <label style="font-size:11px; font-weight:bold;">Stato</label>
             <div class="input-group-custom">
                 <select id="f-stato"></select>
+                <button class="btn-trash-config" onclick="eliminaConfigCorrente('f-stato', 'stato')"><i class="fa-solid fa-trash"></i></button>
                 <button class="btn-plus" onclick="apriPopupNuovo('stato')"><i class="fa-solid fa-plus"></i></button>
             </div>
+
             <input type="text" id="f-titolo" placeholder="Titolo">
             <div style="display:flex; gap:10px;">
                 <input type="text" id="f-prezzo-pieno" placeholder="Prezzo Pieno">
@@ -133,7 +137,6 @@
             </div>
             <input type="text" id="f-img" placeholder="URL Immagine">
             <input type="text" id="f-link" placeholder="Link finale" readonly>
-            <input type="hidden" id="f-id">
             <button id="btn-salva-prodotto">PUBBLICA ORA</button>
             <button style="background: #eee; color: #333;" onclick="document.getElementById('modal-form').classList.add('hidden')">CHIUDI</button>
         </div>
@@ -152,13 +155,13 @@
 
     <nav class="nav-bottom">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Shop</span></a>
-        <a href="staff.html" class="nav-item active"><i class="fa-solid fa-circle-plus"></i><span>Pubblica</span></a>
-        <a href="admin-master.html" class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>
+        <a href="#" class="nav-item active"><i class="fa-solid fa-circle-plus"></i><span>Pubblica</span></a>
+        <a href="admin.html" class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>
     </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
@@ -166,47 +169,35 @@
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
     
     let utenteAttivo = null;
-    let utenteIdDoc = null; // ID del documento Firebase dell'utente
-    let tipoConfigCorrente = ""; 
     let annunciCount = 0;
+    let tipoConfigCorrente = "";
 
-    // LOGIN
+    // GESTIONE LOGIN
     const sessione = localStorage.getItem('shopygo_user_session');
-    if(sessione) { aggiornaDatiUtente(sessione); }
+    if(sessione) { login(sessione); }
 
-    async function aggiornaDatiUtente(codice) {
+    document.getElementById('btn-login').onclick = () => {
+        const cod = document.getElementById('codice-accesso').value.trim();
+        if(cod) login(cod);
+    };
+
+    async function login(codice) {
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
         const snap = await getDocs(q);
         if(!snap.empty) {
-            utenteIdDoc = snap.docs[0].id;
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
             mostraDashboard();
         } else { alert("ID non autorizzato."); }
     }
 
-    document.getElementById('btn-login').onclick = () => {
-        const cod = document.getElementById('codice-accesso').value.trim();
-        if(cod) aggiornaDatiUtente(cod);
-    };
-
-    document.getElementById('btn-logout').onclick = () => { 
-        localStorage.removeItem('shopygo_user_session'); 
-        location.reload(); 
-    };
-
-    // DASHBOARD & LIMITI
     async function mostraDashboard() {
-        // Conta annunci attuali
         const qP = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
         const snapP = await getDocs(qP);
         annunciCount = snapP.size;
 
-        // UI Info
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
-        
-        // FUNZIONE 1: Guadagno reale senza calcolo fisso 90%
         document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_lordo || 0)).toFixed(2);
         
         const statusDiv = document.getElementById('wallet-status');
@@ -215,11 +206,9 @@
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('main-container').classList.remove('hidden');
 
-        // FUNZIONE 2: Controllo Limiti Click e Annunci
         checkLimiti();
-
-        caricaConfigurazioni();
         caricaProdotti();
+        caricaConfigurazioni();
     }
 
     function checkLimiti() {
@@ -227,15 +216,12 @@
         const uploadBox = document.getElementById('upload-box');
         let bloccato = false;
 
-        // Limite Annunci
         if(utenteAttivo.limite_annunci && annunciCount >= utenteAttivo.limite_annunci) {
-            document.getElementById('msg-limite').innerText = "Limite Annunci Raggiunto ("+utenteAttivo.limite_annunci+"). Elimina un vecchio annuncio per pubblicare.";
+            document.getElementById('msg-limite').innerText = "Limite Annunci Raggiunto!";
             bloccato = true;
         }
-
-        // Limite Click
         if(utenteAttivo.limite_click && utenteAttivo.click_attuali >= utenteAttivo.limite_click) {
-            document.getElementById('msg-limite').innerText = "Limite Click Raggiunto! Contatta l'admin per sbloccare.";
+            document.getElementById('msg-limite').innerText = "Limite Click Raggiunto!";
             bloccato = true;
         }
 
@@ -246,7 +232,7 @@
         }
     }
 
-    // CARICA PRODOTTI
+    // PRODOTTI
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
         container.innerHTML = "";
@@ -257,48 +243,35 @@
             const div = document.createElement('div');
             div.className = 'card-p';
             div.innerHTML = `
-                <div class="delete-btn" onclick="event.stopPropagation(); window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
+                <div class="delete-btn" onclick="window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
                 <div class="click-badge"><i class="fa-solid fa-eye"></i> ${p.click_count || 0}</div>
-                <div class="share-btn" onclick="event.stopPropagation(); window.condividiProdotto('${p.titolo.replace(/'/g, "\\'")}', '${p.link_amazon}')"><i class="fa-solid fa-share-nodes"></i></div>
                 <img src="${p.immagine}">
-                <p style="font-size:10px; font-weight:bold; margin: 8px 0 0 0;">${p.valuta || '€'} ${p.prezzo}</p>`;
+                <p style="font-size:10px; font-weight:bold; margin-top:5px;">${p.valuta || '€'} ${p.prezzo}</p>`;
             container.appendChild(div);
         });
     }
 
-    // VERIFICA LINK AMAZON
     document.getElementById('btn-verifica').onclick = () => {
         const urlRaw = document.getElementById('amazon-link').value;
         if(!urlRaw) return;
-        
         fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: urlRaw}) })
         .then(r => r.json()).then(res => {
             document.getElementById('f-titolo').value = res.title || ""; 
             document.getElementById('f-img').value = res.image || "";
-            
-            // Estrazione ASIN e creazione link pulito con TAG
             const asinMatch = urlRaw.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
-            if (asinMatch) {
-                document.getElementById('f-link').value = `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`;
-            } else {
-                document.getElementById('f-link').value = urlRaw;
-            }
-            
+            document.getElementById('f-link').value = asinMatch ? `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}` : urlRaw;
             document.getElementById('modal-form').classList.remove('hidden');
         });
     };
 
-    // SALVATAGGIO
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const pPieno = parseFloat(document.getElementById('f-prezzo-pieno').value) || 0;
         const pSconto = parseFloat(document.getElementById('f-prezzo').value) || 0;
-        let perc = pPieno > pSconto ? "-" + Math.round(((pPieno - pSconto) / pPieno) * 100) + "%" : "";
-
         const data = {
             titolo: document.getElementById('f-titolo').value, 
             prezzo: pSconto.toString(),
             prezzo_pieno: pPieno.toString(),
-            sconto_perc: perc,
+            sconto_perc: pPieno > pSconto ? "-" + Math.round(((pPieno - pSconto) / pPieno) * 100) + "%" : "",
             valuta: document.getElementById('f-valuta').value,
             immagine: document.getElementById('f-img').value, 
             link_amazon: document.getElementById('f-link').value, 
@@ -311,13 +284,11 @@
             click_count: 0,
             attivo: true
         };
-
         await addDoc(collection(db, "prodotti"), data);
-        document.getElementById('modal-form').classList.add('hidden');
-        location.reload(); // Ricarica per aggiornare conteggi e limiti
+        location.reload();
     };
 
-    // FUNZIONI CONFIG (Categorie/Piattaforme)
+    // CONFIGURAZIONI (Tasti Elimina/Aggiungi)
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
@@ -328,6 +299,7 @@
             const data = d.data();
             const opt = document.createElement('option');
             opt.value = data.nome; opt.text = data.nome;
+            opt.dataset.id = d.id; // Salviamo l'ID per l'eliminazione
             if (data.tipo === 'categorie') selCat.add(opt);
             else if (data.tipo === 'piattaforme') selTipo.add(opt);
             else if (data.tipo === 'stato') selStato.add(opt);
@@ -349,21 +321,25 @@
         }
     };
 
+    window.eliminaConfigCorrente = async (selectId, tipo) => {
+        const select = document.getElementById(selectId);
+        const selectedOption = select.options[select.selectedIndex];
+        if(!selectedOption) return;
+        const docId = selectedOption.dataset.id;
+        if(confirm(`Vuoi eliminare "${selectedOption.value}" dalle ${tipo}?`)) {
+            await deleteDoc(doc(db, "app_config", docId));
+            caricaConfigurazioni();
+        }
+    };
+
     window.eliminaP = async (id) => {
-        if(confirm("Eliminare questo annuncio?")) {
+        if(confirm("Eliminare annuncio?")) {
             await deleteDoc(doc(db, "prodotti", id));
             location.reload();
         }
     };
 
-    window.condividiProdotto = (titolo, link) => {
-        if (navigator.share) {
-            navigator.share({ title: 'Offerta', text: titolo, url: link });
-        } else {
-            navigator.clipboard.writeText(link);
-            alert("Link copiato!");
-        }
-    };
+    document.getElementById('btn-logout').onclick = () => { localStorage.removeItem('shopygo_user_session'); location.reload(); };
 </script>
 </body>
 </html>
