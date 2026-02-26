@@ -64,6 +64,7 @@
             <h2 style="margin: 0 0 10px 0;">Accesso Staff</h2>
             <input type="text" id="codice-accesso" placeholder="Inserisci il tuo ID (es. SG001)">
             <button id="btn-login">ENTRA</button>
+            
             <button id="btn-biometrico" style="background:#f0f0f0; color:#333; margin-top:10px; display:none;">
                 <i class="fa-solid fa-fingerprint"></i> Usa Impronta
             </button>
@@ -92,7 +93,7 @@
                 <h4 style="margin: 0 0 10px 0;"><i class="fa-brands fa-amazon"></i> Pubblica Prodotto</h4>
                 <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui...">
                 <button id="btn-verifica"><i class="fa-solid fa-wand-magic-sparkles"></i> VERIFICA E CARICA</button>
-                <button id="btn-nuovo-manuale" class="btn-manual hidden"><i class="fa-solid fa-plus"></i> CREA MANUALE</button>
+                <button id="btn-nuovo-manuale" class="btn-manual"><i class="fa-solid fa-plus"></i> CREA MANUALE</button>
             </div>
 
             <h4 style="border-bottom: 2px solid var(--amazon); padding-bottom: 5px; display: inline-block;">I Tuoi Annunci</h4>
@@ -122,21 +123,15 @@
                 <button class="btn-trash" onclick="chiediEliminaOpzione('f-stato')"><i class="fa-solid fa-trash"></i></button>
             </div>
             <input type="text" id="f-titolo" placeholder="Titolo">
-            
             <div style="display:flex; gap:10px;">
-                <input type="text" id="f-prezzo-pieno" placeholder="Prezzo Pieno">
-                <input type="text" id="f-prezzo" placeholder="Prezzo Scontato">
+                <input type="text" id="f-prezzo" placeholder="Prezzo">
                 <select id="f-valuta" style="width:80px;"><option value="€">€</option><option value="CHF">CHF</option></select>
             </div>
-
             <input type="text" id="f-img" placeholder="URL Immagine">
-            
-            <button type="button" id="btn-carica-foto-nascosto" style="background:#f0f0f0; color:#333; font-size:12px; display:none;" onclick="document.getElementById('file-input').click()">Carica Foto</button>
+            <button type="button" style="background:#f0f0f0; color:#333; font-size:12px;" onclick="document.getElementById('file-input').click()">Carica Foto</button>
             <input type="file" id="file-input" class="hidden" accept="image/*">
-            
-            <textarea id="f-desc" rows="3" placeholder="Descrizione" style="display:none;"></textarea>
-            
-            <input type="text" id="f-link" placeholder="Link finale" oninput="window.pulisciLinkManuale(this)">
+            <textarea id="f-desc" rows="3" placeholder="Descrizione"></textarea>
+            <input type="text" id="f-link" placeholder="Link finale">
             <input type="hidden" id="f-id">
             <button id="btn-salva-prodotto">PUBBLICA ORA</button>
             <button style="background: #eee; color: #333;" id="btn-close-modal">CHIUDI</button>
@@ -175,6 +170,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // --- IMPORTAZIONE FILE BIOMETRICO ---
     import { attivaSensoreImpronta } from "./auth-biometric.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
@@ -186,9 +183,11 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
+    // --- GESTIONE BIOMETRIA ---
     const btnBio = document.getElementById('btn-biometrico');
     const bioIdSalvato = localStorage.getItem('sg_staff_bio_id');
 
+    // Mostra il tasto impronta se c'è una sessione precedente salvata
     if(bioIdSalvato && !localStorage.getItem('shopygo_user_session')) {
         btnBio.style.display = 'block';
     }
@@ -199,6 +198,7 @@
         });
     };
 
+    // --- LOGIN E DASHBOARD ---
     const sessione = localStorage.getItem('shopygo_user_session');
     if(sessione) { aggiornaDatiUtente(sessione); }
 
@@ -208,9 +208,11 @@
         if(!snap.empty) {
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
-            localStorage.setItem('sg_staff_bio_id', codice);
+            localStorage.setItem('sg_staff_bio_id', codice); // Salva ID per futuro uso biometrico
             mostraDashboard();
-        } else { alert("ID non autorizzato."); }
+        } else {
+            alert("ID non autorizzato.");
+        }
     }
 
     document.getElementById('btn-login').onclick = () => {
@@ -235,6 +237,7 @@
         caricaProdotti();
     }
 
+    // --- CARICAMENTO CONFIGURAZIONI ---
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
@@ -251,6 +254,7 @@
         });
     }
 
+    // --- GESTIONE PRODOTTI ---
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
         container.innerHTML = "";
@@ -268,18 +272,9 @@
 
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
-        const pPieno = parseFloat(document.getElementById('f-prezzo-pieno').value) || 0;
-        const pSconto = parseFloat(document.getElementById('f-prezzo').value) || 0;
-        let perc = "";
-        if(pPieno > pSconto && pPieno > 0) {
-            perc = "-" + Math.round(((pPieno - pSconto) / pPieno) * 100) + "%";
-        }
-
         const data = {
             titolo: document.getElementById('f-titolo').value, 
-            prezzo: pSconto.toString(),
-            prezzo_pieno: pPieno.toString(),
-            sconto_perc: perc,
+            prezzo: document.getElementById('f-prezzo').value,
             valuta: document.getElementById('f-valuta').value,
             immagine: document.getElementById('f-img').value, 
             descrizione: document.getElementById('f-desc').value,
@@ -295,35 +290,24 @@
         caricaProdotti();
     };
 
-    function accorciaLinkAmazon(url) {
-        if(!url.includes("amazon.")) return url;
-        const asinMatch = url.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
-        if (asinMatch && asinMatch[1]) {
-            return `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`;
-        }
-        return url;
-    }
-
-    window.pulisciLinkManuale = (el) => { el.value = accorciaLinkAmazon(el.value); };
-
     document.getElementById('btn-verifica').onclick = () => {
-        const urlRaw = document.getElementById('amazon-link').value;
-        if(!urlRaw) return;
-        fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: urlRaw}) })
+        const url = document.getElementById('amazon-link').value;
+        if(!url) return;
+        fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: url}) })
         .then(r => r.json()).then(res => {
-            document.getElementById('f-titolo').value = res.title || ""; 
-            document.getElementById('f-img').value = res.image || "";
-            document.getElementById('f-link').value = accorciaLinkAmazon(urlRaw);
+            document.getElementById('f-titolo').value = res.title; 
+            document.getElementById('f-img').value = res.image;
+            document.getElementById('f-link').value = url.split("?")[0] + "?tag=" + utenteAttivo.tag;
             document.getElementById('modal-form').classList.remove('hidden');
         });
     };
 
+    // --- FUNZIONI WINDOW (Globali per bottoni inline) ---
     window.apriModifica = (id, p) => {
         pulisci();
         document.getElementById('f-id').value = id; 
         document.getElementById('f-titolo').value = p.titolo;
         document.getElementById('f-prezzo').value = p.prezzo;
-        document.getElementById('f-prezzo-pieno').value = p.prezzo_pieno || "";
         document.getElementById('f-img').value = p.immagine;
         document.getElementById('f-link').value = p.link_amazon;
         document.getElementById('f-desc').value = p.descrizione || "";
@@ -363,11 +347,12 @@
 
     function pulisci() { 
         document.getElementById('f-id').value = ""; document.getElementById('f-titolo').value = ""; 
-        document.getElementById('f-prezzo').value = ""; document.getElementById('f-prezzo-pieno').value = "";
-        document.getElementById('f-img').value = ""; document.getElementById('f-link').value = ""; 
-        document.getElementById('f-desc').value = ""; document.getElementById('f-stato').value = "";
+        document.getElementById('f-prezzo').value = ""; document.getElementById('f-img').value = ""; 
+        document.getElementById('f-link').value = ""; document.getElementById('f-desc').value = "";
+        document.getElementById('f-stato').value = "";
     }
 
+    // --- GESTIONE BOTTONI MODALI ---
     document.getElementById('btn-conferma-input').onclick = async () => {
         const val = document.getElementById('nuovo-valore-input').value.trim();
         if(val) {
