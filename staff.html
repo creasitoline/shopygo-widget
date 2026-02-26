@@ -161,6 +161,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    // Assicurati che il file auth-biometric.js esista nella stessa cartella
     import { attivaSensoreImpronta } from "./auth-biometric.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
@@ -172,12 +173,29 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- FUNZIONI DI CONDIVISIONE E PULIZIA ---
+    // --- LOGICA BIOMETRICA ---
+    const btnBio = document.getElementById('btn-biometrico');
+    const sessioneSalvata = localStorage.getItem('shopygo_user_session');
+
+    // Se c'è una sessione, mostriamo il tasto impronta
+    if (sessioneSalvata) {
+        btnBio.style.display = 'block';
+    }
+
+    btnBio.onclick = async () => {
+        const successo = await attivaSensoreImpronta();
+        if (successo && sessioneSalvata) {
+            aggiornaDatiUtente(sessioneSalvata);
+        } else {
+            alert("Riconoscimento fallito o non configurato.");
+        }
+    };
+
+    // --- FUNZIONI INVARIARE ---
     window.condividiProdotto = async (titolo, link) => {
         if (navigator.share) {
-            try {
-                await navigator.share({ title: 'Offerta ShopyGO', text: titolo, url: link });
-            } catch (err) { console.log("Errore condivisione:", err); }
+            try { await navigator.share({ title: 'Offerta ShopyGO', text: titolo, url: link }); } 
+            catch (err) { console.log("Errore condivisione:", err); }
         } else {
             navigator.clipboard.writeText(link);
             alert("Link copiato negli appunti!");
@@ -194,10 +212,6 @@
     }
 
     window.pulisciLinkManuale = (el) => { el.value = accorciaLinkAmazon(el.value); };
-
-    // --- AUTH ---
-    const sessione = localStorage.getItem('shopygo_user_session');
-    if(sessione) { aggiornaDatiUtente(sessione); }
 
     async function aggiornaDatiUtente(codice) {
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
@@ -219,21 +233,16 @@
         location.reload(); 
     };
 
-    // --- DASHBOARD E SALDO ---
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
-        
         const lordo = parseFloat(utenteAttivo.guadagno_lordo || 0);
         const perc = parseFloat(utenteAttivo.percentuale || 90);
         const nettoRecuperato = utenteAttivo.guadagno_netto !== undefined ? parseFloat(utenteAttivo.guadagno_netto) : (lordo * perc / 100);
-
         document.getElementById('wallet-label').innerText = `Il tuo guadagno (${perc}%)`;
         document.getElementById('wallet-importo').innerText = "€ " + nettoRecuperato.toFixed(2);
-        
         const statusDiv = document.getElementById('wallet-status');
         statusDiv.innerHTML = utenteAttivo.pagato ? '<span class="status-badge status-paid">Pagato</span>' : '<span class="status-badge status-pending">In Attesa</span>';
-        
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('main-container').classList.remove('hidden');
         caricaConfigurazioni();
@@ -282,7 +291,6 @@
         const pSconto = parseFloat(document.getElementById('f-prezzo').value) || 0;
         let perc = "";
         if(pPieno > pSconto && pPieno > 0) { perc = "-" + Math.round(((pPieno - pSconto) / pPieno) * 100) + "%"; }
-
         const data = {
             titolo: document.getElementById('f-titolo').value, 
             prezzo: pSconto.toString(),
