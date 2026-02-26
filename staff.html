@@ -9,48 +9,36 @@
         :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #f3f3f3; --accent: #FFD814; --danger: #ff4757; --success: #28a745; }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text); overflow-x: hidden; }
-        
         header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; }
         .logo { height: 30px; }
-
         #login-section { display: flex; justify-content: center; align-items: center; height: 80vh; padding: 20px; }
         .login-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
-        
         .main-layout { max-width: 900px; margin: auto; padding: 15px; }
         .user-info-bar { background: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid #ddd; }
-        
         .wallet-card { background: linear-gradient(135deg, #007185, #004e5d); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,113,133,0.3); }
         .wallet-info h5 { margin: 0; font-size: 0.7rem; text-transform: uppercase; opacity: 0.8; }
         .wallet-info p { margin: 5px 0 0 0; font-size: 1.6rem; font-weight: bold; }
         .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
         .status-paid { background: var(--success); color: white; }
         .status-pending { background: var(--accent); color: #131921; }
-
         input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; outline: none; }
         button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
-
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
-        .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; height: 165px; display: flex; flex-direction: column; overflow: hidden; }
+        .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; height: 165px; display: flex; flex-direction: column; overflow: hidden; cursor: pointer; transition: 0.2s; }
         .card-p img { width: 100%; height: 85px; object-fit: contain; }
-        
         .delete-btn { position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 11px; }
-        .share-btn { position: absolute; bottom: 8px; right: 8px; background: #3498db; color: white; width: 28px; height: 28px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 12px; }
         .click-badge { position: absolute; bottom: 8px; left: 8px; background: #f8f9fa; color: var(--amazon); padding: 4px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid #eee; }
-
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
-        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; }
         .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
-
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 15px; }
         .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; position: relative; max-height: 90vh; overflow-y: auto; }
         .hidden { display: none !important; }
-
         .input-group-custom { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; }
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
         .btn-trash-config { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
-
         .limit-alert { background: #fff5f5; border: 2px solid var(--danger); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
@@ -106,9 +94,8 @@
 
     <div id="modal-form" class="modal hidden">
         <div class="modal-box">
-            <h3>Configura Prodotto</h3>
-            
-            <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
+            <h3 id="modal-title">Configura Prodotto</h3>
+            <input type="hidden" id="f-id"> <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
             <div class="input-group-custom">
                 <select id="f-tipo"></select>
                 <button class="btn-trash-config" onclick="eliminaConfigCorrente('f-tipo', 'piattaforme')"><i class="fa-solid fa-trash"></i></button>
@@ -137,7 +124,7 @@
             </div>
             <input type="text" id="f-img" placeholder="URL Immagine">
             <input type="text" id="f-link" placeholder="Link finale" readonly>
-            <button id="btn-salva-prodotto">PUBBLICA ORA</button>
+            <button id="btn-salva-prodotto">SALVA E PUBBLICA</button>
             <button style="background: #eee; color: #333;" onclick="document.getElementById('modal-form').classList.add('hidden')">CHIUDI</button>
         </div>
     </div>
@@ -156,12 +143,12 @@
     <nav class="nav-bottom">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Shop</span></a>
         <a href="#" class="nav-item active"><i class="fa-solid fa-circle-plus"></i><span>Pubblica</span></a>
-        <a href="admin.html" class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>
+        <a href="admin-master.html" class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>
     </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
@@ -172,7 +159,7 @@
     let annunciCount = 0;
     let tipoConfigCorrente = "";
 
-    // GESTIONE LOGIN
+    // LOGIN
     const sessione = localStorage.getItem('shopygo_user_session');
     if(sessione) { login(sessione); }
 
@@ -215,16 +202,8 @@
         const alertBox = document.getElementById('alert-limiti');
         const uploadBox = document.getElementById('upload-box');
         let bloccato = false;
-
-        if(utenteAttivo.limite_annunci && annunciCount >= utenteAttivo.limite_annunci) {
-            document.getElementById('msg-limite').innerText = "Limite Annunci Raggiunto!";
-            bloccato = true;
-        }
-        if(utenteAttivo.limite_click && utenteAttivo.click_attuali >= utenteAttivo.limite_click) {
-            document.getElementById('msg-limite').innerText = "Limite Click Raggiunto!";
-            bloccato = true;
-        }
-
+        if(utenteAttivo.limite_annunci && annunciCount >= utenteAttivo.limite_annunci) bloccato = true;
+        if(utenteAttivo.limite_click && utenteAttivo.click_attuali >= utenteAttivo.limite_click) bloccato = true;
         if(bloccato) {
             alertBox.classList.remove('hidden');
             uploadBox.style.opacity = "0.5";
@@ -232,7 +211,7 @@
         }
     }
 
-    // PRODOTTI
+    // CARICA PRODOTTI E MODIFICA
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
         container.innerHTML = "";
@@ -242,8 +221,9 @@
             const p = res.data();
             const div = document.createElement('div');
             div.className = 'card-p';
+            div.onclick = () => window.apriModificaP(res.id); // Funzione di modifica ripristinata
             div.innerHTML = `
-                <div class="delete-btn" onclick="window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
+                <div class="delete-btn" onclick="event.stopPropagation(); window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
                 <div class="click-badge"><i class="fa-solid fa-eye"></i> ${p.click_count || 0}</div>
                 <img src="${p.immagine}">
                 <p style="font-size:10px; font-weight:bold; margin-top:5px;">${p.valuta || '€'} ${p.prezzo}</p>`;
@@ -251,20 +231,43 @@
         });
     }
 
+    window.apriModificaP = async (id) => {
+        const docRef = doc(db, "prodotti", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const p = docSnap.data();
+            document.getElementById('f-id').value = id;
+            document.getElementById('f-titolo').value = p.titolo;
+            document.getElementById('f-prezzo').value = p.prezzo;
+            document.getElementById('f-prezzo-pieno').value = p.prezzo_pieno || "";
+            document.getElementById('f-img').value = p.immagine;
+            document.getElementById('f-link').value = p.link_amazon;
+            document.getElementById('f-valuta').value = p.valuta || "€";
+            document.getElementById('f-tipo').value = p.tipo;
+            document.getElementById('f-categoria').value = p.categoria;
+            document.getElementById('f-stato').value = p.stato;
+            document.getElementById('modal-title').innerText = "Modifica Prodotto";
+            document.getElementById('modal-form').classList.remove('hidden');
+        }
+    };
+
     document.getElementById('btn-verifica').onclick = () => {
         const urlRaw = document.getElementById('amazon-link').value;
         if(!urlRaw) return;
         fetch('https://api.linkpreview.net', { method: 'POST', body: JSON.stringify({key: LP_KEY, q: urlRaw}) })
         .then(r => r.json()).then(res => {
+            document.getElementById('f-id').value = ""; // Reset ID per nuovo prodotto
             document.getElementById('f-titolo').value = res.title || ""; 
             document.getElementById('f-img').value = res.image || "";
             const asinMatch = urlRaw.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
             document.getElementById('f-link').value = asinMatch ? `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}` : urlRaw;
+            document.getElementById('modal-title').innerText = "Configura Nuovo Prodotto";
             document.getElementById('modal-form').classList.remove('hidden');
         });
     };
 
     document.getElementById('btn-salva-prodotto').onclick = async () => {
+        const idEsistente = document.getElementById('f-id').value;
         const pPieno = parseFloat(document.getElementById('f-prezzo-pieno').value) || 0;
         const pSconto = parseFloat(document.getElementById('f-prezzo').value) || 0;
         const data = {
@@ -281,28 +284,30 @@
             tag: utenteAttivo.tag, 
             autore: utenteAttivo.nome, 
             timestamp: serverTimestamp(),
-            click_count: 0,
             attivo: true
         };
-        await addDoc(collection(db, "prodotti"), data);
+
+        if(idEsistente) {
+            await updateDoc(doc(db, "prodotti", idEsistente), data);
+        } else {
+            data.click_count = 0;
+            await addDoc(collection(db, "prodotti"), data);
+        }
         location.reload();
     };
 
     // CONFIGURAZIONI (Tasti Elimina/Aggiungi)
     async function caricaConfigurazioni() {
-        const selCat = document.getElementById('f-categoria');
-        const selTipo = document.getElementById('f-tipo');
-        const selStato = document.getElementById('f-stato');
-        selCat.innerHTML = ""; selTipo.innerHTML = ""; selStato.innerHTML = "";
+        const selectors = { 'categorie': 'f-categoria', 'piattaforme': 'f-tipo', 'stato': 'f-stato' };
+        Object.values(selectors).forEach(id => document.getElementById(id).innerHTML = "");
         const snap = await getDocs(collection(db, "app_config"));
         snap.forEach(d => {
             const data = d.data();
             const opt = document.createElement('option');
             opt.value = data.nome; opt.text = data.nome;
-            opt.dataset.id = d.id; // Salviamo l'ID per l'eliminazione
-            if (data.tipo === 'categorie') selCat.add(opt);
-            else if (data.tipo === 'piattaforme') selTipo.add(opt);
-            else if (data.tipo === 'stato') selStato.add(opt);
+            opt.dataset.id = d.id;
+            const targetId = selectors[data.tipo];
+            if(targetId) document.getElementById(targetId).add(opt);
         });
     }
 
@@ -318,6 +323,7 @@
             await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
             caricaConfigurazioni();
             document.getElementById('modal-input').classList.add('hidden');
+            document.getElementById('nuovo-valore-input').value = "";
         }
     };
 
@@ -326,14 +332,14 @@
         const selectedOption = select.options[select.selectedIndex];
         if(!selectedOption) return;
         const docId = selectedOption.dataset.id;
-        if(confirm(`Vuoi eliminare "${selectedOption.value}" dalle ${tipo}?`)) {
+        if(confirm(`Sei sicuro di voler eliminare "${selectedOption.value}" dalle ${tipo}?`)) {
             await deleteDoc(doc(db, "app_config", docId));
             caricaConfigurazioni();
         }
     };
 
     window.eliminaP = async (id) => {
-        if(confirm("Eliminare annuncio?")) {
+        if(confirm("Sei sicuro di voler eliminare definitivamente questo annuncio?")) {
             await deleteDoc(doc(db, "prodotti", id));
             location.reload();
         }
