@@ -32,7 +32,7 @@
         .share-btn { position: absolute; bottom: 8px; right: 8px; background: #3498db; color: white; width: 28px; height: 28px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .click-badge { position: absolute; bottom: 8px; left: 8px; background: #f8f9fa; color: var(--amazon); padding: 4px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid #eee; z-index: 10; display: flex; align-items: center; gap: 3px; }
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
-        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; cursor: pointer; }
         .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 15px; }
@@ -161,7 +161,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    // Assicurati che il file auth-biometric.js esista nella stessa cartella
+    // IMPORTAZIONE TUA FUNZIONE ORIGINALE
     import { attivaSensoreImpronta } from "./auth-biometric.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
@@ -173,22 +173,20 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- LOGICA BIOMETRICA ---
+    // --- RIPRISTINO LOGICA BIOMETRICA ESATTA ---
     const btnBio = document.getElementById('btn-biometrico');
     const sessioneSalvata = localStorage.getItem('shopygo_user_session');
 
-    // Se c'è una sessione, mostriamo il tasto impronta
+    // Se esiste una sessione passata, mostriamo il tasto impronta
     if (sessioneSalvata) {
         btnBio.style.display = 'block';
     }
 
     btnBio.onclick = async () => {
-        const successo = await attivaSensoreImpronta();
-        if (successo && sessioneSalvata) {
-            aggiornaDatiUtente(sessioneSalvata);
-        } else {
-            alert("Riconoscimento fallito o non configurato.");
-        }
+        // Chiamata alla tua funzione con i parametri corretti (codice e callback)
+        await attivaSensoreImpronta(sessioneSalvata, (codice) => {
+            aggiornaDatiUtente(codice); // Se il dito è OK, fa il login
+        });
     };
 
     // --- FUNZIONI INVARIARE ---
