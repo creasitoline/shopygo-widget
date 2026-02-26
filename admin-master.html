@@ -88,6 +88,9 @@
         <h2>Master Access</h2>
         <input type="password" id="master-pass" placeholder="Password Master" style="text-align: center;">
         <button id="btn-login-master">ENTRA</button>
+        <button id="btn-biometrico-admin" style="background:#f0f0f0; color:#333; margin-top:10px; display:none;">
+            <i class="fa-solid fa-fingerprint"></i> Usa Impronta Master
+        </button>
     </div>
 </div>
 
@@ -180,6 +183,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    // IMPORTAZIONE FUNZIONE BIOMETRICA
+    import { attivaSensoreImpronta } from "./auth-biometric.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
@@ -189,9 +194,26 @@
     let currentDeleteId = null;
     let currentDeleteType = '';
 
+    // --- LOGICA BIOMETRICA MASTER ---
+    const btnBioAdmin = document.getElementById('btn-biometrico-admin');
+    const masterLoggedBefore = sessionStorage.getItem('master_logged');
+
+    // Mostra il tasto impronta se siamo su un dispositivo già usato
+    if (localStorage.getItem('master_bio_enabled')) {
+        btnBioAdmin.style.display = 'block';
+    }
+
+    btnBioAdmin.onclick = async () => {
+        await attivaSensoreImpronta("MASTER_SESSION", (callback) => {
+            sessionStorage.setItem('master_logged', 'true');
+            loginSuccess();
+        });
+    };
+
     document.getElementById('btn-login-master').onclick = () => {
         if(document.getElementById('master-pass').value === masterPass) {
             sessionStorage.setItem('master_logged', 'true');
+            localStorage.setItem('master_bio_enabled', 'true'); // Abilita il tasto impronta per il futuro
             loginSuccess();
         } else alert("Accesso Negato");
     };
@@ -201,7 +223,9 @@
         document.getElementById('dashboard-content').classList.remove('hidden');
         caricaTutto();
     }
+    
     if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
+    
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
     const inputLordo = document.getElementById('u-lordo-manuale');
@@ -280,7 +304,7 @@
         corpoProd.innerHTML = "";
         snapProd.forEach(res => {
             const p = res.data();
-            const visibile = p.visibile !== false; // Default true
+            const visibile = p.visibile !== false; 
             const riga = document.createElement('tr');
             riga.innerHTML = `
                 <td><img src="${p.immagine}" class="prod-img" onclick="showImage('${p.immagine}')"></td>
