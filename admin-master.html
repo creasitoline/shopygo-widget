@@ -28,7 +28,6 @@
         .container { max-width: 1200px; margin: 15px auto; padding: 0 10px; }
         .hidden { display: none !important; }
 
-        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px 10px; border-radius: 12px; border: 1px solid #ddd; text-align: center; }
         .stat-card h4 { margin: 0; font-size: 0.65rem; color: #666; text-transform: uppercase; }
@@ -36,13 +35,11 @@
         .stat-card.profit { border: 2px solid var(--success); }
         .stat-card.profit p { color: var(--success); }
 
-        /* Forms */
         .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
         label { font-size: 10px; font-weight: bold; color: #777; text-transform: uppercase; margin-left: 2px; }
         input, select, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px;}
         button { background: var(--amazon); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 
-        /* Tables */
         .table-wrapper { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { background: #f8f9fa; padding: 10px; text-align: left; font-size: 10px; text-transform: uppercase; color: #555; }
@@ -54,14 +51,12 @@
         .btn-pay { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 5px; font-size: 10px; cursor: pointer;}
         .btn-pay.waiting { background: var(--danger); }
         
-        /* Action Buttons */
         .action-btns { display: flex; gap: 5px; justify-content: flex-end; }
         .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: 0.2s; }
         .btn-trash { background: #fff1f2; color: var(--danger); }
         .btn-toggle { background: #f0f9ff; color: var(--amazon); }
         .btn-toggle.off { background: #eee; color: #999; }
 
-        /* Modal / Overlay */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
         .modal-card { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
         .modal-card i { font-size: 3rem; color: var(--danger); margin-bottom: 15px; }
@@ -156,7 +151,7 @@
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Staff</th><th>Parametri</th><th>Lordo</th><th>Saldo</th><th>Azioni</th></tr>
+                        <tr><th>Staff</th><th>Parametri</th><th>Lordo</th><th>Saldo (Netto)</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-staff"></tbody>
                 </table>
@@ -227,6 +222,7 @@
         document.getElementById('confirm-modal').classList.remove('hidden');
     };
     window.closeConfirm = () => { document.getElementById('confirm-modal').classList.add('hidden'); };
+    
     document.getElementById('modal-confirm-btn').onclick = async () => {
         if(currentDeleteType === 'staff') await deleteDoc(doc(db, "utenti_abilitati", currentDeleteId));
         else await deleteDoc(doc(db, "prodotti", currentDeleteId));
@@ -250,17 +246,20 @@
         snapStaff.forEach(res => {
             const u = res.data();
             const fid = res.id;
+            
+            // Logica Saldo: usiamo il valore calcolato nel DB
             const lordo = parseFloat(u.guadagno_lordo || 0);
-            const perc = parseFloat(u.percentuale || 90);
-            const saldoStaff = (lordo * perc) / 100;
-            lordoTot += lordo; costsTot += saldoStaff;
+            const saldoStaff = parseFloat(u.guadagno_netto || 0); 
+            
+            lordoTot += lordo; 
+            costsTot += saldoStaff;
             
             const riga = document.createElement('tr');
             riga.innerHTML = `
                 <td onclick="preparaModificaStaff('${fid}', ${JSON.stringify(u).replace(/"/g, '&quot;')})"><b>${u.nome}</b></td>
                 <td><small>${u.limite_annunci || 2} Ann.<br>${u.limite_click || '∞'} Cl.</small></td>
                 <td>€${lordo.toFixed(2)}</td>
-                <td><b>€${saldoStaff.toFixed(2)}</b></td>
+                <td><b style="color:var(--success)">€${saldoStaff.toFixed(2)}</b></td>
                 <td><div class="action-btns">
                     <button class="btn-pay ${u.pagato ? '' : 'waiting'}" onclick="togglePagamento('${fid}', ${!u.pagato})">${u.pagato ? 'OK' : 'Paga'}</button>
                     <button class="btn-icon btn-trash" onclick="openConfirm('${fid}', 'staff')"><i class="fa-solid fa-trash"></i></button>
@@ -273,7 +272,7 @@
         snapProd.forEach(res => {
             const p = res.data();
             const idp = res.id;
-            const valuta = p.valuta || '€'; // Prende CHF o € dal database
+            const valuta = p.valuta || '€';
             const riga = document.createElement('tr');
             riga.innerHTML = `
                 <td><img src="${p.immagine}" class="prod-img" onclick="showImage('${p.immagine}')"></td>
@@ -298,22 +297,36 @@
         document.getElementById('stat-utile').innerText = "€ " + (lordoTot - costsTot).toFixed(2);
     }
 
+    // MODIFICA CRUCIALE: Calcolo e Salvataggio Saldo Netto
     window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
+        
+        // Calcolo automatico del saldo basato sulla quota inserita
+        const lordoManual = parseFloat(document.getElementById('u-lordo-manuale').value) || 0;
+        const quotaPerc = parseFloat(document.getElementById('u-perc').value) || 90;
+        const nettoCalcolato = (lordoManual * quotaPerc) / 100;
+
         const dati = {
             nome: document.getElementById('u-nome').value,
             codice: document.getElementById('u-id').value,
             tag: document.getElementById('u-tag').value,
-            percentuale: parseFloat(document.getElementById('u-perc').value) || 90,
-            guadagno_lordo: parseFloat(document.getElementById('u-lordo-manuale').value) || 0,
+            percentuale: quotaPerc,
+            guadagno_lordo: lordoManual,
+            guadagno_netto: nettoCalcolato, // <--- Questo dato viene letto dallo Staff
             limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
             limite_click: parseInt(document.getElementById('u-click-limit').value) || 0,
             metodo: document.getElementById('u-metodo').value,
             conto: document.getElementById('u-conto').value
         };
-        if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
-        else await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
-        resetForm(); caricaTutto();
+
+        if(fid) {
+            await updateDoc(doc(db, "utenti_abilitati", fid), dati);
+        } else {
+            // Se nuovo utente, inizializza a zero
+            await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
+        }
+        resetForm(); 
+        caricaTutto();
     };
 
     window.preparaModificaStaff = (fid, u) => {
@@ -339,7 +352,10 @@
         document.getElementById('form-title').innerText = "Gestione Staff";
     };
 
-    window.togglePagamento = async (id, stato) => { await updateDoc(doc(db, "utenti_abilitati", id), { pagato: stato }); caricaTutto(); };
+    window.togglePagamento = async (id, stato) => { 
+        await updateDoc(doc(db, "utenti_abilitati", id), { pagato: stato }); 
+        caricaTutto(); 
+    };
 </script>
 </body>
 </html>
