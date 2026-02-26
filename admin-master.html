@@ -13,12 +13,7 @@
         }
 
         body { font-family: 'Segoe UI', system-ui; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; overflow-x: hidden; }
-        
-        header { 
-            background: var(--primary); padding: 0 15px; display: flex; align-items: center; 
-            justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; 
-            border-bottom: 1px solid #ddd; box-sizing: border-box;
-        }
+        header { background: var(--primary); padding: 0 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; box-sizing: border-box; }
         .logo { height: 25px; }
 
         .admin-tabs { display: flex; background: white; border-bottom: 1px solid #ddd; position: sticky; top: 60px; z-index: 999; }
@@ -28,7 +23,6 @@
         .container { max-width: 1200px; margin: 15px auto; padding: 0 10px; }
         .hidden { display: none !important; }
 
-        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px 10px; border-radius: 12px; border: 1px solid #ddd; text-align: center; }
         .stat-card h4 { margin: 0; font-size: 0.65rem; color: #666; text-transform: uppercase; }
@@ -36,13 +30,11 @@
         .stat-card.profit { border: 2px solid var(--success); }
         .stat-card.profit p { color: var(--success); }
 
-        /* Forms */
         .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
         label { font-size: 10px; font-weight: bold; color: #777; text-transform: uppercase; margin-left: 2px; }
         input, select, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px;}
         button { background: var(--amazon); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 
-        /* Tables */
         .table-wrapper { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { background: #f8f9fa; padding: 10px; text-align: left; font-size: 10px; text-transform: uppercase; color: #555; }
@@ -54,19 +46,14 @@
         .btn-pay { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 5px; font-size: 10px; cursor: pointer;}
         .btn-pay.waiting { background: var(--danger); }
         
-        /* Action Buttons */
         .action-btns { display: flex; gap: 5px; justify-content: flex-end; }
         .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: 0.2s; }
         .btn-trash { background: #fff1f2; color: var(--danger); }
         .btn-toggle { background: #f0f9ff; color: var(--amazon); }
         .btn-toggle.off { background: #eee; color: #999; }
 
-        /* Modal / Overlay */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
         .modal-card { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
-        .modal-card i { font-size: 3rem; color: var(--danger); margin-bottom: 15px; }
-        .modal-img { max-width: 100%; max-height: 80vh; border-radius: 10px; object-fit: contain; }
-
         .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 3000; }
 
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
@@ -78,12 +65,12 @@
 <body>
 
 <div id="lightbox" class="modal-overlay hidden" onclick="this.classList.add('hidden')">
-    <img src="" id="lightbox-img" class="modal-img">
+    <img src="" id="lightbox-img" style="max-width:100%; max-height:80vh; border-radius:10px;">
 </div>
 
 <div id="confirm-modal" class="modal-overlay hidden">
     <div class="modal-card">
-        <i class="fa-solid fa-circle-exclamation"></i>
+        <i class="fa-solid fa-circle-exclamation" style="font-size:3rem; color:var(--danger)"></i>
         <h3>Sei sicuro?</h3>
         <p>L'azione non può essere annullata.</p>
         <div style="display:flex; gap:10px; margin-top:20px;">
@@ -150,13 +137,13 @@
                     <option value="Revolut">Revolut</option>
                 </select>
                 <textarea id="u-conto" rows="2" placeholder="Dati pagamento (Email o IBAN)"></textarea>
-                <button onclick="salvaUtente()">SALVA COLLABORATORE</button>
+                <button id="btn-salva-staff" onclick="salvaUtente()">SALVA COLLABORATORE</button>
                 <button onclick="resetForm()" class="hidden" id="btn-cancel-edit" style="background:#eee; color:#333; margin-top:5px;">ANNULLA</button>
             </div>
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Staff</th><th>Parametri</th><th>Lordo</th><th>Saldo</th><th>Azioni</th></tr>
+                        <tr><th>Staff</th><th>Parametri</th><th>Lordo</th><th>Saldo (Netto)</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-staff"></tbody>
                 </table>
@@ -167,7 +154,7 @@
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Img</th><th>Dettagli Prodotto</th><th>Autore</th><th>Azioni</th></tr>
+                        <tr><th>Img</th><th>Dettagli</th><th>Autore</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-prodotti-admin"></tbody>
                 </table>
@@ -216,30 +203,36 @@
         event.currentTarget.classList.add('active');
     };
 
-    window.showImage = (src) => {
-        document.getElementById('lightbox-img').src = src;
-        document.getElementById('lightbox').classList.remove('hidden');
-    };
+    window.salvaUtente = async () => {
+        const fid = document.getElementById('u-firebase-id').value;
+        const lordo = parseFloat(document.getElementById('u-lordo-manuale').value) || 0;
+        const perc = parseFloat(document.getElementById('u-perc').value) || 0;
+        
+        // CALCOLO SALDO NETTO PER LO STAFF
+        const netto = (lordo * perc) / 100;
 
-    window.openConfirm = (id, type) => {
-        currentDeleteId = id;
-        currentDeleteType = type;
-        document.getElementById('confirm-modal').classList.remove('hidden');
-    };
-    window.closeConfirm = () => { document.getElementById('confirm-modal').classList.add('hidden'); };
-    document.getElementById('modal-confirm-btn').onclick = async () => {
-        if(currentDeleteType === 'staff') await deleteDoc(doc(db, "utenti_abilitati", currentDeleteId));
-        else await deleteDoc(doc(db, "prodotti", currentDeleteId));
-        closeConfirm();
+        const dati = {
+            nome: document.getElementById('u-nome').value,
+            codice: document.getElementById('u-id').value,
+            tag: document.getElementById('u-tag').value,
+            percentuale: perc,
+            guadagno_lordo: lordo,
+            guadagno_netto: netto, // Questo è il valore che legge lo staff
+            limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
+            limite_click: parseInt(document.getElementById('u-click-limit').value) || 0,
+            metodo: document.getElementById('u-metodo').value,
+            conto: document.getElementById('u-conto').value
+        };
+
+        if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
+        else await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
+        
+        resetForm(); 
         caricaTutto();
+        alert("Salvato! Saldo Staff: €" + netto.toFixed(2));
     };
 
-    window.toggleProdotto = async (id, statoAttuale) => {
-        await updateDoc(doc(db, "prodotti", id), { attivo: !statoAttuale });
-        caricaTutto();
-    };
-
-    async function caricaTutto() {
+    window.caricaTutto = async () => {
         const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
         const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
         
@@ -251,16 +244,17 @@
             const u = res.data();
             const fid = res.id;
             const lordo = parseFloat(u.guadagno_lordo || 0);
-            const perc = parseFloat(u.percentuale || 90);
-            const saldoStaff = (lordo * perc) / 100;
-            lordoTot += lordo; costsTot += saldoStaff;
+            const netto = parseFloat(u.guadagno_netto || 0);
+            
+            lordoTot += lordo; 
+            costsTot += netto;
             
             const riga = document.createElement('tr');
             riga.innerHTML = `
                 <td onclick="preparaModificaStaff('${fid}', ${JSON.stringify(u).replace(/"/g, '&quot;')})"><b>${u.nome}</b></td>
-                <td><small>${u.limite_annunci || 2} Ann.<br>${u.limite_click || '∞'} Cl.</small></td>
+                <td><small>${u.percentuale}% quota</small></td>
                 <td>€${lordo.toFixed(2)}</td>
-                <td><b>€${saldoStaff.toFixed(2)}</b></td>
+                <td style="color:var(--amazon)"><b>€${netto.toFixed(2)}</b></td>
                 <td><div class="action-btns">
                     <button class="btn-pay ${u.pagato ? '' : 'waiting'}" onclick="togglePagamento('${fid}', ${!u.pagato})">${u.pagato ? 'OK' : 'Paga'}</button>
                     <button class="btn-icon btn-trash" onclick="openConfirm('${fid}', 'staff')"><i class="fa-solid fa-trash"></i></button>
@@ -268,19 +262,23 @@
             corpoStaff.appendChild(riga);
         });
 
+        // Update Statistiche Superiori
+        document.getElementById('stat-utenti').innerText = snapStaff.size;
+        document.getElementById('stat-prodotti-count').innerText = snapProd.size;
+        document.getElementById('stat-lordo').innerText = "€ " + lordoTot.toFixed(2);
+        document.getElementById('stat-staff').innerText = "€ " + costsTot.toFixed(2);
+        document.getElementById('stat-utile').innerText = "€ " + (lordoTot - costsTot).toFixed(2);
+
+        // Update Tabella Prodotti
         const corpoProd = document.getElementById('tabella-prodotti-admin');
         corpoProd.innerHTML = "";
         snapProd.forEach(res => {
             const p = res.data();
             const idp = res.id;
-            const valuta = p.valuta || '€'; // Prende CHF o € dal database
             const riga = document.createElement('tr');
             riga.innerHTML = `
                 <td><img src="${p.immagine}" class="prod-img" onclick="showImage('${p.immagine}')"></td>
-                <td style="max-width: 150px;">
-                    <div style="font-weight:bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.titolo || 'Senza Titolo'}</div>
-                    <small>${valuta} ${p.prezzo} - <b>${p.codice_prodotto || 'SG'}</b></small>
-                </td>
+                <td><div style="font-weight:bold;">${p.titolo.substring(0,20)}...</div><small>€ ${p.prezzo}</small></td>
                 <td><span class="badge-staff">${p.autore || '??'}</span></td>
                 <td><div class="action-btns">
                     <button class="btn-icon btn-toggle ${p.attivo === false ? 'off' : ''}" onclick="toggleProdotto('${idp}', ${p.attivo !== false})">
@@ -290,30 +288,6 @@
                 </div></td>`;
             corpoProd.appendChild(riga);
         });
-
-        document.getElementById('stat-utenti').innerText = snapStaff.size;
-        document.getElementById('stat-prodotti-count').innerText = snapProd.size;
-        document.getElementById('stat-lordo').innerText = "€ " + lordoTot.toFixed(2);
-        document.getElementById('stat-staff').innerText = "€ " + costsTot.toFixed(2);
-        document.getElementById('stat-utile').innerText = "€ " + (lordoTot - costsTot).toFixed(2);
-    }
-
-    window.salvaUtente = async () => {
-        const fid = document.getElementById('u-firebase-id').value;
-        const dati = {
-            nome: document.getElementById('u-nome').value,
-            codice: document.getElementById('u-id').value,
-            tag: document.getElementById('u-tag').value,
-            percentuale: parseFloat(document.getElementById('u-perc').value) || 90,
-            guadagno_lordo: parseFloat(document.getElementById('u-lordo-manuale').value) || 0,
-            limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
-            limite_click: parseInt(document.getElementById('u-click-limit').value) || 0,
-            metodo: document.getElementById('u-metodo').value,
-            conto: document.getElementById('u-conto').value
-        };
-        if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
-        else await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
-        resetForm(); caricaTutto();
     };
 
     window.preparaModificaStaff = (fid, u) => {
@@ -335,11 +309,23 @@
     window.resetForm = () => {
         document.getElementById('u-firebase-id').value = "";
         document.getElementById('modulo-user').querySelectorAll('input, textarea').forEach(i => i.value = "");
+        document.getElementById('u-perc').value = "90";
+        document.getElementById('u-lordo-manuale').value = "0";
         document.getElementById('btn-cancel-edit').classList.add('hidden');
         document.getElementById('form-title').innerText = "Gestione Staff";
     };
 
     window.togglePagamento = async (id, stato) => { await updateDoc(doc(db, "utenti_abilitati", id), { pagato: stato }); caricaTutto(); };
+    window.toggleProdotto = async (id, stato) => { await updateDoc(doc(db, "prodotti", id), { attivo: !stato }); caricaTutto(); };
+    window.openConfirm = (id, type) => { currentDeleteId = id; currentDeleteType = type; document.getElementById('confirm-modal').classList.remove('hidden'); };
+    window.closeConfirm = () => { document.getElementById('confirm-modal').classList.add('hidden'); };
+    document.getElementById('modal-confirm-btn').onclick = async () => {
+        if(currentDeleteType === 'staff') await deleteDoc(doc(db, "utenti_abilitati", currentDeleteId));
+        else await deleteDoc(doc(db, "prodotti", currentDeleteId));
+        closeConfirm(); caricaTutto();
+    };
+    window.showImage = (src) => { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').classList.remove('hidden'); };
+
 </script>
 </body>
 </html>
