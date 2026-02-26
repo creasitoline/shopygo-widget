@@ -161,7 +161,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    // IMPORTAZIONE TUA FUNZIONE ORIGINALE
     import { attivaSensoreImpronta } from "./auth-biometric.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
@@ -173,23 +172,45 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- RIPRISTINO LOGICA BIOMETRICA ESATTA ---
-    const btnBio = document.getElementById('btn-biometrico');
+    // --- SISTEMA DI AUTO-LOGIN ---
     const sessioneSalvata = localStorage.getItem('shopygo_user_session');
-
-    // Se esiste una sessione passata, mostriamo il tasto impronta
     if (sessioneSalvata) {
-        btnBio.style.display = 'block';
+        // Se c'è una sessione, proviamo il login automatico
+        aggiornaDatiUtente(sessioneSalvata);
+        document.getElementById('btn-biometrico').style.display = 'block';
     }
 
-    btnBio.onclick = async () => {
-        // Chiamata alla tua funzione con i parametri corretti (codice e callback)
-        await attivaSensoreImpronta(sessioneSalvata, (codice) => {
-            aggiornaDatiUtente(codice); // Se il dito è OK, fa il login
-        });
+    async function aggiornaDatiUtente(codice) {
+        const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice.toUpperCase()));
+        const snap = await getDocs(q);
+        if(!snap.empty) {
+            utenteAttivo = snap.docs[0].data();
+            localStorage.setItem('shopygo_user_session', codice.toUpperCase());
+            mostraDashboard();
+        } else { 
+            // Se il codice salvato non è valido, puliamo tutto
+            localStorage.removeItem('shopygo_user_session');
+            alert("Sessione scaduta o ID non valido."); 
+        }
+    }
+
+    // --- BIOMETRIA ---
+    document.getElementById('btn-biometrico').onclick = async () => {
+        const saved = localStorage.getItem('shopygo_user_session');
+        if(saved) {
+            await attivaSensoreImpronta(saved, (codice) => {
+                aggiornaDatiUtente(codice);
+            });
+        }
     };
 
-    // --- FUNZIONI INVARIARE ---
+    // --- LOGOUT ---
+    document.getElementById('btn-logout').onclick = () => { 
+        localStorage.removeItem('shopygo_user_session'); 
+        location.reload(); 
+    };
+
+    // --- RESTO DEL CODICE INVARIATO ---
     window.condividiProdotto = async (titolo, link) => {
         if (navigator.share) {
             try { await navigator.share({ title: 'Offerta ShopyGO', text: titolo, url: link }); } 
@@ -211,24 +232,9 @@
 
     window.pulisciLinkManuale = (el) => { el.value = accorciaLinkAmazon(el.value); };
 
-    async function aggiornaDatiUtente(codice) {
-        const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
-        const snap = await getDocs(q);
-        if(!snap.empty) {
-            utenteAttivo = snap.docs[0].data();
-            localStorage.setItem('shopygo_user_session', codice);
-            mostraDashboard();
-        } else { alert("ID non autorizzato."); }
-    }
-
     document.getElementById('btn-login').onclick = () => {
         const cod = document.getElementById('codice-accesso').value.trim();
         if(cod) aggiornaDatiUtente(cod);
-    };
-
-    document.getElementById('btn-logout').onclick = () => { 
-        localStorage.removeItem('shopygo_user_session'); 
-        location.reload(); 
     };
 
     function mostraDashboard() {
