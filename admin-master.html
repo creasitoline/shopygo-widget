@@ -23,6 +23,7 @@
         .container { max-width: 1200px; margin: 15px auto; padding: 0 10px; }
         .hidden { display: none !important; }
 
+        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 15px 10px; border-radius: 12px; border: 1px solid #ddd; text-align: center; }
         .stat-card h4 { margin: 0; font-size: 0.65rem; color: #666; text-transform: uppercase; }
@@ -30,11 +31,17 @@
         .stat-card.profit { border: 2px solid var(--success); }
         .stat-card.profit p { color: var(--success); }
 
+        /* Forms */
         .card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
         label { font-size: 10px; font-weight: bold; color: #777; text-transform: uppercase; margin-left: 2px; }
         input, select, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px;}
         button { background: var(--amazon); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 
+        /* Preview Saldo */
+        .saldo-preview { background: #f0f9ff; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px dashed var(--amazon); }
+        .saldo-preview span { font-weight: bold; color: var(--amazon); font-size: 1.1rem; }
+
+        /* Tables */
         .table-wrapper { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { background: #f8f9fa; padding: 10px; text-align: left; font-size: 10px; text-transform: uppercase; color: #555; }
@@ -50,7 +57,6 @@
         .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: 0.2s; }
         .btn-trash { background: #fff1f2; color: var(--danger); }
         .btn-toggle { background: #f0f9ff; color: var(--amazon); }
-        .btn-toggle.off { background: #eee; color: #999; }
 
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
         .modal-card { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
@@ -65,12 +71,12 @@
 <body>
 
 <div id="lightbox" class="modal-overlay hidden" onclick="this.classList.add('hidden')">
-    <img src="" id="lightbox-img" style="max-width:100%; max-height:80vh; border-radius:10px;">
+    <img src="" id="lightbox-img" style="max-width: 100%; max-height: 80vh; border-radius: 10px;">
 </div>
 
 <div id="confirm-modal" class="modal-overlay hidden">
     <div class="modal-card">
-        <i class="fa-solid fa-circle-exclamation" style="font-size:3rem; color:var(--danger)"></i>
+        <i class="fa-solid fa-circle-exclamation" style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;"></i>
         <h3>Sei sicuro?</h3>
         <p>L'azione non può essere annullata.</p>
         <div style="display:flex; gap:10px; margin-top:20px;">
@@ -107,43 +113,49 @@
                 <div class="stat-card"><h4>Staff</h4><p id="stat-utenti">0</p></div>
                 <div class="stat-card"><h4>Articoli</h4><p id="stat-prodotti-count">0</p></div>
                 <div class="stat-card"><h4>Lordo Totale</h4><p id="stat-lordo">€ 0.00</p></div>
-                <div class="stat-card"><h4>Costi Staff</h4><p id="stat-staff">€ 0.00</p></div>
+                <div class="stat-card"><h4>Saldo Staff</h4><p id="stat-staff">€ 0.00</p></div>
                 <div class="stat-card profit" style="grid-column: span 2;"><h4>Mio Utile Netto</h4><p id="stat-utile">€ 0.00</p></div>
             </div>
         </div>
 
         <div id="tab-staff" class="tab-content hidden">
             <div class="card" id="modulo-user">
-                <h3 id="form-title" style="margin-top:0"><i class="fa-solid fa-user-gear"></i> Gestione Staff</h3>
+                <h3 id="form-title" style="margin-top:0"><i class="fa-solid fa-user-gear"></i> Nuovo Staff</h3>
                 <input type="hidden" id="u-firebase-id">
+                
                 <label>Nome Completo</label>
-                <input type="text" id="u-nome" placeholder="Mario Rossi">
+                <input type="text" id="u-nome" placeholder="Es: Mario Rossi">
+                
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1"><label>ID (SG000)</label><input type="text" id="u-id" placeholder="SG001"></div>
                     <div style="flex:1"><label>Tag Amazon</label><input type="text" id="u-tag" placeholder="tag-21"></div>
                 </div>
+
                 <div style="display:flex; gap:10px;">
-                    <div style="flex:1"><label>Quota Staff %</label><input type="number" id="u-perc" value="90"></div>
                     <div style="flex:1"><label>Lordo Maturato (€)</label><input type="number" id="u-lordo-manuale" step="0.01" value="0.00"></div>
+                    <div style="flex:1"><label>Quota Staff %</label><input type="number" id="u-perc" value="90"></div>
                 </div>
+
+                <div class="saldo-preview">
+                    Saldo Finale Staff: <span id="preview-calcolato">€ 0.00</span>
+                </div>
+
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1"><label>Limite Annunci</label><input type="number" id="u-limite" value="2"></div>
-                    <div style="flex:1"><label>Limite Click</label><input type="number" id="u-click-limit" placeholder="∞"></div>
+                    <div style="flex:1"><label>Limite Click</label><input type="number" id="u-click-limit" value="1000"></div>
                 </div>
-                <label>Metodo Pagamento</label>
-                <select id="u-metodo">
-                    <option value="PayPal">PayPal</option>
-                    <option value="Bonifico">Bonifico</option>
-                    <option value="Revolut">Revolut</option>
-                </select>
-                <textarea id="u-conto" rows="2" placeholder="Dati pagamento (Email o IBAN)"></textarea>
-                <button id="btn-salva-staff" onclick="salvaUtente()">SALVA COLLABORATORE</button>
+
+                <label>Dati Pagamento</label>
+                <textarea id="u-conto" rows="2" placeholder="IBAN o Email PayPal"></textarea>
+                
+                <button onclick="salvaUtente()">SALVA COLLABORATORE</button>
                 <button onclick="resetForm()" class="hidden" id="btn-cancel-edit" style="background:#eee; color:#333; margin-top:5px;">ANNULLA</button>
             </div>
+
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Staff</th><th>Parametri</th><th>Lordo</th><th>Saldo (Netto)</th><th>Azioni</th></tr>
+                        <tr><th>Staff</th><th>Lordo</th><th>Saldo Netto</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-staff"></tbody>
                 </table>
@@ -154,7 +166,7 @@
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Img</th><th>Dettagli</th><th>Autore</th><th>Azioni</th></tr>
+                        <tr><th>Img</th><th>Prodotto</th><th>Autore</th><th>Azioni</th></tr>
                     </thead>
                     <tbody id="tabella-prodotti-admin"></tbody>
                 </table>
@@ -181,6 +193,7 @@
     let currentDeleteId = null;
     let currentDeleteType = '';
 
+    // Login Master
     document.getElementById('btn-login-master').onclick = () => {
         if(document.getElementById('master-pass').value === masterPass) {
             sessionStorage.setItem('master_logged', 'true');
@@ -196,20 +209,27 @@
     if(sessionStorage.getItem('master_logged') === 'true') loginSuccess();
     window.logoutMaster = () => { sessionStorage.removeItem('master_logged'); location.reload(); };
 
-    window.switchTab = (tab) => {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + tab).classList.remove('hidden');
-        event.currentTarget.classList.add('active');
-    };
+    // Gestione Anteprima Saldo (Matematica Lordo - Quota)
+    const inputLordo = document.getElementById('u-lordo-manuale');
+    const inputPerc = document.getElementById('u-perc');
+    const previewSaldo = document.getElementById('preview-calcolato');
 
+    function ricalcola() {
+        const lordo = parseFloat(inputLordo.value) || 0;
+        const perc = parseFloat(inputPerc.value) || 0;
+        const netto = (lordo * perc) / 100;
+        previewSaldo.innerText = "€ " + netto.toFixed(2);
+        return netto;
+    }
+    inputLordo.oninput = ricalcola;
+    inputPerc.oninput = ricalcola;
+
+    // Salvataggio Staff
     window.salvaUtente = async () => {
         const fid = document.getElementById('u-firebase-id').value;
-        const lordo = parseFloat(document.getElementById('u-lordo-manuale').value) || 0;
-        const perc = parseFloat(document.getElementById('u-perc').value) || 0;
-        
-        // CALCOLO SALDO NETTO PER LO STAFF
-        const netto = (lordo * perc) / 100;
+        const lordo = parseFloat(inputLordo.value) || 0;
+        const perc = parseFloat(inputPerc.value) || 90;
+        const netto = (lordo * perc) / 100; // CALCOLO SALDO FINALE
 
         const dati = {
             nome: document.getElementById('u-nome').value,
@@ -217,22 +237,22 @@
             tag: document.getElementById('u-tag').value,
             percentuale: perc,
             guadagno_lordo: lordo,
-            guadagno_netto: netto, // Questo è il valore che legge lo staff
+            guadagno_netto: netto, // QUESTO È IL SALDO CHE VEDRÀ LO STAFF
             limite_annunci: parseInt(document.getElementById('u-limite').value) || 2,
-            limite_click: parseInt(document.getElementById('u-click-limit').value) || 0,
-            metodo: document.getElementById('u-metodo').value,
-            conto: document.getElementById('u-conto').value
+            limite_click: parseInt(document.getElementById('u-click-limit').value) || 1000,
+            conto: document.getElementById('u-conto').value,
+            timestamp: Date.now()
         };
 
         if(fid) await updateDoc(doc(db, "utenti_abilitati", fid), dati);
         else await addDoc(collection(db, "utenti_abilitati"), {...dati, pagato: false, click_attuali: 0});
         
+        alert("Staff Salvato con successo!");
         resetForm(); 
         caricaTutto();
-        alert("Salvato! Saldo Staff: €" + netto.toFixed(2));
     };
 
-    window.caricaTutto = async () => {
+    async function caricaTutto() {
         const snapStaff = await getDocs(collection(db, "utenti_abilitati"));
         const snapProd = await getDocs(query(collection(db, "prodotti"), orderBy("timestamp", "desc")));
         
@@ -245,16 +265,15 @@
             const fid = res.id;
             const lordo = parseFloat(u.guadagno_lordo || 0);
             const netto = parseFloat(u.guadagno_netto || 0);
-            
-            lordoTot += lordo; 
-            costsTot += netto;
+            lordoTot += lordo; costsTot += netto;
             
             const riga = document.createElement('tr');
             riga.innerHTML = `
-                <td onclick="preparaModificaStaff('${fid}', ${JSON.stringify(u).replace(/"/g, '&quot;')})"><b>${u.nome}</b></td>
-                <td><small>${u.percentuale}% quota</small></td>
+                <td onclick="preparaModificaStaff('${fid}', ${JSON.stringify(u).replace(/"/g, '&quot;')})">
+                    <b>${u.nome}</b><br><small>${u.codice}</small>
+                </td>
                 <td>€${lordo.toFixed(2)}</td>
-                <td style="color:var(--amazon)"><b>€${netto.toFixed(2)}</b></td>
+                <td><b style="color:var(--amazon)">€${netto.toFixed(2)}</b></td>
                 <td><div class="action-btns">
                     <button class="btn-pay ${u.pagato ? '' : 'waiting'}" onclick="togglePagamento('${fid}', ${!u.pagato})">${u.pagato ? 'OK' : 'Paga'}</button>
                     <button class="btn-icon btn-trash" onclick="openConfirm('${fid}', 'staff')"><i class="fa-solid fa-trash"></i></button>
@@ -262,45 +281,38 @@
             corpoStaff.appendChild(riga);
         });
 
-        // Update Statistiche Superiori
+        // Tabella Prodotti
+        const corpoProd = document.getElementById('tabella-prodotti-admin');
+        corpoProd.innerHTML = "";
+        snapProd.forEach(res => {
+            const p = res.data();
+            const riga = document.createElement('tr');
+            riga.innerHTML = `
+                <td><img src="${p.immagine}" class="prod-img" onclick="showImage('${p.immagine}')"></td>
+                <td><b>${p.titolo?.substring(0,15)}..</b><br><small>€${p.prezzo}</small></td>
+                <td><span class="badge-staff">${p.autore}</span></td>
+                <td><button class="btn-icon btn-trash" onclick="openConfirm('${res.id}', 'prod')"><i class="fa-solid fa-trash"></i></button></td>`;
+            corpoProd.appendChild(riga);
+        });
+
         document.getElementById('stat-utenti').innerText = snapStaff.size;
         document.getElementById('stat-prodotti-count').innerText = snapProd.size;
         document.getElementById('stat-lordo').innerText = "€ " + lordoTot.toFixed(2);
         document.getElementById('stat-staff').innerText = "€ " + costsTot.toFixed(2);
         document.getElementById('stat-utile').innerText = "€ " + (lordoTot - costsTot).toFixed(2);
-
-        // Update Tabella Prodotti
-        const corpoProd = document.getElementById('tabella-prodotti-admin');
-        corpoProd.innerHTML = "";
-        snapProd.forEach(res => {
-            const p = res.data();
-            const idp = res.id;
-            const riga = document.createElement('tr');
-            riga.innerHTML = `
-                <td><img src="${p.immagine}" class="prod-img" onclick="showImage('${p.immagine}')"></td>
-                <td><div style="font-weight:bold;">${p.titolo.substring(0,20)}...</div><small>€ ${p.prezzo}</small></td>
-                <td><span class="badge-staff">${p.autore || '??'}</span></td>
-                <td><div class="action-btns">
-                    <button class="btn-icon btn-toggle ${p.attivo === false ? 'off' : ''}" onclick="toggleProdotto('${idp}', ${p.attivo !== false})">
-                        <i class="fa-solid ${p.attivo === false ? 'fa-eye-slash' : 'fa-eye'}"></i>
-                    </button>
-                    <button class="btn-icon btn-trash" onclick="openConfirm('${idp}', 'prod')"><i class="fa-solid fa-trash"></i></button>
-                </div></td>`;
-            corpoProd.appendChild(riga);
-        });
-    };
+    }
 
     window.preparaModificaStaff = (fid, u) => {
         document.getElementById('u-firebase-id').value = fid;
         document.getElementById('u-nome').value = u.nome;
         document.getElementById('u-id').value = u.codice;
         document.getElementById('u-tag').value = u.tag;
-        document.getElementById('u-perc').value = u.percentuale || 90;
-        document.getElementById('u-lordo-manuale').value = u.guadagno_lordo || 0;
-        document.getElementById('u-limite').value = u.limite_annunci || 2;
-        document.getElementById('u-click-limit').value = u.limite_click || "";
-        document.getElementById('u-metodo').value = u.metodo || "PayPal";
+        document.getElementById('u-perc').value = u.percentuale;
+        document.getElementById('u-lordo-manuale').value = u.guadagno_lordo;
+        document.getElementById('u-limite').value = u.limite_annunci;
+        document.getElementById('u-click-limit').value = u.limite_click;
         document.getElementById('u-conto').value = u.conto || "";
+        ricalcola();
         document.getElementById('btn-cancel-edit').classList.remove('hidden');
         document.getElementById('form-title').innerText = "Modifica Staff";
         window.scrollTo(0,0);
@@ -308,15 +320,21 @@
 
     window.resetForm = () => {
         document.getElementById('u-firebase-id').value = "";
-        document.getElementById('modulo-user').querySelectorAll('input, textarea').forEach(i => i.value = "");
-        document.getElementById('u-perc').value = "90";
-        document.getElementById('u-lordo-manuale').value = "0";
+        document.getElementById('modulo-user').querySelectorAll('input, textarea').forEach(i => i.value = (i.type === 'number' ? 0 : ""));
+        document.getElementById('u-perc').value = 90;
+        ricalcola();
         document.getElementById('btn-cancel-edit').classList.add('hidden');
-        document.getElementById('form-title').innerText = "Gestione Staff";
+        document.getElementById('form-title').innerText = "Nuovo Staff";
+    };
+
+    window.switchTab = (tab) => {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+        event.currentTarget.classList.add('active');
     };
 
     window.togglePagamento = async (id, stato) => { await updateDoc(doc(db, "utenti_abilitati", id), { pagato: stato }); caricaTutto(); };
-    window.toggleProdotto = async (id, stato) => { await updateDoc(doc(db, "prodotti", id), { attivo: !stato }); caricaTutto(); };
     window.openConfirm = (id, type) => { currentDeleteId = id; currentDeleteType = type; document.getElementById('confirm-modal').classList.remove('hidden'); };
     window.closeConfirm = () => { document.getElementById('confirm-modal').classList.add('hidden'); };
     document.getElementById('modal-confirm-btn').onclick = async () => {
@@ -325,7 +343,6 @@
         closeConfirm(); caricaTutto();
     };
     window.showImage = (src) => { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').classList.remove('hidden'); };
-
 </script>
 </body>
 </html>
