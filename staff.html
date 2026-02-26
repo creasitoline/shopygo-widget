@@ -23,7 +23,6 @@
         .wallet-info h5 { margin: 0; font-size: 0.7rem; text-transform: uppercase; opacity: 0.8; }
         .wallet-info p { margin: 5px 0 0 0; font-size: 1.6rem; font-weight: bold; }
         
-        /* NUOVA BARRA STATISTICHE */
         .stats-bar { display: flex; gap: 10px; margin-bottom: 20px; }
         .stat-item { background: white; flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ddd; text-align: center; }
         .stat-item small { display: block; font-size: 9px; color: #777; text-transform: uppercase; font-weight: bold; }
@@ -192,7 +191,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { attivaSensoreImpronta } from "./auth-biometric.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
@@ -201,9 +200,10 @@
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
     
     let utenteAttivo = null;
+    let utenteDocId = null; // Memorizziamo l'ID del documento per sincronizzarlo
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
-    let prodottiAttualiCount = 0; // Per monitorare il limite
+    let prodottiAttualiCount = 0;
 
     window.condividiProdotto = async (titolo, link) => {
         if (navigator.share) {
@@ -229,6 +229,7 @@
         const q = query(collection(db, "utenti_abilitati"), where("codice", "==", codice));
         const snap = await getDocs(q);
         if(!snap.empty) {
+            utenteDocId = snap.docs[0].id;
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice);
             localStorage.setItem('sg_staff_bio_id', codice);
@@ -249,11 +250,17 @@
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
-        document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_lordo || 0) * 0.90).toFixed(2);
+        
+        // Calcolo guadagno dinamico
+        const guadagno = (parseFloat(utenteAttivo.guadagno_lordo || 0) * 0.90).toFixed(2);
+        document.getElementById('wallet-importo').innerText = "€ " + guadagno;
+        
         const statusDiv = document.getElementById('wallet-status');
         statusDiv.innerHTML = utenteAttivo.pagato ? '<span class="status-badge status-paid">Pagato</span>' : '<span class="status-badge status-pending">In Attesa</span>';
+        
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('main-container').classList.remove('hidden');
+        
         caricaConfigurazioni();
         caricaProdotti();
     }
@@ -277,6 +284,19 @@
     async function caricaProdotti() {
         const container = document.getElementById('grid-prodotti');
         container.innerHTML = "";
+        
+        // SINCRONIZZAZIONE REAL-TIME CON ADMIN (Legge i limiti aggiornati)
+        if(utenteDocId) {
+            const docRef = doc(db, "utenti_abilitati", utenteDocId);
+            const userSnap = await getDoc(docRef);
+            if(userSnap.exists()) {
+                utenteAttivo = userSnap.data();
+                // Aggiorna subito i dati wallet visivi
+                const guadagno = (parseFloat(utenteAttivo.guadagno_lordo || 0) * 0.90).toFixed(2);
+                document.getElementById('wallet-importo').innerText = "€ " + guadagno;
+            }
+        }
+
         const q = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
         const snap = await getDocs(q);
         
@@ -298,7 +318,7 @@
             container.appendChild(div);
         });
 
-        // Aggiorna contatori visivi
+        // Visualizzazione limiti basata su database
         const limiteAdmin = utenteAttivo.limite_prodotti || 3;
         document.getElementById('stat-annunci').innerText = `${prodottiAttualiCount} / ${limiteAdmin}`;
         document.getElementById('stat-clicks').innerText = totalClicks;
@@ -306,14 +326,12 @@
 
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const id = document.getElementById('f-id').value;
+        const limite = parseInt(utenteAttivo.limite_prodotti) || 3;
 
-        // CONTROLLO LIMITE PRIMA DI SALVARE (solo per nuovi prodotti)
-        if (!id) {
-            const limite = utenteAttivo.limite_prodotti || 3;
-            if (prodottiAttualiCount >= limite) {
-                alert("⚠️ Limite raggiunto! Non puoi pubblicare più di " + limite + " annunci. Elimina qualcosa o chiedi all'admin.");
-                return;
-            }
+        // CONTROLLO LIMITE (Solo se sto creando un nuovo annuncio)
+        if (!id && prodottiAttualiCount >= limite) {
+            alert("⚠️ BLOCCATO: L'admin ha impostato un limite di " + limite + " prodotti per il tuo account. Elimina un vecchio annuncio per pubblicarne uno nuovo.");
+            return;
         }
 
         const pPieno = parseFloat(document.getElementById('f-prezzo-pieno').value) || 0;
@@ -333,12 +351,16 @@
             tipo: document.getElementById('f-tipo').value,
             categoria: document.getElementById('f-categoria').value, 
             stato: document.getElementById('f-stato').value,
-            tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
+            tag: utenteAttivo.tag, 
+            autore: utenteAttivo.nome, 
+            timestamp: serverTimestamp()
         };
+        
         if(!id) data.click_count = 0;
 
         if(id) await updateDoc(doc(db, "prodotti", id), data);
         else await addDoc(collection(db, "prodotti"), data);
+        
         document.getElementById('modal-form').classList.add('hidden');
         caricaProdotti();
     };
