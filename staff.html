@@ -9,59 +9,35 @@
         :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #f3f3f3; --accent: #FFD814; --danger: #ff4757; --success: #28a745; }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text); overflow-x: hidden; }
-        
         header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; }
         .logo { height: 30px; }
-
         #login-section { display: flex; justify-content: center; align-items: center; height: 80vh; padding: 20px; }
         .login-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
-        
         .main-layout { max-width: 900px; margin: auto; padding: 15px; }
         .user-info-bar { background: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid #ddd; }
-        
         .wallet-card { background: linear-gradient(135deg, #007185, #004e5d); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,113,133,0.3); }
         .wallet-info h5 { margin: 0; font-size: 0.7rem; text-transform: uppercase; opacity: 0.8; }
         .wallet-info p { margin: 5px 0 0 0; font-size: 1.6rem; font-weight: bold; }
         .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
         .status-paid { background: var(--success); color: white; }
         .status-pending { background: var(--accent); color: #131921; }
-
         input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; outline: none; }
         button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
         .btn-manual { background: var(--nuovo); margin-top: 5px; }
-
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
-        
-        .card-p { 
-            background: white; 
-            padding: 8px; 
-            border-radius: 12px; 
-            text-align: center; 
-            border: 1px solid #eee; 
-            position: relative; 
-            cursor: pointer; 
-            height: 165px; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: flex-start; 
-            transition: transform 0.2s; 
-            overflow: hidden; 
-        }
+        .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; height: 165px; display: flex; flex-direction: column; justify-content: flex-start; transition: transform 0.2s; overflow: hidden; }
         .card-p img { width: 100%; height: 85px; object-fit: contain; margin-top: 5px; }
         .delete-btn { position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 11px; }
         .share-btn { position: absolute; bottom: 8px; right: 8px; background: #3498db; color: white; width: 28px; height: 28px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .click-badge { position: absolute; bottom: 8px; left: 8px; background: #f8f9fa; color: var(--amazon); padding: 4px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid #eee; z-index: 10; display: flex; align-items: center; gap: 3px; }
-
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
         .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; }
         .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
         .nav-item.active { color: var(--amazon); }
-
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 15px; }
         .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; }
         .hidden { display: none !important; }
-
         .input-group-custom { display: flex; gap: 5px; align-items: center; }
         .input-group-custom select { flex: 1; }
         .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
@@ -109,7 +85,7 @@
                 <h4 style="margin: 0 0 10px 0;"><i class="fa-brands fa-amazon"></i> Pubblica Prodotto</h4>
                 <input type="text" id="amazon-link" placeholder="Incolla link Amazon qui...">
                 <button id="btn-verifica"><i class="fa-solid fa-wand-magic-sparkles"></i> VERIFICA E CARICA</button>
-                <button id="btn-nuovo-manuale" class="btn-manual hidden"><i class="fa-solid fa-plus"></i> CREA MANUALE</button>
+                <button id="btn-nuovo-manuale" class="btn-manual"><i class="fa-solid fa-plus"></i> CREA MANUALE</button>
             </div>
 
             <h4 style="border-bottom: 2px solid var(--amazon); padding-bottom: 5px; display: inline-block;">I Tuoi Annunci</h4>
@@ -145,6 +121,7 @@
                 <select id="f-valuta" style="width:80px;"><option value="€">€</option><option value="CHF">CHF</option></select>
             </div>
             <input type="text" id="f-img" placeholder="URL Immagine">
+            <textarea id="f-desc" rows="3" placeholder="Descrizione" style="display:none;"></textarea>
             <input type="text" id="f-link" placeholder="Link finale" oninput="window.pulisciLinkManuale(this)">
             <input type="hidden" id="f-id">
             <button id="btn-salva-prodotto">PUBBLICA ORA</button>
@@ -195,7 +172,30 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // Login e Bio Logic (Invariato)
+    // --- FUNZIONI DI CONDIVISIONE E PULIZIA ---
+    window.condividiProdotto = async (titolo, link) => {
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'Offerta ShopyGO', text: titolo, url: link });
+            } catch (err) { console.log("Errore condivisione:", err); }
+        } else {
+            navigator.clipboard.writeText(link);
+            alert("Link copiato negli appunti!");
+        }
+    };
+
+    function accorciaLinkAmazon(url) {
+        if(!url.includes("amazon.")) return url;
+        const asinMatch = url.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
+        if (asinMatch && asinMatch[1]) { 
+            return `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`; 
+        }
+        return url;
+    }
+
+    window.pulisciLinkManuale = (el) => { el.value = accorciaLinkAmazon(el.value); };
+
+    // --- AUTH ---
     const sessione = localStorage.getItem('shopygo_user_session');
     if(sessione) { aggiornaDatiUtente(sessione); }
 
@@ -219,12 +219,11 @@
         location.reload(); 
     };
 
-    // --- MODIFICA SALDO NETTO QUI ---
+    // --- DASHBOARD E SALDO ---
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
         
-        // CALCOLO O RECUPERO SALDO NETTO
         const lordo = parseFloat(utenteAttivo.guadagno_lordo || 0);
         const perc = parseFloat(utenteAttivo.percentuale || 90);
         const nettoRecuperato = utenteAttivo.guadagno_netto !== undefined ? parseFloat(utenteAttivo.guadagno_netto) : (lordo * perc / 100);
@@ -241,7 +240,6 @@
         caricaProdotti();
     }
 
-    // Altre funzioni di gestione prodotti (Invariate)
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
@@ -292,7 +290,7 @@
             sconto_perc: perc,
             valuta: document.getElementById('f-valuta').value,
             immagine: document.getElementById('f-img').value, 
-            descrizione: document.getElementById('f-desc').value,
+            descrizione: document.getElementById('f-desc').value || "",
             link_amazon: document.getElementById('f-link').value, 
             tipo: document.getElementById('f-tipo').value,
             categoria: document.getElementById('f-categoria').value, 
@@ -300,7 +298,6 @@
             tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
         };
         if(!id) data.click_count = 0;
-
         if(id) await updateDoc(doc(db, "prodotti", id), data);
         else await addDoc(collection(db, "prodotti"), data);
         document.getElementById('modal-form').classList.add('hidden');
@@ -328,9 +325,28 @@
         .then(r => r.json()).then(res => {
             document.getElementById('f-titolo').value = res.title || ""; 
             document.getElementById('f-img').value = res.image || "";
-            document.getElementById('f-link').value = urlRaw;
+            document.getElementById('f-link').value = accorciaLinkAmazon(urlRaw);
             document.getElementById('modal-form').classList.remove('hidden');
         });
+    };
+
+    window.apriPopupNuovo = (tipo) => {
+        tipoConfigCorrente = tipo;
+        document.getElementById('input-modal-title').innerText = "Aggiungi " + tipo;
+        document.getElementById('nuovo-valore-input').value = "";
+        document.getElementById('modal-input').classList.remove('hidden');
+    };
+
+    window.chiediEliminaOpzione = (selectId) => {
+        const sel = document.getElementById(selectId);
+        const selectedOpt = sel.options[sel.selectedIndex];
+        if(!selectedOpt) return;
+        document.getElementById('modal-confirm').classList.remove('hidden');
+        azioneConferma = async () => {
+            await deleteDoc(doc(db, "app_config", selectedOpt.dataset.id));
+            await caricaConfigurazioni();
+            document.getElementById('modal-confirm').classList.add('hidden');
+        };
     };
 
     window.eliminaP = (id) => {
@@ -342,6 +358,20 @@
         };
     };
 
+    document.getElementById('btn-conferma-input').onclick = async () => {
+        const val = document.getElementById('nuovo-valore-input').value.trim();
+        if(val) {
+            await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
+            await caricaConfigurazioni();
+            document.getElementById('modal-input').classList.add('hidden');
+        }
+    };
+
+    document.getElementById('btn-nuovo-manuale').onclick = () => { 
+        document.getElementById('f-id').value = ""; 
+        document.getElementById('f-titolo').value = "";
+        document.getElementById('modal-form').classList.remove('hidden'); 
+    };
     document.getElementById('confirm-delete-btn').onclick = () => { if(azioneConferma) azioneConferma(); };
     document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-form').classList.add('hidden');
     document.getElementById('cancel-delete-btn').onclick = () => document.getElementById('modal-confirm').classList.add('hidden');
