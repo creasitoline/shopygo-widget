@@ -6,39 +6,36 @@
     <title>ShopyGO - Console Staff</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --bg: #f3f3f3; --accent: #FFD814; --danger: #ff4757; --success: #28a745; }
+        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --bg: #f3f3f3; --accent: #FFD814; --danger: #ff4757; --success: #28a745; }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text); overflow-x: hidden; }
+        body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--text); }
         header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; }
         .logo { height: 30px; }
         #login-section { display: flex; justify-content: center; align-items: center; height: 80vh; padding: 20px; }
         .login-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 350px; }
         .main-layout { max-width: 900px; margin: auto; padding: 15px; }
         .user-info-bar { background: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid #ddd; }
-        .wallet-card { background: linear-gradient(135deg, #007185, #004e5d); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,113,133,0.3); }
+        .wallet-card { background: linear-gradient(135deg, #007185, #004e5d); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .wallet-info h5 { margin: 0; font-size: 0.7rem; text-transform: uppercase; opacity: 0.8; }
         .wallet-info p { margin: 5px 0 0 0; font-size: 1.6rem; font-weight: bold; }
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; }
         .status-paid { background: var(--success); color: white; }
         .status-pending { background: var(--accent); color: #131921; }
-        input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; outline: none; }
-        button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; }
+        button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
-        .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; height: 165px; display: flex; flex-direction: column; overflow: hidden; cursor: pointer; transition: 0.2s; }
+        .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; height: 165px; display: flex; flex-direction: column; }
         .card-p img { width: 100%; height: 85px; object-fit: contain; }
-        .delete-btn { position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 11px; }
-        .click-badge { position: absolute; bottom: 8px; left: 8px; background: #f8f9fa; color: var(--amazon); padding: 4px 7px; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid #eee; }
+        .delete-btn { position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; z-index: 5; }
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
-        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; }
-        .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; }
+        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
         .nav-item.active { color: var(--amazon); }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 15px; }
-        .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
         .hidden { display: none !important; }
-        .input-group-custom { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; }
-        .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
-        .btn-trash-config { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
+        .input-group-custom { display: flex; gap: 5px; align-items: center; }
+        .btn-plus, .btn-trash-config { width: 45px; height: 45px; margin: 0; display: flex; align-items: center; justify-content: center; }
         .limit-alert { background: #fff5f5; border: 2px solid var(--danger); padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
@@ -70,7 +67,7 @@
                     <p id="nome-utente" style="font-weight: bold; margin: 0; font-size: 1.1rem;"></p>
                     <code id="id-display" style="font-size: 11px; color: #777;"></code>
                 </div>
-                <button class="btn-logout" id="btn-logout">Esci</button>
+                <button onclick="logout()" style="width: auto; background: #555; padding: 8px 12px; font-size: 12px;">Esci</button>
             </div>
 
             <div class="wallet-card">
@@ -96,49 +93,21 @@
         <div class="modal-box">
             <h3 id="modal-title">Configura Prodotto</h3>
             <input type="hidden" id="f-id">
-            
             <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
-            <div class="input-group-custom">
-                <select id="f-tipo"></select>
-                <button class="btn-trash-config" onclick="eliminaConfigCorrente('f-tipo', 'piattaforme')"><i class="fa-solid fa-trash"></i></button>
-                <button class="btn-plus" onclick="apriPopupNuovo('piattaforme')"><i class="fa-solid fa-plus"></i></button>
-            </div>
-
+            <div class="input-group-custom"><select id="f-tipo"></select></div>
             <label style="font-size:11px; font-weight:bold;">Categoria</label>
-            <div class="input-group-custom">
-                <select id="f-categoria"></select>
-                <button class="btn-trash-config" onclick="eliminaConfigCorrente('f-categoria', 'categorie')"><i class="fa-solid fa-trash"></i></button>
-                <button class="btn-plus" onclick="apriPopupNuovo('categorie')"><i class="fa-solid fa-plus"></i></button>
-            </div>
-
+            <div class="input-group-custom"><select id="f-categoria"></select></div>
             <label style="font-size:11px; font-weight:bold;">Stato</label>
-            <div class="input-group-custom">
-                <select id="f-stato"></select>
-                <button class="btn-trash-config" onclick="eliminaConfigCorrente('f-stato', 'stato')"><i class="fa-solid fa-trash"></i></button>
-                <button class="btn-plus" onclick="apriPopupNuovo('stato')"><i class="fa-solid fa-plus"></i></button>
-            </div>
-
+            <div class="input-group-custom"><select id="f-stato"></select></div>
             <input type="text" id="f-titolo" placeholder="Titolo">
             <div style="display:flex; gap:10px;">
                 <input type="text" id="f-prezzo-pieno" placeholder="Prezzo Pieno">
                 <input type="text" id="f-prezzo" placeholder="Prezzo Scontato">
-                <select id="f-valuta" style="width:80px;"><option value="€">€</option><option value="CHF">CHF</option></select>
             </div>
             <input type="text" id="f-img" placeholder="URL Immagine">
             <input type="text" id="f-link" placeholder="Link finale" readonly>
             <button id="btn-salva-prodotto">SALVA E PUBBLICA</button>
             <button style="background: #eee; color: #333;" onclick="document.getElementById('modal-form').classList.add('hidden')">CHIUDI</button>
-        </div>
-    </div>
-
-    <div id="modal-input" class="modal hidden">
-        <div class="modal-box" style="max-width:350px; text-align:center;">
-            <h3 id="input-modal-title">Aggiungi Nuova</h3>
-            <input type="text" id="nuovo-valore-input" placeholder="Scrivi qui...">
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button id="btn-conferma-input" style="background:var(--success);">AGGIUNGI</button>
-                <button onclick="document.getElementById('modal-input').classList.add('hidden')" style="background:#eee; color:#333;">ANNULLA</button>
-            </div>
         </div>
     </div>
 
@@ -158,11 +127,9 @@
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
     
     let utenteAttivo = null;
-    let annunciCount = 0;
-    let tipoConfigCorrente = "";
-    let unsubscribeUser = null;
+    let unsubUser = null;
 
-    // LOGIN
+    // LOGIN AUTOMATICO O MANUALE
     const sessione = localStorage.getItem('shopygo_user_session');
     if(sessione) { login(sessione); }
 
@@ -178,46 +145,59 @@
             const userDoc = snap.docs[0];
             localStorage.setItem('shopygo_user_session', codice);
             
-            // ASCOLTO REAL-TIME DEI DATI UTENTE (Saldo, Limiti, ecc.)
-            if(unsubscribeUser) unsubscribeUser();
-            unsubscribeUser = onSnapshot(doc(db, "utenti_abilitati", userDoc.id), (doc) => {
-                utenteAttivo = doc.data();
-                aggiornaInterfaccia();
+            // 1. Sincronizzazione Dati Utente (Saldo, Pagato, ecc.)
+            if(unsubUser) unsubUser();
+            unsubUser = onSnapshot(doc(db, "utenti_abilitati", userDoc.id), (d) => {
+                utenteAttivo = d.data();
+                aggiornaWallet();
             });
 
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('main-container').classList.remove('hidden');
             
+            // 2. Caricamento Prodotti e Config
             caricaProdotti();
             caricaConfigurazioni();
         } else { alert("ID non autorizzato."); }
     }
 
-    function aggiornaInterfaccia() {
+    function aggiornaWallet() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
-        
-        // MOSTRA SALDO AGGIORNATO (Legge 'guadagno_netto' calcolato dall'admin)
-        const saldo = parseFloat(utenteAttivo.guadagno_netto || 0);
-        document.getElementById('wallet-importo').innerText = "€ " + saldo.toFixed(2);
+        document.getElementById('wallet-importo').innerText = "€ " + (parseFloat(utenteAttivo.guadagno_netto || 0)).toFixed(2);
         
         const statusDiv = document.getElementById('wallet-status');
         statusDiv.innerHTML = utenteAttivo.pagato ? 
             '<span class="status-badge status-paid">Pagato</span>' : 
             '<span class="status-badge status-pending">In Attesa</span>';
-        
-        checkLimiti();
     }
 
-    function checkLimiti() {
+    async function caricaProdotti() {
+        const container = document.getElementById('grid-prodotti');
+        container.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Caricamento annunci...</p>";
+        
+        const q = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
+        const snap = await getDocs(q);
+        
+        container.innerHTML = "";
+        if(snap.empty) container.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>Nessun annuncio pubblicato.</p>";
+
+        snap.forEach((res) => {
+            const p = res.data();
+            const div = document.createElement('div');
+            div.className = 'card-p';
+            div.innerHTML = `
+                <div class="delete-btn" onclick="eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
+                <img src="${p.immagine}" onclick="apriModificaP('${res.id}')">
+                <p style="font-size:10px; font-weight:bold; margin-top:5px;">€ ${p.prezzo}</p>
+                <div style="font-size:9px; color:var(--amazon); font-weight:bold;"><i class="fa-solid fa-eye"></i> ${p.click_count || 0}</div>`;
+            container.appendChild(div);
+        });
+
+        // Controllo Limiti
         const alertBox = document.getElementById('alert-limiti');
         const uploadBox = document.getElementById('upload-box');
-        let bloccato = false;
-        
-        if(utenteAttivo.limite_annunci && annunciCount >= utenteAttivo.limite_annunci) bloccato = true;
-        if(utenteAttivo.limite_click && (utenteAttivo.click_attuali || 0) >= utenteAttivo.limite_click) bloccato = true;
-        
-        if(bloccato) {
+        if(utenteAttivo.limite_annunci && snap.size >= utenteAttivo.limite_annunci) {
             alertBox.classList.remove('hidden');
             uploadBox.style.opacity = "0.5";
             uploadBox.style.pointerEvents = "none";
@@ -228,49 +208,7 @@
         }
     }
 
-    async function caricaProdotti() {
-        const container = document.getElementById('grid-prodotti');
-        container.innerHTML = "";
-        const q = query(collection(db, "prodotti"), where("tag", "==", utenteAttivo.tag));
-        const snap = await getDocs(q);
-        annunciCount = snap.size; // Aggiorna il conteggio per i limiti
-        
-        snap.forEach((res) => {
-            const p = res.data();
-            const div = document.createElement('div');
-            div.className = 'card-p';
-            div.onclick = () => window.apriModificaP(res.id);
-            div.innerHTML = `
-                <div class="delete-btn" onclick="event.stopPropagation(); window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
-                <div class="click-badge"><i class="fa-solid fa-eye"></i> ${p.click_count || 0}</div>
-                <img src="${p.immagine}">
-                <p style="font-size:10px; font-weight:bold; margin-top:5px;">${p.valuta || '€'} ${p.prezzo}</p>`;
-            container.appendChild(div);
-        });
-        checkLimiti();
-    }
-
-    // --- LOGICA AMAZON E MODALI (Invariata) ---
-    window.apriModificaP = async (id) => {
-        const docRef = doc(db, "prodotti", id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const p = docSnap.data();
-            document.getElementById('f-id').value = id;
-            document.getElementById('f-titolo').value = p.titolo;
-            document.getElementById('f-prezzo').value = p.prezzo;
-            document.getElementById('f-prezzo-pieno').value = p.prezzo_pieno || "";
-            document.getElementById('f-img').value = p.immagine;
-            document.getElementById('f-link').value = p.link_amazon;
-            document.getElementById('f-valuta').value = p.valuta || "€";
-            document.getElementById('f-tipo').value = p.tipo;
-            document.getElementById('f-categoria').value = p.categoria;
-            document.getElementById('f-stato').value = p.stato;
-            document.getElementById('modal-title').innerText = "Modifica Prodotto";
-            document.getElementById('modal-form').classList.remove('hidden');
-        }
-    };
-
+    // AMAZON LOGIC
     document.getElementById('btn-verifica').onclick = () => {
         const urlRaw = document.getElementById('amazon-link').value;
         if(!urlRaw) return;
@@ -281,21 +219,16 @@
             document.getElementById('f-img').value = res.image || "";
             const asinMatch = urlRaw.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
             document.getElementById('f-link').value = asinMatch ? `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}` : urlRaw;
-            document.getElementById('modal-title').innerText = "Configura Nuovo Prodotto";
             document.getElementById('modal-form').classList.remove('hidden');
         });
     };
 
     document.getElementById('btn-salva-prodotto').onclick = async () => {
         const idEsistente = document.getElementById('f-id').value;
-        const pPieno = parseFloat(document.getElementById('f-prezzo-pieno').value) || 0;
-        const pSconto = parseFloat(document.getElementById('f-prezzo').value) || 0;
         const data = {
             titolo: document.getElementById('f-titolo').value, 
-            prezzo: pSconto.toString(),
-            prezzo_pieno: pPieno.toString(),
-            sconto_perc: pPieno > pSconto ? "-" + Math.round(((pPieno - pSconto) / pPieno) * 100) + "%" : "",
-            valuta: document.getElementById('f-valuta').value,
+            prezzo: document.getElementById('f-prezzo').value,
+            prezzo_pieno: document.getElementById('f-prezzo-pieno').value,
             immagine: document.getElementById('f-img').value, 
             link_amazon: document.getElementById('f-link').value, 
             tipo: document.getElementById('f-tipo').value,
@@ -306,64 +239,40 @@
             timestamp: serverTimestamp(),
             attivo: true
         };
-        if(idEsistente) { await updateDoc(doc(db, "prodotti", idEsistente), data); } 
+        if(idEsistente) await updateDoc(doc(db, "prodotti", idEsistente), data);
         else { data.click_count = 0; await addDoc(collection(db, "prodotti"), data); }
         location.reload();
     };
 
+    window.apriModificaP = async (id) => {
+        const d = await getDoc(doc(db, "prodotti", id));
+        if(d.exists()) {
+            const p = d.data();
+            document.getElementById('f-id').value = id;
+            document.getElementById('f-titolo').value = p.titolo;
+            document.getElementById('f-prezzo').value = p.prezzo;
+            document.getElementById('f-img').value = p.immagine;
+            document.getElementById('f-link').value = p.link_amazon;
+            document.getElementById('modal-form').classList.remove('hidden');
+        }
+    };
+
+    window.eliminaP = async (id) => {
+        if(confirm("Eliminare?")) { await deleteDoc(doc(db, "prodotti", id)); caricaProdotti(); }
+    };
+
     async function caricaConfigurazioni() {
-        const selectors = { 'categorie': 'f-categoria', 'piattaforme': 'f-tipo', 'stato': 'f-stato' };
-        Object.values(selectors).forEach(id => document.getElementById(id).innerHTML = "");
+        const sel = { 'categorie': 'f-categoria', 'piattaforme': 'f-tipo', 'stato': 'f-stato' };
         const snap = await getDocs(collection(db, "app_config"));
         snap.forEach(d => {
             const data = d.data();
             const opt = document.createElement('option');
             opt.value = data.nome; opt.text = data.nome;
-            opt.dataset.id = d.id;
-            const targetId = selectors[data.tipo];
-            if(targetId) document.getElementById(targetId).add(opt);
+            if(sel[data.tipo]) document.getElementById(sel[data.tipo]).add(opt);
         });
     }
 
-    window.apriPopupNuovo = (tipo) => {
-        tipoConfigCorrente = tipo;
-        document.getElementById('input-modal-title').innerText = "Aggiungi " + tipo;
-        document.getElementById('modal-input').classList.remove('hidden');
-    };
-
-    document.getElementById('btn-conferma-input').onclick = async () => {
-        const val = document.getElementById('nuovo-valore-input').value.trim();
-        if(val) {
-            await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
-            caricaConfigurazioni();
-            document.getElementById('modal-input').classList.add('hidden');
-            document.getElementById('nuovo-valore-input').value = "";
-        }
-    };
-
-    window.eliminaConfigCorrente = async (selectId, tipo) => {
-        const select = document.getElementById(selectId);
-        const selectedOption = select.options[select.selectedIndex];
-        if(!selectedOption) return;
-        const docId = selectedOption.dataset.id;
-        if(confirm(`⚠️ ATTENZIONE: Vuoi eliminare "${selectedOption.value}"?`)) {
-            await deleteDoc(doc(db, "app_config", docId));
-            caricaConfigurazioni();
-        }
-    };
-
-    window.eliminaP = async (id) => {
-        if(confirm("Eliminare definitivamente questo annuncio?")) {
-            await deleteDoc(doc(db, "prodotti", id));
-            location.reload();
-        }
-    };
-
-    document.getElementById('btn-logout').onclick = () => { 
-        if(unsubscribeUser) unsubscribeUser();
-        localStorage.removeItem('shopygo_user_session'); 
-        location.reload(); 
-    };
+    window.logout = () => { localStorage.removeItem('shopygo_user_session'); location.reload(); };
 </script>
 </body>
 </html>
