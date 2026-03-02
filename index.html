@@ -36,7 +36,39 @@
         :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --offerta: #e67e22; --bg: #f3f3f3; --accent: #FFD814; --sconto: #CC0C39; }
         body { font-family: 'Segoe UI', system-ui; margin: 0; background: var(--bg); padding-bottom: 90px; color: var(--text); overflow-x: hidden; }
         
+        /* BANNER PWA */
+        #pwa-install-banner {
+            display: none;
+            background: #131921;
+            color: white;
+            padding: 10px 15px;
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .info-pwa { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .info-pwa img { width: 30px; height: 30px; border-radius: 6px; }
+        #btn-install-pwa { 
+            background: var(--accent); 
+            border: none; 
+            padding: 6px 12px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 11px;
+            color: #000;
+        }
+        .close-pwa { font-size: 22px; cursor: pointer; line-height: 1; margin-right: 5px; }
+
         header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; gap: 10px; }
+        /* Regolazione header se il banner è attivo */
+        #pwa-install-banner[style*="display: flex"] + header { top: 50px; }
+
         .logo { height: 30px; }
         
         .search-container { flex: 1; max-width: 600px; position: relative; display: flex; align-items: center; }
@@ -105,6 +137,15 @@
     </style>
 </head>
 <body>
+
+    <div id="pwa-install-banner">
+        <div class="info-pwa">
+            <span class="close-pwa" id="close-pwa-btn">&times;</span>
+            <img src="icon.png" alt="Logo">
+            <span>Installa <b>ShopyGO</b></span>
+        </div>
+        <button id="btn-install-pwa">INSTALLA</button>
+    </div>
 
     <div style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">
         <h2>Le migliori marche su ShopyGO</h2>
@@ -182,6 +223,35 @@
     
     let tuttiProdotti = [];
 
+    // --- LOGICA PWA BANNER ---
+    let deferredPrompt;
+    const pwaBanner = document.getElementById('pwa-install-banner');
+    const installBtn = document.getElementById('btn-install-pwa');
+    const closePwaBtn = document.getElementById('close-pwa-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        pwaBanner.style.display = 'flex';
+    });
+
+    installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            pwaBanner.style.display = 'none';
+        }
+    });
+
+    closePwaBtn.onclick = () => { pwaBanner.style.display = 'none'; };
+
+    window.addEventListener('appinstalled', () => {
+        pwaBanner.style.display = 'none';
+        deferredPrompt = null;
+    });
+    // ------------------------
+
     window.registraClick = async (productId) => {
         const prodRef = doc(db, "prodotti", productId);
         try { await updateDoc(prodRef, { click_count: increment(1) }); } catch (e) { console.error("Errore click:", e); }
@@ -240,7 +310,6 @@
     function renderSlider() {
         const slider = document.getElementById('slider-prodotti');
         slider.innerHTML = "";
-        // Filtro sicuro: nasconde solo se visibile è esplicitamente false
         const visibili = tuttiProdotti.filter(p => p.visibile !== false);
         visibili.slice(0, 8).forEach(p => {
             let sLink = p.link_amazon || p.link || "#";
@@ -265,7 +334,7 @@
         const selStatus = Array.from(document.querySelectorAll('.filter-status:checked')).map(c => c.value);
 
         const filtrati = tuttiProdotti.filter(p => {
-            if (p.visibile === false) return false; // Nasconde solo se disattivato
+            if (p.visibile === false) return false;
             const priceNum = parseFloat(p.prezzo?.toString().replace(',', '.') || 0);
             const matchesSearch = p.titolo.toLowerCase().includes(searchTerm);
             const matchesType = selTypes.length === 0 || selTypes.includes(p.tipo);
