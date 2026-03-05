@@ -25,8 +25,8 @@
         button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
         
-        /* NUOVO TASTO SHOP */
-        .btn-share-shop { background: var(--nuovo); width: auto; padding: 8px 15px; font-size: 12px; margin: 0; display: flex; align-items: center; gap: 5px; }
+        /* TASTO COLLEZIONE AGGIORNATO */
+        .btn-share-shop { background: #34495e; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; display: flex; align-items: center; gap: 5px; color: white; border-radius: 8px; }
         
         .btn-manual { background: var(--nuovo); margin-top: 5px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
@@ -75,7 +75,7 @@
                     <code id="id-display" style="font-size: 11px; color: #777;"></code>
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn-share-shop" id="btn-share-shop"><i class="fa-solid fa-store"></i> SHOP</button>
+                    <button class="btn-share-shop" id="btn-share-shop"><i class="fa-solid fa-layer-group"></i> COLLEZIONE</button>
                     <button class="btn-logout" id="btn-logout">Esci</button>
                 </div>
             </div>
@@ -193,7 +193,7 @@
         if(!snap.empty) {
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice.toUpperCase());
-            sessionStorage.removeItem('shopygo_logged_out');
+            sessioneMudify_removeItem('shopygo_logged_out');
             mostraDashboard();
         } else { 
             alert("ID non valido.");
@@ -201,25 +201,25 @@
         }
     }
 
-    // --- FUNZIONE TASTO SHOP (CONDIVIDI CON TAG) ---
+    // --- FUNZIONE TASTO SHOP AGGIORNATA PER COLLECTION.HTML ---
     document.getElementById('btn-share-shop').onclick = () => {
         if (!utenteAttivo || !utenteAttivo.tag) {
             alert("Errore: Tag Amazon non trovato nel profilo.");
             return;
         }
-        // Crea il link corretto usando il dominio shopygo.link e il TAG ID
-        const linkShop = `https://www.shopygo.link/user.html?tag=${utenteAttivo.tag}`;
+        // MODIFICA: Punta a collection.html con il parametro coll
+        const linkShop = `https://www.shopygo.link/collection.html?coll=${utenteAttivo.tag}`;
         
         if (navigator.share) {
-            navigator.share({ title: 'Il mio Shop ShopyGO', url: linkShop });
+            navigator.share({ title: 'La mia Collezione ShopyGO', url: linkShop });
         } else {
             navigator.clipboard.writeText(linkShop).then(() => {
-                alert("Link Shop copiato: " + linkShop);
+                alert("Link Collezione copiato: " + linkShop);
             });
         }
     };
 
-    // --- LE ALTRE FUNZIONI RIMANGONO ORIGINALI ---
+    // --- TUTTE LE ALTRE FUNZIONI INVARIATE ---
     document.getElementById('btn-logout').onclick = () => { 
         sessionStorage.setItem('shopygo_logged_out', 'true');
         location.reload(); 
