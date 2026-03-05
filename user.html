@@ -11,7 +11,7 @@
         body { font-family: 'Segoe UI', system-ui; margin: 0; background: var(--bg); padding-bottom: 90px; color: var(--text); overflow-x: hidden; }
         
         header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; gap: 10px; }
-        .logo { height: 30px; }
+        .logo { height: 30px; cursor: pointer; }
         
         .hero-user { background: white; padding: 20px 15px; text-align: center; border-bottom: 1px solid #eee; margin-bottom: 10px; }
         .user-badge { background: var(--amazon); color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
@@ -47,6 +47,12 @@
 
         .buy-btn { padding: 8px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; font-weight: bold; text-align: center; margin-top: auto; border: 1px solid transparent; }
 
+        /* Navigazione Bottom */
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0 25px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 2000; border-radius: 20px 20px 0 0; }
+        .nav-item { text-decoration: none; color: #555; font-size: 10px; text-align: center; flex: 1; border:none; background:none; cursor:pointer; }
+        .nav-item i { font-size: 1.4rem; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--amazon); }
+
         #lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; display: none; align-items: center; justify-content: center; }
         #lightbox img { max-width: 90%; max-height: 80%; border-radius: 8px; }
         .close-zoom { position: absolute; top: 20px; right: 20px; color: white; font-size: 2.5rem; cursor: pointer; }
@@ -64,7 +70,7 @@
     </div>
 
     <header>
-        <img src="logo.png" alt="ShopyGO" class="logo">
+        <a href="index.html"><img src="logo.png" alt="ShopyGO" class="logo"></a>
         <div class="search-container">
             <input type="text" id="user-search" placeholder="Cerca tra i miei consigli..." autocomplete="off">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -86,6 +92,12 @@
             Nessun prodotto trovato.
         </div>
     </div>
+
+    <nav class="nav-bottom">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <div class="nav-item active"><i class="fa-solid fa- star"></i><span>I miei consigli</span></div>
+        <a href="staff.html" class="nav-item"><i class="fa-solid fa-circle-plus"></i><span>Staff</span></a>
+    </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -168,7 +180,6 @@
             const btnCol = isMarketplace ? "#2ecc71" : "var(--accent)";
             const btnLink = p.link_amazon || p.link || "#";
 
-            // LOGICA PREZZO: Mostra sconto solo se prezzo_pieno > prezzo
             let htmlPrezzo = "";
             const prScontato = parseFloat(p.prezzo?.toString().replace(',', '.') || 0);
             const prPieno = parseFloat(p.prezzo_pieno?.toString().replace(',', '.') || 0);
