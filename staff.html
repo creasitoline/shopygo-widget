@@ -24,7 +24,7 @@
         input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; outline: none; }
         button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
-        .btn-share-shop { background: var(--nuovo); width: auto; padding: 8px 15px; font-size: 12px; margin: 0 5px; display: flex; align-items: center; gap: 5px; }
+        .btn-share-shop { background: var(--nuovo); width: auto; padding: 10px 15px; font-size: 12px; margin: 0; display: flex; align-items: center; gap: 6px; border-radius: 10px; }
         .btn-manual { background: var(--nuovo); margin-top: 5px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
         .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; height: 165px; display: flex; flex-direction: column; justify-content: flex-start; transition: transform 0.2s; overflow: hidden; }
@@ -39,10 +39,6 @@
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 15px; }
         .modal-box { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; }
         .hidden { display: none !important; }
-        .input-group-custom { display: flex; gap: 5px; align-items: center; }
-        .input-group-custom select { flex: 1; }
-        .btn-plus { width: 45px !important; background: var(--success); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
-        .btn-trash { width: 45px !important; background: var(--danger); height: 45px; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -69,10 +65,10 @@
             <div class="user-info-bar">
                 <div>
                     <p id="nome-utente" style="font-weight: bold; margin: 0; font-size: 1.1rem;"></p>
-                    <code id="id-display" style="font-size: 11px; color: #777;"></code>
+                    <code id="tag-display" style="font-size: 11px; color: var(--nuovo); font-weight: bold;"></code>
                 </div>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn-share-shop" id="btn-share-shop"><i class="fa-solid fa-share-nodes"></i> Shop</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-share-shop" id="btn-share-shop"><i class="fa-solid fa-link"></i> SHOP</button>
                     <button class="btn-logout" id="btn-logout">Esci</button>
                 </div>
             </div>
@@ -101,23 +97,9 @@
         <div class="modal-box">
             <h3 id="modal-title">Configura Prodotto</h3>
             <label style="font-size:11px; font-weight:bold;">Piattaforma</label>
-            <div class="input-group-custom">
-                <select id="f-tipo"></select>
-                <button class="btn-plus" onclick="apriPopupNuovo('piattaforme')"><i class="fa-solid fa-plus"></i></button>
-                <button class="btn-trash" onclick="chiediEliminaOpzione('f-tipo')"><i class="fa-solid fa-trash"></i></button>
-            </div>
+            <select id="f-tipo"></select>
             <label style="font-size:11px; font-weight:bold; margin-top:5px; display:block;">Categoria</label>
-            <div class="input-group-custom">
-                <select id="f-categoria"></select>
-                <button class="btn-plus" onclick="apriPopupNuovo('categorie')"><i class="fa-solid fa-plus"></i></button>
-                <button class="btn-trash" onclick="chiediEliminaOpzione('f-categoria')"><i class="fa-solid fa-trash"></i></button>
-            </div>
-            <label style="font-size:11px; font-weight:bold; margin-top:5px; display:block;">Stato Prodotto</label>
-            <div class="input-group-custom">
-                <select id="f-stato"></select>
-                <button class="btn-plus" onclick="apriPopupNuovo('stato')"><i class="fa-solid fa-plus"></i></button>
-                <button class="btn-trash" onclick="chiediEliminaOpzione('f-stato')"><i class="fa-solid fa-trash"></i></button>
-            </div>
+            <select id="f-categoria"></select>
             <input type="text" id="f-titolo" placeholder="Titolo">
             <div style="display:flex; gap:10px;">
                 <input type="text" id="f-prezzo-pieno" placeholder="Prezzo Pieno">
@@ -125,7 +107,6 @@
                 <select id="f-valuta" style="width:80px;"><option value="€">€</option><option value="CHF">CHF</option></select>
             </div>
             <input type="text" id="f-img" placeholder="URL Immagine">
-            <textarea id="f-desc" rows="3" placeholder="Descrizione" style="display:none;"></textarea>
             <input type="text" id="f-link" placeholder="Link finale" oninput="window.pulisciLinkManuale(this)">
             <input type="hidden" id="f-id">
             <button id="btn-salva-prodotto">PUBBLICA ORA</button>
@@ -133,39 +114,9 @@
         </div>
     </div>
 
-    <div id="modal-input" class="modal hidden">
-        <div class="modal-box" style="max-width:350px; text-align:center;">
-            <h3 id="input-modal-title">Aggiungi Nuova</h3>
-            <input type="text" id="nuovo-valore-input" placeholder="Scrivi qui...">
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button id="btn-conferma-input" style="background:var(--success);">AGGIUNGI</button>
-                <button onclick="document.getElementById('modal-input').classList.add('hidden')" style="background:#eee; color:#333;">ANNULLA</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-confirm" class="modal hidden">
-        <div class="modal-box" style="text-align: center; max-width: 350px;">
-            <i class="fa-solid fa-trash-can" style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;"></i>
-            <h3 id="confirm-title">Sei sicuro?</h3>
-            <p id="confirm-msg" style="font-size:13px; color:#666;">Questa azione è irreversibile.</p>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="confirm-delete-btn" style="background: var(--danger);">ELIMINA</button>
-                <button id="cancel-delete-btn" style="background: #eee; color: #333;">ANNULLA</button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="nav-bottom">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Shop</span></a>
-        <a href="staff.html" class="nav-item active"><i class="fa-solid fa-circle-plus"></i><span>Pubblica</span></a>
-        <a href="admin-master.html" class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>
-    </nav>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { attivaSensoreImpronta } from "./auth-biometric.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDRv3qN2qRd2rVKlTB8YDHpyhrDgRiX7vc", authDomain: "shopygo-database.firebaseapp.com", projectId: "shopygo-database", storageBucket: "shopygo-database.firebasestorage.app", messagingSenderId: "336849306481", appId: "1:336849306481:web:aef142b389ef778ba3ecd0" };
     const app = initializeApp(firebaseConfig);
@@ -173,17 +124,11 @@
     const LP_KEY = "3e6cf56ee1f4b99fa9b495166bd732c0";
     
     let utenteAttivo = null;
-    let azioneConferma = null; 
-    let tipoConfigCorrente = ""; 
 
+    // --- LOGIN LOGIC ---
     const sessioneSalvata = localStorage.getItem('shopygo_user_session');
-    const appenaUscito = sessionStorage.getItem('shopygo_logged_out');
-
-    if (sessioneSalvata) {
-        document.getElementById('btn-biometrico').style.display = 'block';
-        if (!appenaUscito) {
-            aggiornaDatiUtente(sessioneSalvata);
-        }
+    if (sessioneSalvata && !sessionStorage.getItem('shopygo_logged_out')) {
+        aggiornaDatiUtente(sessioneSalvata);
     }
 
     async function aggiornaDatiUtente(codice) {
@@ -194,49 +139,46 @@
             localStorage.setItem('shopygo_user_session', codice.toUpperCase());
             sessionStorage.removeItem('shopygo_logged_out');
             mostraDashboard();
-        } else { 
-            alert("ID non valido.");
-            localStorage.removeItem('shopygo_user_session');
         }
     }
-
-    document.getElementById('btn-logout').onclick = () => { 
-        sessionStorage.setItem('shopygo_logged_out', 'true');
-        location.reload(); 
-    };
-
-    document.getElementById('btn-biometrico').onclick = async () => {
-        const saved = localStorage.getItem('shopygo_user_session');
-        if(saved) {
-            await attivaSensoreImpronta(saved, (codice) => {
-                aggiornaDatiUtente(codice);
-            });
-        }
-    };
 
     document.getElementById('btn-login').onclick = () => {
         const cod = document.getElementById('codice-accesso').value.trim();
         if(cod) aggiornaDatiUtente(cod);
     };
 
-    // --- FUNZIONE CONDIVISIONE SHOP ---
+    document.getElementById('btn-logout').onclick = () => {
+        sessionStorage.setItem('shopygo_logged_out', 'true');
+        location.reload();
+    };
+
+    // --- FUNZIONE TASTO SHOP (TAG ID) ---
     document.getElementById('btn-share-shop').onclick = () => {
-        const linkShop = `https://www.shopygo.link/user.html?id=${utenteAttivo.codice}`;
+        if(!utenteAttivo || !utenteAttivo.tag) {
+            alert("Tag Amazon non configurato!");
+            return;
+        }
+        const linkShop = `https://www.shopygo.link/user.html?tag=${utenteAttivo.tag}`;
         navigator.clipboard.writeText(linkShop).then(() => {
-            alert("Il link al tuo shop personale è stato copiato!\n\n" + linkShop);
+            const btn = document.getElementById('btn-share-shop');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> COPIATO';
+            btn.style.background = "var(--success)";
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-solid fa-link"></i> SHOP';
+                btn.style.background = "var(--nuovo)";
+            }, 2000);
+            alert("Link Shop Copiato!\n" + linkShop);
         });
     };
 
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
-        document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
+        document.getElementById('tag-display').innerText = "TAG: " + (utenteAttivo.tag || "Non impostato");
+        
         const lordo = parseFloat(utenteAttivo.guadagno_lordo || 0);
         const perc = parseFloat(utenteAttivo.percentuale || 90);
-        const nettoRecuperato = utenteAttivo.guadagno_netto !== undefined ? parseFloat(utenteAttivo.guadagno_netto) : (lordo * perc / 100);
-        document.getElementById('wallet-label').innerText = `Il tuo guadagno (${perc}%)`;
-        document.getElementById('wallet-importo').innerText = "€ " + nettoRecuperato.toFixed(2);
-        const statusDiv = document.getElementById('wallet-status');
-        statusDiv.innerHTML = utenteAttivo.pagato ? '<span class="status-badge status-paid">Pagato</span>' : '<span class="status-badge status-pending">In Attesa</span>';
+        document.getElementById('wallet-importo').innerText = "€ " + (lordo * perc / 100).toFixed(2);
+        
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('main-container').classList.remove('hidden');
         caricaConfigurazioni();
@@ -246,16 +188,14 @@
     async function caricaConfigurazioni() {
         const selCat = document.getElementById('f-categoria');
         const selTipo = document.getElementById('f-tipo');
-        const selStato = document.getElementById('f-stato');
-        selCat.innerHTML = ""; selTipo.innerHTML = ""; selStato.innerHTML = "";
+        selCat.innerHTML = ""; selTipo.innerHTML = "";
         const snap = await getDocs(collection(db, "app_config"));
         snap.forEach(d => {
             const data = d.data();
             const opt = document.createElement('option');
-            opt.value = data.nome; opt.text = data.nome; opt.dataset.id = d.id;
+            opt.value = data.nome; opt.text = data.nome;
             if (data.tipo === 'categorie') selCat.add(opt);
             else if (data.tipo === 'piattaforme') selTipo.add(opt);
-            else if (data.tipo === 'stato') selStato.add(opt);
         });
     }
 
@@ -271,74 +211,31 @@
             div.innerHTML = `
                 <div class="delete-btn" onclick="event.stopPropagation(); window.eliminaP('${res.id}')"><i class="fa-solid fa-trash"></i></div>
                 <div class="click-badge"><i class="fa-solid fa-eye"></i> ${p.click_count || 0}</div>
-                <div class="share-btn" onclick="event.stopPropagation(); window.condividiProdotto('${p.titolo.replace(/'/g, "\\'")}', '${p.link_amazon}')"><i class="fa-solid fa-share-nodes"></i></div>
                 <img src="${p.immagine}">
                 <p style="font-size:10px; font-weight:bold; margin: 8px 0 0 0;">${p.valuta || '€'} ${p.prezzo}</p>`;
-            div.onclick = () => apriModifica(res.id, p);
             container.appendChild(div);
         });
     }
 
-    window.condividiProdotto = async (titolo, link) => {
-        if (navigator.share) {
-            try { await navigator.share({ title: 'Offerta ShopyGO', text: titolo, url: link }); } 
-            catch (err) { console.log("Errore condivisione:", err); }
-        } else {
-            navigator.clipboard.writeText(link);
-            alert("Link copiato negli appunti!");
-        }
-    };
-
-    function accorciaLinkAmazon(url) {
-        if(!url.includes("amazon.")) return url;
-        const asinMatch = url.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
-        if (asinMatch && asinMatch[1]) { 
-            return `https://www.amazon.it/dp/${asinMatch[1]}?tag=${utenteAttivo.tag}`; 
-        }
-        return url;
-    }
-
-    window.pulisciLinkManuale = (el) => { el.value = accorciaLinkAmazon(el.value); };
-
+    // --- SALVATAGGIO PRODOTTO CON TAG UTENTE ---
     document.getElementById('btn-salva-prodotto').onclick = async () => {
-        const id = document.getElementById('f-id').value;
-        const pPieno = parseFloat(document.getElementById('f-prezzo-pieno').value) || 0;
-        const pSconto = parseFloat(document.getElementById('f-prezzo').value) || 0;
-        let perc = "";
-        if(pPieno > pSconto && pPieno > 0) { perc = "-" + Math.round(((pPieno - pSconto) / pPieno) * 100) + "%"; }
         const data = {
-            titolo: document.getElementById('f-titolo').value, 
-            prezzo: pSconto.toString(),
-            prezzo_pieno: pPieno.toString(),
-            sconto_perc: perc,
+            titolo: document.getElementById('f-titolo').value,
+            prezzo: document.getElementById('f-prezzo').value,
+            prezzo_pieno: document.getElementById('f-prezzo-pieno').value,
             valuta: document.getElementById('f-valuta').value,
-            immagine: document.getElementById('f-img').value, 
-            descrizione: document.getElementById('f-desc').value || "",
-            link_amazon: document.getElementById('f-link').value, 
+            immagine: document.getElementById('f-img').value,
+            link_amazon: document.getElementById('f-link').value,
             tipo: document.getElementById('f-tipo').value,
-            categoria: document.getElementById('f-categoria').value, 
-            stato: document.getElementById('f-stato').value,
-            tag: utenteAttivo.tag, autore: utenteAttivo.nome, timestamp: serverTimestamp()
+            categoria: document.getElementById('f-categoria').value,
+            tag: utenteAttivo.tag, // USA IL TAG ID (es. sg002-21)
+            autore: utenteAttivo.nome,
+            click_count: 0,
+            timestamp: serverTimestamp()
         };
-        if(!id) data.click_count = 0;
-        if(id) await updateDoc(doc(db, "prodotti", id), data);
-        else await addDoc(collection(db, "prodotti"), data);
+        await addDoc(collection(db, "prodotti"), data);
         document.getElementById('modal-form').classList.add('hidden');
         caricaProdotti();
-    };
-
-    window.apriModifica = (id, p) => {
-        document.getElementById('f-id').value = id; 
-        document.getElementById('f-titolo').value = p.titolo;
-        document.getElementById('f-prezzo').value = p.prezzo;
-        document.getElementById('f-prezzo-pieno').value = p.prezzo_pieno || "";
-        document.getElementById('f-img').value = p.immagine;
-        document.getElementById('f-link').value = p.link_amazon;
-        document.getElementById('f-desc').value = p.descrizione || "";
-        document.getElementById('f-tipo').value = p.tipo;
-        document.getElementById('f-categoria').value = p.categoria;
-        document.getElementById('f-stato').value = p.stato || "";
-        document.getElementById('modal-form').classList.remove('hidden');
     };
 
     document.getElementById('btn-verifica').onclick = () => {
@@ -348,56 +245,22 @@
         .then(r => r.json()).then(res => {
             document.getElementById('f-titolo').value = res.title || ""; 
             document.getElementById('f-img').value = res.image || "";
-            document.getElementById('f-link').value = accorciaLinkAmazon(urlRaw);
+            // Accorcia e pulisce link con tag
+            const asin = urlRaw.match(/(?:\/dp\/|\/gp\/product\/)([A-Z0-9]{10})/i);
+            document.getElementById('f-link').value = asin ? `https://www.amazon.it/dp/${asin[1]}?tag=${utenteAttivo.tag}` : urlRaw;
             document.getElementById('modal-form').classList.remove('hidden');
         });
     };
 
-    window.apriPopupNuovo = (tipo) => {
-        tipoConfigCorrente = tipo;
-        document.getElementById('input-modal-title').innerText = "Aggiungi " + tipo;
-        document.getElementById('nuovo-valore-input').value = "";
-        document.getElementById('modal-input').classList.remove('hidden');
-    };
-
-    window.chiediEliminaOpzione = (selectId) => {
-        const sel = document.getElementById(selectId);
-        const selectedOpt = sel.options[sel.selectedIndex];
-        if(!selectedOpt) return;
-        document.getElementById('modal-confirm').classList.remove('hidden');
-        azioneConferma = async () => {
-            await deleteDoc(doc(db, "app_config", selectedOpt.dataset.id));
-            await caricaConfigurazioni();
-            document.getElementById('modal-confirm').classList.add('hidden');
-        };
-    };
-
-    window.eliminaP = (id) => {
-        document.getElementById('modal-confirm').classList.remove('hidden');
-        azioneConferma = async () => {
+    window.eliminaP = async (id) => {
+        if(confirm("Eliminare il prodotto?")) {
             await deleteDoc(doc(db, "prodotti", id));
             caricaProdotti();
-            document.getElementById('modal-confirm').classList.add('hidden');
-        };
-    };
-
-    document.getElementById('btn-conferma-input').onclick = async () => {
-        const val = document.getElementById('nuovo-valore-input').value.trim();
-        if(val) {
-            await addDoc(collection(db, "app_config"), { nome: val, tipo: tipoConfigCorrente });
-            await caricaConfigurazioni();
-            document.getElementById('modal-input').classList.add('hidden');
         }
     };
-
-    document.getElementById('btn-nuovo-manuale').onclick = () => { 
-        document.getElementById('f-id').value = ""; 
-        document.getElementById('f-titolo').value = "";
-        document.getElementById('modal-form').classList.remove('hidden'); 
-    };
-    document.getElementById('confirm-delete-btn').onclick = () => { if(azioneConferma) azioneConferma(); };
+    
+    document.getElementById('btn-nuovo-manuale').onclick = () => document.getElementById('modal-form').classList.remove('hidden');
     document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-form').classList.add('hidden');
-    document.getElementById('cancel-delete-btn').onclick = () => document.getElementById('modal-confirm').classList.add('hidden');
 </script>
 </body>
 </html>
