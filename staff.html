@@ -24,6 +24,7 @@
         input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; outline: none; }
         button { background: var(--amazon); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-logout { background: #555; width: auto; padding: 8px 15px; font-size: 12px; margin: 0; }
+        .btn-share-shop { background: var(--nuovo); width: auto; padding: 8px 15px; font-size: 12px; margin: 0 5px; display: flex; align-items: center; gap: 5px; }
         .btn-manual { background: var(--nuovo); margin-top: 5px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 15px; }
         .card-p { background: white; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; height: 165px; display: flex; flex-direction: column; justify-content: flex-start; transition: transform 0.2s; overflow: hidden; }
@@ -70,7 +71,10 @@
                     <p id="nome-utente" style="font-weight: bold; margin: 0; font-size: 1.1rem;"></p>
                     <code id="id-display" style="font-size: 11px; color: #777;"></code>
                 </div>
-                <button class="btn-logout" id="btn-logout">Esci</button>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-share-shop" id="btn-share-shop"><i class="fa-solid fa-share-nodes"></i> Shop</button>
+                    <button class="btn-logout" id="btn-logout">Esci</button>
+                </div>
             </div>
 
             <div class="wallet-card">
@@ -172,15 +176,11 @@
     let azioneConferma = null; 
     let tipoConfigCorrente = ""; 
 
-    // --- LOGICA DI ACCESSO INTELLIGENTE ---
     const sessioneSalvata = localStorage.getItem('shopygo_user_session');
     const appenaUscito = sessionStorage.getItem('shopygo_logged_out');
 
     if (sessioneSalvata) {
-        // Mostra sempre il tasto biometrico se abbiamo un ID in memoria
         document.getElementById('btn-biometrico').style.display = 'block';
-        
-        // Esegui il login automatico SOLO se non ha appena premuto "Esci"
         if (!appenaUscito) {
             aggiornaDatiUtente(sessioneSalvata);
         }
@@ -192,7 +192,7 @@
         if(!snap.empty) {
             utenteAttivo = snap.docs[0].data();
             localStorage.setItem('shopygo_user_session', codice.toUpperCase());
-            sessionStorage.removeItem('shopygo_logged_out'); // Reset flag logout se l'utente entra
+            sessionStorage.removeItem('shopygo_logged_out');
             mostraDashboard();
         } else { 
             alert("ID non valido.");
@@ -200,14 +200,11 @@
         }
     }
 
-    // --- LOGOUT ---
     document.getElementById('btn-logout').onclick = () => { 
-        // Impostiamo un flag temporaneo per la sessione corrente
         sessionStorage.setItem('shopygo_logged_out', 'true');
         location.reload(); 
     };
 
-    // --- BIOMETRIA ---
     document.getElementById('btn-biometrico').onclick = async () => {
         const saved = localStorage.getItem('shopygo_user_session');
         if(saved) {
@@ -217,13 +214,19 @@
         }
     };
 
-    // --- LOGIN MANUALE ---
     document.getElementById('btn-login').onclick = () => {
         const cod = document.getElementById('codice-accesso').value.trim();
         if(cod) aggiornaDatiUtente(cod);
     };
 
-    // --- DASHBOARD E PRODOTTI ---
+    // --- FUNZIONE CONDIVISIONE SHOP ---
+    document.getElementById('btn-share-shop').onclick = () => {
+        const linkShop = `https://www.shopygo.link/user.html?id=${utenteAttivo.codice}`;
+        navigator.clipboard.writeText(linkShop).then(() => {
+            alert("Il link al tuo shop personale è stato copiato!\n\n" + linkShop);
+        });
+    };
+
     function mostraDashboard() {
         document.getElementById('nome-utente').innerText = "Ciao, " + utenteAttivo.nome;
         document.getElementById('id-display').innerText = "ID Staff: " + utenteAttivo.codice;
