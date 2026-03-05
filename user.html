@@ -1,0 +1,22 @@
+// 1. Recupera l'ID dall'indirizzo URL (es. ?id=SG002)
+const urlParams = new URLSearchParams(window.location.search);
+const userID = urlParams.get('id'); 
+
+// 2. Nella funzione caricaProdotti, filtra per quel TAG specifico
+async function caricaProdottiUtente() {
+    const container = document.getElementById('grid-prodotti');
+    container.innerHTML = "";
+    
+    // Filtriamo nel database cercando solo i prodotti con il tag dell'utente
+    const q = query(collection(db, "prodotti"), where("tag", "==", userID));
+    
+    const snap = await getDocs(q);
+    snap.forEach((res) => {
+        const p = res.data();
+        // Qui generi il codice HTML della card prodotto come nella home...
+        const div = document.createElement('div');
+        div.className = 'card-p';
+        div.innerHTML = `<img src="${p.immagine}"><p>${p.titolo}</p>`;
+        container.appendChild(div);
+    });
+}
