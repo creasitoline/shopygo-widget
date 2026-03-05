@@ -3,92 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ShopyGO - Shop Personale</title>
+    <title>ShopyGO | Shop Personale Selezionato</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --bg: #f3f3f3; --accent: #FFD814; --success: #2ecc71; --danger: #cc0000; }
-        body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; color: var(--text); padding-bottom: 50px; }
-        header { background: var(--primary); padding: 10px 20px; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #ddd; }
-        .logo { height: 35px; }
+        :root { --primary: #ffffff; --text: #131921; --amazon: #007185; --nuovo: #6c5ce7; --usato: #2ecc71; --offerta: #e67e22; --bg: #f3f3f3; --accent: #FFD814; --sconto: #CC0C39; }
+        body { font-family: 'Segoe UI', system-ui; margin: 0; background: var(--bg); padding-bottom: 90px; color: var(--text); overflow-x: hidden; }
         
-        .hero-user { background: white; padding: 30px 20px; text-align: center; border-bottom: 1px solid #eee; margin-bottom: 10px; }
-        .user-badge { background: var(--amazon); color: white; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        header { background: var(--primary); padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid #ddd; gap: 10px; }
+        .logo { height: 30px; }
+        
+        .hero-user { background: white; padding: 20px 15px; text-align: center; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+        .user-badge { background: var(--amazon); color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
 
-        /* Griglia Mobile a 2 colonne */
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 10px; 
-            padding: 10px; 
-            max-width: 1200px; 
-            margin: auto; 
+        .search-container { flex: 1; max-width: 600px; position: relative; display: flex; align-items: center; }
+        .search-container input { width: 100%; padding: 10px 40px 10px 15px; border-radius: 25px; border: 1px solid #ccc; font-size: 14px; outline: none; }
+        .search-container i { position: absolute; right: 15px; color: #888; }
+
+        .main-layout { max-width: 1400px; margin: auto; padding: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        
+        /* Layout Mobile a 2 colonne fisse come richiesto */
+        @media (max-width: 480px) {
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 5px; }
         }
 
-        .card-p { 
-            background: white; 
-            padding: 10px; 
-            border-radius: 12px; 
-            text-align: center; 
-            border: 1px solid #eee; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-            display: flex; 
-            flex-direction: column; 
-            position: relative; 
-            text-decoration: none; 
-            color: inherit;
-            height: 100%;
-        }
+        .card { background: white; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #ddd; position: relative; }
+        .badge { position: absolute; top: 8px; padding: 3px 7px; border-radius: 4px; color: white; font-size: 8px; font-weight: bold; text-transform: uppercase; z-index: 5; }
+        .badge-left { left: 8px; background: var(--amazon); }
+        .badge-right { right: 8px; background: #666; }
 
-        /* Badge Percentuale Sconto */
-        .discount-badge { 
-            position: absolute; 
-            top: 5px; 
-            left: 5px; 
-            background: var(--danger); 
-            color: white; 
-            padding: 2px 6px; 
-            border-radius: 5px; 
-            font-size: 11px; 
-            font-weight: bold; 
-            z-index: 5;
-        }
-
-        .card-p img { width: 100%; height: 110px; object-fit: contain; margin-bottom: 8px; }
-        .card-p h3 { font-size: 12px; margin: 5px 0; height: 34px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #333; line-height: 1.3; }
+        .image-container { width: 100%; height: 160px; background: #fff; cursor: zoom-in; }
+        .card img { width: 100%; height: 100%; object-fit: contain; }
         
-        .price-box { margin-top: auto; }
-        .old-price { font-size: 11px; color: #888; text-decoration: line-through; display: block; height: 14px; }
-        .price { font-size: 16px; font-weight: bold; color: var(--text); display: block; margin-bottom: 5px; }
+        .info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+        .info h4 { font-size: 0.85rem; margin: 0; min-height: 50px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
         
-        /* Bottoni dinamici */
-        .btn-buy { border: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 11px; width: 100%; cursor: pointer; text-transform: uppercase; }
-        .btn-amazon { background: var(--accent); color: #111; }
-        .btn-contact { background: var(--success); color: white; }
+        .price-container { display: flex; flex-direction: column; margin: 8px 0 12px 0; }
+        .price-row { display: flex; align-items: center; gap: 5px; }
+        .perc-sconto { color: var(--sconto); font-size: 1.1rem; font-weight: 400; }
+        .price { color: #131921; font-size: 1.1rem; font-weight: bold; }
+        .old-price { color: #565959; text-decoration: line-through; font-size: 0.75rem; margin-top: -2px; }
+        .single-price { color: #131921; font-size: 1.1rem; font-weight: bold; margin: 8px 0 12px 0; display: block; }
 
-        #no-products { text-align: center; padding: 50px; color: #777; font-weight: 500; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--amazon); border-radius: 50%; width: 35px; height: 35px; animation: spin 1s linear infinite; margin: 40px auto; }
+        .buy-btn { padding: 8px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; font-weight: bold; text-align: center; margin-top: auto; border: 1px solid transparent; }
+
+        /* Lightbox per Zoom */
+        #lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; display: none; align-items: center; justify-content: center; }
+        #lightbox img { max-width: 90%; max-height: 80%; border-radius: 8px; }
+        .close-zoom { position: absolute; top: 20px; right: 20px; color: white; font-size: 2.5rem; cursor: pointer; }
+
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--amazon); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+    <div id="lightbox">
+        <span class="close-zoom">&times;</span>
+        <img id="img-zoom" src="">
+    </div>
+
     <header>
         <img src="logo.png" alt="ShopyGO" class="logo">
+        <div class="search-container">
+            <input type="text" id="user-search" placeholder="Cerca tra i miei consigli..." autocomplete="off">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
     </header>
 
     <div class="hero-user">
         <span class="user-badge">SHOP PERSONALE</span>
-        <h2 style="margin: 10px 0 5px 0;">Offerte Selezionate</h2>
-        <p style="font-size: 13px; color: #666; margin: 0;">Prodotti scelti e verificati dal nostro staff.</p>
+        <h2 style="margin: 8px 0 3px 0; font-size: 1.3rem;">Offerte Selezionate</h2>
+        <p style="font-size: 12px; color: #666; margin: 0;">Le migliori occasioni scelte per te.</p>
     </div>
 
     <div id="loader" class="loader"></div>
-    <div id="grid-prodotti" class="grid"></div>
-    
-    <div id="no-products" class="hidden">
-        <i class="fa-solid fa-box-open" style="font-size: 3rem; color: #ccc; margin-bottom: 15px; display: block;"></i>
-        Nessun prodotto disponibile al momento.
+
+    <div class="main-layout">
+        <div id="product-grid" class="grid"></div>
+        <div id="no-products" class="hidden" style="text-align: center; padding: 40px; color: #888;">
+            <i class="fa-solid fa-box-open" style="font-size: 3rem; margin-bottom: 10px; display: block;"></i>
+            Nessun prodotto trovato.
+        </div>
     </div>
 
 <script type="module">
@@ -106,72 +104,100 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    let prodottiCaricati = [];
     const urlParams = new URLSearchParams(window.location.search);
     const trackingTag = urlParams.get('tag');
 
-    if (!trackingTag) {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('no-products').innerHTML = "Link non valido.";
-        document.getElementById('no-products').classList.remove('hidden');
-    } else {
-        caricaProdottiPerTag(trackingTag);
-    }
+    // Funzioni Globali per gestire click e zoom
+    window.registraClick = async (productId) => {
+        const prodRef = doc(db, "prodotti", productId);
+        try { await updateDoc(prodRef, { click_count: increment(1) }); } catch (e) { console.error(e); }
+    };
 
-    async function caricaProdottiPerTag(tag) {
-        const container = document.getElementById('grid-prodotti');
+    window.apriZoom = (url) => {
+        document.getElementById('img-zoom').src = url;
+        document.getElementById('lightbox').style.display = 'flex';
+    };
+
+    document.querySelector('.close-zoom').onclick = () => document.getElementById('lightbox').style.display = 'none';
+
+    async function caricaProdotti() {
+        if (!trackingTag) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('no-products').innerHTML = "Link non valido.";
+            document.getElementById('no-products').classList.remove('hidden');
+            return;
+        }
+
         try {
-            const q = query(collection(db, "prodotti"), where("tag", "==", tag));
+            const q = query(collection(db, "prodotti"), where("tag", "==", trackingTag));
             const snap = await getDocs(q);
-            
-            document.getElementById('loader').style.display = 'none';
+            document.getElementById('loader').classList.add('hidden');
 
             if (snap.empty) {
                 document.getElementById('no-products').classList.remove('hidden');
                 return;
             }
 
-            snap.forEach((res) => {
-                const p = res.data();
-                const productID = res.id;
-                
-                // Calcolo Percentuale Sconto
-                let scontoHTML = '';
-                if(p.prezzo_pieno && parseFloat(p.prezzo_pieno) > parseFloat(p.prezzo)) {
-                    const perc = Math.round(((p.prezzo_pieno - p.prezzo) / p.prezzo_pieno) * 100);
-                    scontoHTML = `<div class="discount-badge">-${perc}%</div>`;
-                }
-
-                // Logica Tasto Dinamico
-                const isAmazon = (p.tipo && p.tipo.toLowerCase() === 'amazon') || p.link_amazon.includes('amazon');
-                const btnClass = isAmazon ? 'btn-amazon' : 'btn-contact';
-                const btnText = isAmazon ? 'Vedi su Amazon' : 'Contatta Ora';
-
-                const card = document.createElement('a');
-                card.className = 'card-p';
-                card.href = p.link_amazon;
-                card.target = "_blank";
-                
-                card.onclick = () => {
-                    updateDoc(doc(db, "prodotti", productID), { click_count: increment(1) });
-                };
-
-                card.innerHTML = `
-                    ${scontoHTML}
-                    <img src="${p.immagine || 'placeholder.jpg'}" alt="Prodotto">
-                    <h3>${p.titolo}</h3>
-                    <div class="price-box">
-                        <span class="old-price">${p.prezzo_pieno ? p.valuta + ' ' + p.prezzo_pieno : ''}</span>
-                        <span class="price">${p.valuta || '€'} ${p.prezzo}</span>
-                        <button class="btn-buy ${btnClass}">${btnText}</button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        } catch (error) {
-            console.error("Errore:", error);
-            document.getElementById('loader').style.display = 'none';
+            prodottiCaricati = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderGrid();
+        } catch (e) {
+            console.error(e);
+            document.getElementById('loader').classList.add('hidden');
         }
     }
+
+    function renderGrid() {
+        const grid = document.getElementById('product-grid');
+        const searchTerm = document.getElementById('user-search').value.toLowerCase();
+        
+        const filtrati = prodottiCaricati.filter(p => 
+            p.visibile !== false && p.titolo.toLowerCase().includes(searchTerm)
+        );
+
+        grid.innerHTML = "";
+        
+        if(filtrati.length === 0) {
+            document.getElementById('no-products').classList.remove('hidden');
+        } else {
+            document.getElementById('no-products').classList.add('hidden');
+        }
+
+        filtrati.forEach(p => {
+            let sCol = (p.stato || "").toLowerCase() === "nuovo" ? "var(--nuovo)" : ((p.stato || "").toLowerCase() === "usato" ? "var(--usato)" : "var(--offerta)");
+            
+            // Logica Tasto Dinamico
+            const isMarketplace = (p.tipo === "Marketplace" || p.tipo === "Annunci");
+            const btnText = isMarketplace ? "CONTATTA ORA" : "VEDI OFFERTA";
+            const btnCol = isMarketplace ? "#2ecc71" : "var(--accent)";
+            const btnLink = p.link_amazon || p.link || "#";
+
+            // Prezzo e Sconto
+            let htmlPrezzo = p.prezzo_pieno 
+                ? `<div class="price-container"><div class="price-row"><span class="perc-sconto">-${p.sconto_perc || Math.round((p.prezzo_pieno-p.prezzo)/p.prezzo_pieno*100)+'%'}</span><span class="price">${p.valuta || '€'}${p.prezzo}</span></div><span class="old-price">Prezzo: ${p.valuta || '€'}${p.prezzo_pieno}</span></div>` 
+                : `<span class="single-price">${p.valuta || '€'} ${p.prezzo}</span>`;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="badge badge-left">${p.tipo || 'Amazon'}</div>
+                ${p.stato ? `<div class="badge badge-right" style="background:${sCol}">${p.stato}</div>` : ''}
+                <div class="image-container" onclick="window.apriZoom('${p.immagine}')">
+                    <img src="${p.immagine || 'placeholder.jpg'}">
+                </div>
+                <div class="info">
+                    <h4>${p.titolo}</h4>
+                    ${htmlPrezzo}
+                    <a href="${btnLink}" target="_blank" class="buy-btn" 
+                       onclick="window.registraClick('${p.id}')" 
+                       style="background:${btnCol}; color: ${isMarketplace ? 'white' : 'black'}; border-color:${isMarketplace ? '#27ae60' : '#f0c14b'}">${btnText}</a>
+                </div>`;
+            grid.appendChild(card);
+        });
+    }
+
+    document.getElementById('user-search').oninput = renderGrid;
+    caricaProdotti();
 </script>
 </body>
 </html>
