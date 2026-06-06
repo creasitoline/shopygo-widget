@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Dettaglio Prodotto | ShopyGO</title>
+    <link rel="stylesheet" href="style.css"> </head>
+<body>
+    <header>
+        <a href="index.html">Torna allo Shop</a>
+    </header>
+
+    <main id="prodotto-container">
+        <h1 id="titolo">Caricamento...</h1>
+        <img id="immagine" src="" alt="Prodotto">
+        <p id="descrizione"></p>
+        <p>Prezzo: <span id="prezzo"></span></p>
+        <a id="link-acquisto" href="#" target="_blank" rel="nofollow ugc" class="buy-btn">ACQUISTA SU AMAZON</a>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configura firebase (copia quella che hai già negli altri file)
+        const firebaseConfig = { /* ... */ };
+        const db = getFirestore(initializeApp(firebaseConfig));
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+
+        async function caricaProdotto() {
+            const docRef = doc(db, "prodotti", id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('titolo').innerText = data.titolo;
+                document.getElementById('immagine').src = data.immagine;
+                document.getElementById('descrizione').innerText = data.descrizione || "Nessuna descrizione disponibile.";
+                document.getElementById('prezzo').innerText = data.prezzo + " " + (data.valuta || "€");
+                document.getElementById('link-acquisto').href = data.link_amazon;
+            }
+        }
+        caricaProdotto();
+    </script>
+</body>
+</html>
